@@ -1,0 +1,83 @@
+# Mathematical Utilities
+
+_[Core Graphics Library by Ross Smith](index.html)_
+
+```c++
+#include "rs-graphics-core/maths.hpp"
+namespace RS::Graphics::Core;
+```
+
+This header contains some utility functions that are not directly related to
+graphics, but are used internally by the graphics library and may be useful
+to users of it.
+
+## Contents
+
+* TOC
+{:toc}
+
+## Constants
+
+```c++
+template <typename T> constexpr T pi = 3.14159...;
+constexpr auto pi_f = pi<float>;
+constexpr auto pi_d = pi<double>;
+constexpr auto pi_ld = pi<long double>;
+```
+
+Mathematical constants.
+
+## Algorithms
+
+```c++
+template <typename T> constexpr std::pair<T, T> euclidean_divide(T x, T y) noexcept;
+template <typename T> constexpr T euclidean_quotient(T x, T y) noexcept;
+template <typename T> constexpr T euclidean_remainder(T x, T y) noexcept;
+```
+
+These perform Euclidean division, where the remainder is always in the range
+`[0,|y|)`. `T` may be any integer or floating point arithmetic type. Behaviour
+is undefined if `y=0`, or if the correct result is outside the range of `T`.
+
+```c++
+template <typename T> constexpr std::pair<T, T> symmetric_divide(T x, T y) noexcept;
+template <typename T> constexpr T symmetric_quotient(T x, T y) noexcept;
+template <typename T> constexpr T symmetric_remainder(T x, T y) noexcept;
+```
+
+These perform symmetric division, where the remainder is in the range
+`(-|y|/2,|y|/2]`. `T` must be a floating point type or a signed integer.
+Behaviour is undefined if `y=0`, or if the correct result is outside the range
+of `T`.
+
+```c++
+template <typename X, typename Y> constexpr Y interpolate(X x1, Y y1, X x2, Y y2, X x3) noexcept;
+```
+
+Given two points, `(x1,y1)` and `(x2,y2)`, and a third input argument `x3`,
+this calculates the value `y3` by linear interpolation or extrapolation. `X`
+must be a floating point arithmetic type; `Y` only needs to define `Y-Y` and
+`X*Y`, and need not be an arithmetic type. Behaviour is undefined if `x1=x2`.
+
+```c++
+template <typename T> constexpr T to_degrees(T rad) noexcept;
+template <typename T> constexpr T to_radians(T deg) noexcept;
+```
+
+Convert between degrees and radians. `T` must be floating point.
+
+## Literals
+
+```c++
+namespace Literals {
+    constexpr float operator""_degf(long double x) noexcept;
+    constexpr float operator""_degf(unsigned long long x) noexcept;
+    constexpr double operator""_degd(long double x) noexcept;
+    constexpr double operator""_degd(unsigned long long x) noexcept;
+    constexpr long double operator""_degld(long double x) noexcept;
+    constexpr long double operator""_degld(unsigned long long x) noexcept;
+}
+```
+
+Angle literals. These take a number expressed in degrees and return a value in
+radians (for example, `360_deg` yields `2π`).

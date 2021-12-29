@@ -1,0 +1,258 @@
+#include "rs-graphics-core/vector.hpp"
+#include "rs-unit-test.hpp"
+#include <tuple>
+#include <unordered_set>
+
+using namespace RS::Graphics::Core;
+
+void test_rs_graphics_core_integer_vector_construction() {
+
+    Int3 v1, v2, v3;
+    const Int3& cv1 = v1;
+    const Int3& cv2 = v2;
+    const Int3& cv3 = v3;
+
+    TEST_EQUAL(sizeof(Int3), 3 * sizeof(int));
+
+    TRY(v1 = Int3(1));
+    TRY(v2 = Int3(0));
+    TEST(! v1.is_null());
+    TEST(v2.is_null());
+
+    TEST_EQUAL(v1.str(), "[1,1,1]");
+    TEST_EQUAL(cv1.str(), "[1,1,1]");
+
+    TEST_EQUAL(v1[0], 1);  TEST_EQUAL(cv1[0], 1);
+    TEST_EQUAL(v1[1], 1);  TEST_EQUAL(cv1[1], 1);
+    TEST_EQUAL(v1[2], 1);  TEST_EQUAL(cv1[2], 1);
+
+    TRY(v2[0] = 99);
+    TRY(v2[1] = 98);
+    TRY(v2[2] = 97);
+    TEST_EQUAL(v2.str(), "[99,98,97]");
+    TEST_EQUAL(cv2.str(), "[99,98,97]");
+
+    TEST_EQUAL(v2[0], 99);   TEST_EQUAL(cv2[0], 99);
+    TEST_EQUAL(v2[1], 98);   TEST_EQUAL(cv2[1], 98);
+    TEST_EQUAL(v2[2], 97);   TEST_EQUAL(cv2[2], 97);
+    TEST_EQUAL(v2.x(), 99);  TEST_EQUAL(cv2.x(), 99);
+    TEST_EQUAL(v2.y(), 98);  TEST_EQUAL(cv2.y(), 98);
+    TEST_EQUAL(v2.z(), 97);  TEST_EQUAL(cv2.z(), 97);
+
+    TRY((v3 = Int3{1,2,3}));
+    TEST_EQUAL(v3.str(), "[1,2,3]");
+    TEST_EQUAL(cv3.str(), "[1,2,3]");
+
+    TRY((v3 = Int3(2,4,6)));
+    TEST_EQUAL(v3.str(), "[2,4,6]");
+    TEST_EQUAL(cv3.str(), "[2,4,6]");
+
+    TRY((v3 = {10,20,30}));
+    TEST_EQUAL(v3.str(), "[10,20,30]");
+    TEST_EQUAL(cv3.str(), "[10,20,30]");
+
+    TEST_EQUAL(v3[0], 10);          TEST_EQUAL(cv3[0], 10);
+    TEST_EQUAL(v3[1], 20);          TEST_EQUAL(cv3[1], 20);
+    TEST_EQUAL(v3[2], 30);          TEST_EQUAL(cv3[2], 30);
+    TEST_EQUAL(v3.begin()[0], 10);  TEST_EQUAL(cv3.begin()[0], 10);
+    TEST_EQUAL(v3.begin()[1], 20);  TEST_EQUAL(cv3.begin()[1], 20);
+    TEST_EQUAL(v3.begin()[2], 30);  TEST_EQUAL(cv3.begin()[2], 30);
+
+}
+
+void test_rs_graphics_core_integer_vector_arithmetic() {
+
+    int x = 0;
+    Int3 v1, v2, v3, v4;
+
+    TRY((v1 = {2,3,5}));
+    TRY((v2 = {7,11,13}));
+    TRY(v3 = Int3(0));
+    TRY(v4 = Int3(0));
+    TEST(v1 == v1);
+    TEST(v1 != v2);
+    TEST(v3 == v4);
+
+    TRY(v3 = + v1);     TEST_EQUAL(v3.str(), "[2,3,5]");
+    TRY(v3 = - v1);     TEST_EQUAL(v3.str(), "[-2,-3,-5]");
+    TRY(v3 = v1 + v2);  TEST_EQUAL(v3.str(), "[9,14,18]");
+    TRY(v3 = v1 - v2);  TEST_EQUAL(v3.str(), "[-5,-8,-8]");
+    TRY(v3 = 17 * v1);  TEST_EQUAL(v3.str(), "[34,51,85]");
+    TRY(v3 = v1 * 19);  TEST_EQUAL(v3.str(), "[38,57,95]");
+    TRY(x = v1 % v2);   TEST_EQUAL(x, 112);
+    TRY(v3 = v1 ^ v2);  TEST_EQUAL(v3.str(), "[-16,9,1]");
+    TRY(v3 = v1 * v2);  TEST_EQUAL(v3.str(), "[14,33,65]");
+    TRY(v3 = v2 / v1);  TEST_EQUAL(v3.str(), "[3,3,2]");
+
+    TRY(v3 = Int3::unit(0));  TEST_EQUAL(v3.str(), "[1,0,0]");
+    TRY(v3 = Int3::unit(1));  TEST_EQUAL(v3.str(), "[0,1,0]");
+    TRY(v3 = Int3::unit(2));  TEST_EQUAL(v3.str(), "[0,0,1]");
+
+    TRY((v1 = {1,5,9}));
+    TRY((v2 = {2,3,4}));
+    TRY((v3 = {4,6,8}));
+    TRY(v1 = clampv(v1, v2, v3));
+    TEST_EQUAL(v1.str(), "[2,5,8]");
+
+    TRY((v1 = {1,3,5}));
+    TRY((v2 = {2,3,4}));
+    TRY(v3 = minv(v1, v2));
+    TEST_EQUAL(v3.str(), "[1,3,4]");
+    TRY(v3 = maxv(v1, v2));
+    TEST_EQUAL(v3.str(), "[2,3,5]");
+    TRY(std::tie(v3, v4) = minmaxv(v1, v2));
+    TEST_EQUAL(v3.str(), "[1,3,4]");
+    TEST_EQUAL(v4.str(), "[2,3,5]");
+
+}
+
+void test_rs_graphics_core_integer_vector_hash() {
+
+    std::unordered_set<Int3> set;
+    Int3 v1, v2, v3;
+
+    TRY((v1 = {1,2,3}));
+    TRY((v2 = {4,5,6}));
+    TRY((v3 = {7,8,9}));
+    TRY(set.insert(v1));
+    TRY(set.insert(v2));
+    TRY(set.insert(v1));
+    TEST_EQUAL(set.size(), 2u);
+    TEST_EQUAL(set.count(v1), 1u);
+    TEST_EQUAL(set.count(v2), 1u);
+    TEST_EQUAL(set.count(v3), 0u);
+
+}
+
+void test_rs_graphics_core_floating_vector_construction() {
+
+    Double3 v1, v2, v3;
+    const Double3& cv1(v1);
+    const Double3& cv2(v2);
+    const Double3& cv3(v3);
+
+    TEST_EQUAL(sizeof(Double3), 3 * sizeof(double));
+
+    TRY(v1 = Double3(1.0));
+    TRY(v2 = Double3(0.0));
+    TEST(! v1.is_null());
+    TEST(v2.is_null());
+
+    TEST_EQUAL(v1.str(), "[1,1,1]");
+    TEST_EQUAL(cv1.str(), "[1,1,1]");
+    TEST_EQUAL(v1.str("e3"), "[1.00e0,1.00e0,1.00e0]");
+    TEST_EQUAL(v1.str("f3"), "[1.000,1.000,1.000]");
+
+    TEST_EQUAL(v1[0], 1);  TEST_EQUAL(cv1[0], 1);
+    TEST_EQUAL(v1[1], 1);  TEST_EQUAL(cv1[1], 1);
+    TEST_EQUAL(v1[2], 1);  TEST_EQUAL(cv1[2], 1);
+
+    TRY(v2[0] = 99);
+    TRY(v2[1] = 98);
+    TRY(v2[2] = 97);
+    TEST_EQUAL(v2.str(), "[99,98,97]");
+    TEST_EQUAL(cv2.str(), "[99,98,97]");
+
+    TEST_EQUAL(v2[0], 99);   TEST_EQUAL(cv2[0], 99);
+    TEST_EQUAL(v2[1], 98);   TEST_EQUAL(cv2[1], 98);
+    TEST_EQUAL(v2[2], 97);   TEST_EQUAL(cv2[2], 97);
+    TEST_EQUAL(v2.x(), 99);  TEST_EQUAL(cv2.x(), 99);
+    TEST_EQUAL(v2.y(), 98);  TEST_EQUAL(cv2.y(), 98);
+    TEST_EQUAL(v2.z(), 97);  TEST_EQUAL(cv2.z(), 97);
+
+    TRY((v3 = Double3{1.0,2.0,3.0}));
+    TEST_EQUAL(v3.str(), "[1,2,3]");
+    TEST_EQUAL(cv3.str(), "[1,2,3]");
+
+    TRY((v3 = Double3(2.0,4.0,6.0)));
+    TEST_EQUAL(v3.str(), "[2,4,6]");
+    TEST_EQUAL(cv3.str(), "[2,4,6]");
+
+    TRY((v3 = {10.0,20.0,30.0}));
+    TEST_EQUAL(v3.str(), "[10,20,30]");
+    TEST_EQUAL(cv3.str(), "[10,20,30]");
+
+    TEST_EQUAL(v3[0], 10);          TEST_EQUAL(cv3[0], 10);
+    TEST_EQUAL(v3[1], 20);          TEST_EQUAL(cv3[1], 20);
+    TEST_EQUAL(v3[2], 30);          TEST_EQUAL(cv3[2], 30);
+    TEST_EQUAL(v3.begin()[0], 10);  TEST_EQUAL(cv3.begin()[0], 10);
+    TEST_EQUAL(v3.begin()[1], 20);  TEST_EQUAL(cv3.begin()[1], 20);
+    TEST_EQUAL(v3.begin()[2], 30);  TEST_EQUAL(cv3.begin()[2], 30);
+
+}
+
+void test_rs_graphics_core_floating_vector_arithmetic() {
+
+    double x = 0;
+    Double3 v1, v2, v3, v4, v5;
+
+    TRY((v1 = {2.0,3.0,5.0}));
+    TRY((v2 = {7.0,11.0,13.0}));
+    TRY(v3 = Double3(0.0));
+    TRY(v4 = Double3(0.0));
+    TEST(v1 == v1);
+    TEST(v1 != v2);
+    TEST(v3 == v4);
+
+    TRY(v3 = + v1);     TEST_EQUAL(v3.str(), "[2,3,5]");
+    TRY(v3 = - v1);     TEST_EQUAL(v3.str(), "[-2,-3,-5]");
+    TRY(v3 = v1 + v2);  TEST_EQUAL(v3.str(), "[9,14,18]");
+    TRY(v3 = v1 - v2);  TEST_EQUAL(v3.str(), "[-5,-8,-8]");
+    TRY(v3 = 17 * v1);  TEST_EQUAL(v3.str(), "[34,51,85]");
+    TRY(v3 = v1 * 19);  TEST_EQUAL(v3.str(), "[38,57,95]");
+    TRY(v3 = v1 / 23);  TEST_EQUAL(v3.str(), "[0.0869565,0.130435,0.217391]");
+    TRY(x = v1 % v2);   TEST_EQUAL(x, 112);
+    TRY(v3 = v1 ^ v2);  TEST_EQUAL(v3.str(), "[-16,9,1]");
+    TRY(v3 = v1 * v2);  TEST_EQUAL(v3.str(), "[14,33,65]");
+    TRY(v3 = v1 / v2);  TEST_EQUAL(v3.str(), "[0.285714,0.272727,0.384615]");
+
+    TEST_EQUAL(v1.r2(), 38);   TEST_NEAR(v1.r(), 6.164414, 1e-6);
+    TEST_EQUAL(v2.r2(), 339);  TEST_NEAR(v2.r(), 18.411953, 1e-6);
+
+    TRY(v3 = Double3::unit(0));  TEST_EQUAL(v3.str(), "[1,0,0]");
+    TRY(v3 = Double3::unit(1));  TEST_EQUAL(v3.str(), "[0,1,0]");
+    TRY(v3 = Double3::unit(2));  TEST_EQUAL(v3.str(), "[0,0,1]");
+
+    TRY(v3 = Double3().dir());  TEST_EQUAL(v3.str(), "[0,0,0]");
+    TRY(v3 = v1.dir());         TEST_EQUAL(v3.str(), "[0.324443,0.486664,0.811107]");
+    TRY(v3 = v2.dir());         TEST_EQUAL(v3.str(), "[0.380188,0.597438,0.706063]");
+
+    TRY((v1 = {1.0,2.0,3.0}));
+    TRY((v2 = {}));                TRY(x = v1.angle(v2));  TEST_EQUAL(x, 0);
+    TRY((v2 = {2.0,4.0,6.0}));     TRY(x = v1.angle(v2));  TEST_EQUAL(x, 0);
+    TRY((v2 = {-2.0,-4.0,-6.0}));  TRY(x = v1.angle(v2));  TEST_NEAR(x, pi_d, 1e-6);
+    TRY((v2 = {3.0,2.0,1.0}));     TRY(x = v1.angle(v2));  TEST_NEAR(x, 0.775193, 1e-6);
+    TRY((v2 = {-3.0,-2.0,-1.0}));  TRY(x = v1.angle(v2));  TEST_NEAR(x, 2.366399, 1e-6);
+
+    TRY((v1 = {2.0,3.0,5.0}));
+    TRY((v2 = {7.0,11.0,13.0}));
+    TRY(v3 = v1.project(v2));
+    TRY(v4 = v1.reject(v2));
+    TRY(v5 = v3 + v4);
+    TEST_NEAR(v5.x(), v1.x(), 1e-6);
+    TEST_NEAR(v5.y(), v1.y(), 1e-6);
+    TEST_NEAR(v5.z(), v1.z(), 1e-6);
+    TRY(v5 = v2 ^ v3);
+    TEST_NEAR(v5.x(), 0, 1e-6);
+    TEST_NEAR(v5.y(), 0, 1e-6);
+    TEST_NEAR(v5.z(), 0, 1e-6);
+    TEST_NEAR(v2 % v4, 0, 1e-6);
+    TEST_NEAR(v3 % v4, 0, 1e-6);
+
+    TRY((v1 = {1.0,5.0,9.0}));
+    TRY((v2 = {2.0,3.0,4.0}));
+    TRY((v3 = {4.0,6.0,8.0}));
+    TRY(v1 = clampv(v1, v2, v3));
+    TEST_EQUAL(v1.str(), "[2,5,8]");
+
+    TRY((v1 = {1.0,3.0,5.0}));
+    TRY((v2 = {2.0,3.0,4.0}));
+    TRY(v3 = minv(v1, v2));
+    TEST_EQUAL(v3.str(), "[1,3,4]");
+    TRY(v3 = maxv(v1, v2));
+    TEST_EQUAL(v3.str(), "[2,3,5]");
+    TRY(std::tie(v3, v4) = minmaxv(v1, v2));
+    TEST_EQUAL(v3.str(), "[1,3,4]");
+    TEST_EQUAL(v4.str(), "[2,3,5]");
+
+}
