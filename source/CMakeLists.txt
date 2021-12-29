@@ -50,18 +50,8 @@ check_for_library(no rs-unit-test rs-unit-test.hpp https://github.com/CaptainCro
 set(library rs-graphics-core)
 set(unittest test-${library})
 
-# set(executable PERMISSIONS
-#     OWNER_READ OWNER_WRITE OWNER_EXECUTE
-#     GROUP_READ GROUP_EXECUTE
-#     WORLD_READ WORLD_EXECUTE
-# )
-
 include_directories(.)
 find_package(Threads REQUIRED)
-
-# add_library(${library} STATIC
-#     ${library}/vector.cpp
-# )
 
 add_executable(${unittest}
     test/version-test.cpp
@@ -79,10 +69,8 @@ add_executable(${unittest}
 )
 
 target_link_libraries(${unittest}
-    # PRIVATE ${library}
     PRIVATE Threads::Threads
 )
 
 install(DIRECTORY ${library} DESTINATION include)
 install(FILES ${library}.hpp DESTINATION include)
-# install(TARGETS ${library} LIBRARY DESTINATION lib)
