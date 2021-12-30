@@ -15,7 +15,7 @@ namespace RS::Graphics::Core {
         unconstrained,  // Any real value
         non_negative,   // Non-negative real value
         unit,           // Unit interval [0,1]
-        circle,         // Circular interval [0,2π)
+        circle,         // Circular interval [0,1)
     )
 
     struct ChannelSpec {
@@ -31,7 +31,7 @@ namespace RS::Graphics::Core {
             switch (cm) {
                 case ChannelMode::non_negative:  return t >= 0;
                 case ChannelMode::unit:          return t >= 0 && t <= 1;
-                case ChannelMode::circle:        return t >= 0 && t < 2 * pi<T>;
+                case ChannelMode::circle:        return t >= 0 && t < 1;
                 default:                         return true;
             }
         };
@@ -61,7 +61,9 @@ namespace RS::Graphics::Core {
                         t = 1;
                     break;
                 case ChannelMode::circle:
-                    t = euclidean_remainder(t, 2 * pi<T>);
+                    t -= int64_t(t);
+                    if (t < 0)
+                        t += 1;
                     break;
                 default:
                     break;
@@ -74,23 +76,6 @@ namespace RS::Graphics::Core {
             static_assert(N == ColourSpace::n_channels);
             for (int i = 0; i < N; ++i)
                 clamp_channel(colour[i], ColourSpace::channels[i].mode);
-        }
-
-        // http://www.brucelindbloom.com/index.html?Eqn_RGB_XYZ_Matrix.html
-        // http://www.brucelindbloom.com/index.html?WorkingSpaceInfo.html
-
-        template <typename T>
-        constexpr Matrix<T, 3> linear_srgb_to_ciexyz_matrix() noexcept {
-            return Matrix<T, 3, MatrixLayout::row> {
-                T(0.4124564), T(0.3575761), T(0.1804375),
-                T(0.2126729), T(0.7151522), T(0.0721750),
-                T(0.0193339), T(0.1191920), T(0.9503041),
-            };
-        }
-
-        template <typename T>
-        constexpr Matrix<T, 3> ciexyz_to_linear_srgb_matrix() noexcept {
-            return linear_srgb_to_ciexyz_matrix<T>().inverse();
         }
 
     }
@@ -146,7 +131,7 @@ namespace RS::Graphics::Core {
         int64_t M10, int64_t M11, int64_t M12,
         int64_t M20, int64_t M21, int64_t M22,
         int64_t Divisor>
-    class RGBWorkingSpace {
+    class WorkingSpace {
     public:
         using base = CIEXYZ;
         static constexpr int n_channels = 3;
@@ -168,7 +153,7 @@ namespace RS::Graphics::Core {
     };
 
     template <typename WorkingSpace, int64_t GammaNumerator, int64_t GammaDenominator>
-    class NonlinearRGBSpace {
+    class NonlinearSpace {
     public:
         using base = WorkingSpace;
         static constexpr int n_channels = 3;
@@ -191,10 +176,11 @@ namespace RS::Graphics::Core {
         }
     };
 
+    // Source for matrices:
     // http://www.brucelindbloom.com/index.html?Eqn_RGB_XYZ_Matrix.html
     // http://www.brucelindbloom.com/index.html?WorkingSpaceInfo.html
 
-    using LinearRGB = RGBWorkingSpace<
+    using LinearRGB = WorkingSpace<
         4'124'564,  3'575'761,  1'804'375,
         2'126'729,  7'151'522,  721'750,
         193'339,    1'191'920,  9'503'041,
@@ -211,42 +197,52 @@ namespace RS::Graphics::Core {
             { 'B', ChannelMode::unit },
         }};
         template <typename T> Vector<T, 3> from_base(Vector<T, 3> colour) const noexcept {
-            for (auto& c: colour) {
-                if (c < T(0.003'130'8))
-                    c *= T(12.92);
+            static constexpr T a = T(0.003'130'8);
+            static constexpr T b = T(12.92);
+            static constexpr T c = T(0.055);
+            static constexpr T d = c + 1;
+            static constexpr T e = 1 / T(2.4);
+            for (auto& x: colour) {
+                if (x < a)
+                    x *= b;
                 else
-                    c = T(1.055) * std::pow(c, T(1) / T(2.4)) - T(0.055);
+                    x = d * std::pow(x, e) - c;
             }
             return colour;
         }
         template <typename T> Vector<T, 3> to_base(Vector<T, 3> colour) const noexcept {
-            for (auto& c: colour) {
-                if (c < T(0.040'45))
-                    c /= T(12.92);
+            static constexpr T a = T(0.040'45);
+            static constexpr T b = 1 / T(12.92);
+            static constexpr T c = T(0.055);
+            static constexpr T d = 1 / (c + 1);
+            static constexpr T e = T(2.4);
+            for (auto& x: colour) {
+                if (x < a)
+                    x *= b;
                 else
-                    c = std::pow((c + T(0.055)) / T(1.055), T(2.4));
+                    x = std::pow((x + c) * d, e);
             }
             return colour;
         }
     };
 
-    using LinearAdobeRGB = RGBWorkingSpace<
+    using LinearAdobeRGB = WorkingSpace<
         5'767'309,  1'855'540,  1'881'852,
         2'973'769,  6'273'491,  752'741,
         270'343,    706'872,    9'911'085,
         10'000'000
     >;
 
-    using AdobeRGB = NonlinearRGBSpace<LinearAdobeRGB, 22, 10>;
+    using AdobeRGB = NonlinearSpace<LinearAdobeRGB, 22, 10>;
 
-    using LinearWideGamut = RGBWorkingSpace<
+    using LinearWideGamut = WorkingSpace<
         7'161'046,  1'009'296,  1'471'858,
         2'581'874,  7'249'378,  168'748,
         0,          517'813,    7'734'287,
         10'000'000
     >;
 
-    using WideGamut = NonlinearRGBSpace<LinearWideGamut, 563, 256>;
+    using WideGamut = NonlinearSpace<LinearWideGamut, 563, 256>;
 
     class CIELab {
     public:
@@ -294,6 +290,38 @@ namespace RS::Graphics::Core {
         }
     };
 
+    namespace Detail {
+
+        template <typename T>
+        constexpr void rgb_to_hcv(T r, T g, T b, T& h, T& c, T& v) noexcept {
+            r = std::clamp(r, T(0), T(1));
+            g = std::clamp(g, T(0), T(1));
+            b = std::clamp(b, T(0), T(1));
+            v = std::max({r, g, b});
+            c = v - std::min({r, g, b});
+            h = c == 0 ? T(0) : v == r ? (g - b) / c : v == g ? (b - r) / c + 2 : (r - g) / c + 4;
+            h = (pi<T> / 3) * euclidean_remainder(h, T(6));
+        }
+
+        template <typename T>
+        constexpr void hcm_to_rgb(T h, T c, T m, T& r, T& g, T& b) noexcept {
+            h = euclidean_remainder(h, 2 * pi<T>) * 3 / pi<T>;
+            c = std::clamp(c, T(0), T(1));
+            m = std::clamp(m, T(0), T(1));
+            T x = c * (1 - std::abs(euclidean_remainder(h, T(2)) - 1));
+            r = g = b = m;
+            switch (int(h)) {
+                case 0:   r += c; g += x; break;
+                case 1:   r += x; g += c; break;
+                case 2:   g += c; b += x; break;
+                case 3:   g += x; b += c; break;
+                case 4:   r += x; b += c; break;
+                default:  r += c; b += x; break;
+            }
+        }
+
+    }
+
     class HSL {
     public:
         using base = LinearRGB;
@@ -305,15 +333,18 @@ namespace RS::Graphics::Core {
         }};
         template <typename T> constexpr Vector<T, 3> from_base(Vector<T, 3> colour) const noexcept {
             Vector<T, 3> out;
-            // TODO
-            (void)colour;
-            return out;
+            T c, v;
+            rgb_to_hcv(colour[0], colour[1], colour[2], out[0], c, v);
+            out[2] = (T(2) * v - c) / T(2);
+            out[1] = c == T(0) ? T(0) : c / (T(1) - std::abs(T(2) * out[2] - T(1)));
+            out[0] /= 2 * pi<T>; // TODO
         }
         template <typename T> constexpr Vector<T, 3> to_base(Vector<T, 3> colour) const noexcept {
+            colour[0] *= 2 * pi<T>;
             Vector<T, 3> out;
-            // TODO
-            (void)colour;
-            return out;
+            T c = (T(1) - std::abs(T(2) * colour[2] - T(1))) * colour[1];
+            T m = colour[2] - c / T(2);
+            hcm_to_rgb(colour[0], c, m, out[0], out[1], out[2]);
         }
     };
 
@@ -328,15 +359,17 @@ namespace RS::Graphics::Core {
         }};
         template <typename T> constexpr Vector<T, 3> from_base(Vector<T, 3> colour) const noexcept {
             Vector<T, 3> out;
-            // TODO
-            (void)colour;
-            return out;
+            T c;
+            rgb_to_hcv(colour[0], colour[1], colour[2], out[0], c, out[2]);
+            out[1] = c == T(0) ? T(0) : c / out[2];
+            out[0] /= 2 * pi<T>; // TODO
         }
         template <typename T> constexpr Vector<T, 3> to_base(Vector<T, 3> colour) const noexcept {
+            colour[0] *= 2 * pi<T>;
             Vector<T, 3> out;
-            // TODO
-            (void)colour;
-            return out;
+            T c = colour[2] * colour[1];
+            T m = colour[2] - c;
+            hcm_to_rgb(colour[0], c, m, out[0], out[1], out[2]);
         }
     };
 

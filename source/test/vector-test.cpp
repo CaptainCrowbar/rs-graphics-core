@@ -1,6 +1,7 @@
 #include "rs-graphics-core/vector.hpp"
 #include "rs-format/format.hpp"
 #include "rs-unit-test.hpp"
+#include "test/vector-test.hpp"
 #include <tuple>
 #include <unordered_set>
 
@@ -236,13 +237,9 @@ void test_rs_graphics_core_floating_vector_arithmetic() {
     TRY(v3 = v1.project(v2));
     TRY(v4 = v1.reject(v2));
     TRY(v5 = v3 + v4);
-    TEST_NEAR(v5.x(), v1.x(), 1e-6);
-    TEST_NEAR(v5.y(), v1.y(), 1e-6);
-    TEST_NEAR(v5.z(), v1.z(), 1e-6);
+    TEST_VECTORS(v5, v1, 1e-10);
     TRY(v5 = v2 ^ v3);
-    TEST_NEAR(v5.x(), 0, 1e-6);
-    TEST_NEAR(v5.y(), 0, 1e-6);
-    TEST_NEAR(v5.z(), 0, 1e-6);
+    TEST_VECTORS(v5, Double3(), 1e-10);
     TEST_NEAR(v2 % v4, 0, 1e-6);
     TEST_NEAR(v3 % v4, 0, 1e-6);
 
