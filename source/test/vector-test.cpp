@@ -1,9 +1,12 @@
 #include "rs-graphics-core/vector.hpp"
+#include "rs-format/format.hpp"
 #include "rs-unit-test.hpp"
 #include <tuple>
 #include <unordered_set>
 
 using namespace RS::Graphics::Core;
+using namespace RS::Format;
+using namespace RS::Format::Literals;
 
 void test_rs_graphics_core_integer_vector_construction() {
 
@@ -142,6 +145,10 @@ void test_rs_graphics_core_floating_vector_construction() {
     TEST_EQUAL(cv1.str(), "[1,1,1]");
     TEST_EQUAL(v1.str("e3"), "[1.00e0,1.00e0,1.00e0]");
     TEST_EQUAL(v1.str("f3"), "[1.000,1.000,1.000]");
+    TEST_EQUAL(Formatter("{0:e3}")(v1), "[1.00e0,1.00e0,1.00e0]");
+    TEST_EQUAL(Formatter("{0:f3}")(v1), "[1.000,1.000,1.000]");
+    TEST_EQUAL("{0:e3}"_fmt(v1), "[1.00e0,1.00e0,1.00e0]");
+    TEST_EQUAL("{0:f3}"_fmt(v1), "[1.000,1.000,1.000]");
 
     TEST_EQUAL(v1[0], 1);  TEST_EQUAL(cv1[0], 1);
     TEST_EQUAL(v1[1], 1);  TEST_EQUAL(cv1[1], 1);

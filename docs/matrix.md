@@ -20,7 +20,8 @@ Flags indicating the internal layout of a matrix (row major or column major).
 Column major is the default.
 
 ```c++
-template <typename T, int N, MatrixLayout L = MatrixLayout::column> class Matrix;
+template <typename T, int N, MatrixLayout L = MatrixLayout::column>
+    class Matrix;
 ```
 
 An `NxN` square matrix type. `T` must be an arithmetic type; `N` must be a
@@ -199,8 +200,10 @@ constexpr Matrix operator*(const Matrix& a, const Matrix& b) noexcept;
 Matrix arithmetic operators.
 
 ```c++
-constexpr vector_type operator*(const Matrix& a, const vector_type& b) noexcept;
-constexpr vector_type operator*(const vector_type& a, const Matrix& b) noexcept;
+constexpr vector_type
+    operator*(const Matrix& a, const vector_type& b) noexcept;
+constexpr vector_type
+    operator*(const vector_type& a, const Matrix& b) noexcept;
 ```
 
 Matrix-vector arithmetic operators.

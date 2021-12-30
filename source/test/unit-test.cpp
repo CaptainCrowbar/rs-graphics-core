@@ -50,6 +50,12 @@ int main(int argc, char** argv) {
     UNIT_TEST(rs_graphics_core_geometry_box)
     UNIT_TEST(rs_graphics_core_geometry_sphere)
 
+    // colour-space-test.cpp
+    UNIT_TEST(rs_graphics_core_colour_space_ciexyz_vs_linear_rgb)
+
+    // colour-test.cpp
+    UNIT_TEST(rs_graphics_core_colour)
+
     // noise-test.cpp
     UNIT_TEST(rs_graphics_core_noise_result_stability)
     UNIT_TEST(rs_graphics_core_noise_multiple_sources)
