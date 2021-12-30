@@ -5,8 +5,15 @@
 #include <vector>
 
 using namespace RS::Graphics::Core;
+using namespace RS::Graphics::Core::Detail;
 using namespace RS::Format;
 using namespace RS::Format::Literals;
+
+namespace {
+
+    const auto fmt = "{0:f4}"_fmt;
+
+}
 
 void test_rs_graphics_core_colour_space_ciexyz_vs_linear_rgb() {
 
@@ -24,11 +31,10 @@ void test_rs_graphics_core_colour_space_ciexyz_vs_linear_rgb() {
     Double3 rgb2, xyz;
 
     for (auto rgb1: rgbs) {
-        TRY(xyz = CIEXYZ::from_base(rgb1));
+        TRY(xyz = LinearRGB::to_base(rgb1));
         TRY(rgb2 = LinearRGB::from_base(xyz));
         TEST(is_colour_in_gamut<CIEXYZ>(xyz));
-        for (int i = 0; i < 3; ++i)
-            TEST_NEAR(rgb2[i], rgb1[i], 1e-10);
+        TEST_EQUAL(fmt(rgb2), fmt(rgb1));
     }
 
 }
