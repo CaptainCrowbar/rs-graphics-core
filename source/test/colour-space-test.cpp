@@ -31,8 +31,8 @@ void test_rs_graphics_core_colour_space_ciexyz_vs_linear_rgb() {
     Double3 rgb2, xyz;
 
     for (auto rgb1: rgbs) {
-        TRY(xyz = LinearRGB::to_base(rgb1));
-        TRY(rgb2 = LinearRGB::from_base(xyz));
+        TRY(xyz = LinearRGB().to_base(rgb1));
+        TRY(rgb2 = LinearRGB().from_base(xyz));
         TEST(is_colour_in_gamut<CIEXYZ>(xyz));
         TEST_EQUAL(fmt(rgb2), fmt(rgb1));
     }

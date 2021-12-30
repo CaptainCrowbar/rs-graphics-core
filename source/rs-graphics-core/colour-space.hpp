@@ -4,7 +4,9 @@
 #include "rs-graphics-core/matrix.hpp"
 #include "rs-graphics-core/vector.hpp"
 #include "rs-format/enum.hpp"
+#include <algorithm>
 #include <array>
+#include <cmath>
 #include <type_traits>
 
 namespace RS::Graphics::Core {
@@ -97,8 +99,8 @@ namespace RS::Graphics::Core {
     // - using base = [colour space]
     // - static constexpr int n_channels
     // - static constexpr std::array<ChannelSpec, n_channels> channels
-    // - static Vector<T, n_channels> from_base(Vector<T, 3> colour)
-    // - static Vector<T, 3> to_base(Vector<T, n_channels> colour)
+    // - Vector<T, n_channels> from_base(Vector<T, 3> colour) const
+    // - Vector<T, 3> to_base(Vector<T, n_channels> colour) const
 
     class CIEXYZ {
     public:
@@ -109,14 +111,14 @@ namespace RS::Graphics::Core {
             { 'Y', ChannelMode::non_negative },
             { 'Z', ChannelMode::non_negative },
         }};
-        template <typename T> static Vector<T, 3> from_base(Vector<T, 3> colour) noexcept { return colour; }
-        template <typename T> static Vector<T, 3> to_base(Vector<T, 3> colour) noexcept { return colour; }
+        template <typename T> constexpr Vector<T, 3> from_base(Vector<T, 3> colour) const noexcept { return colour; }
+        template <typename T> constexpr Vector<T, 3> to_base(Vector<T, 3> colour) const noexcept { return colour; }
     };
 
-    template <int64_t m00, int64_t m01, int64_t m02,
-        int64_t m10, int64_t m11, int64_t m12,
-        int64_t m20, int64_t m21, int64_t m22,
-        int64_t scale>
+    template <int64_t M00, int64_t M01, int64_t M02,
+        int64_t M10, int64_t M11, int64_t M12,
+        int64_t M20, int64_t M21, int64_t M22,
+        int64_t Divisor>
     class RGBWorkingSpace {
     public:
         using base = CIEXYZ;
@@ -126,19 +128,41 @@ namespace RS::Graphics::Core {
             { 'G', ChannelMode::unit },
             { 'B', ChannelMode::unit },
         }};
-        template <typename T> static Vector<T, 3> from_base(Vector<T, 3> colour) noexcept {
+        template <typename T> constexpr Vector<T, 3> from_base(Vector<T, 3> colour) const noexcept {
             return xyz_to_rgb_matrix<T> * colour;
         }
-        template <typename T> static Vector<T, 3> to_base(Vector<T, 3> colour) noexcept {
+        template <typename T> constexpr Vector<T, 3> to_base(Vector<T, 3> colour) const noexcept {
             return rgb_to_xyz_matrix<T> * colour;
         }
     private:
-        template <typename T> static constexpr Matrix<T, 3, MatrixLayout::row> rgb_to_xyz_matrix = {
-            T(m00) / T(scale), T(m01) / T(scale), T(m02) / T(scale),
-            T(m10) / T(scale), T(m11) / T(scale), T(m12) / T(scale),
-            T(m20) / T(scale), T(m21) / T(scale), T(m22) / T(scale),
-        };
-        template <typename T> static constexpr Matrix<T, 3, MatrixLayout::row> xyz_to_rgb_matrix = rgb_to_xyz_matrix<T>.inverse();
+        template <typename T> static constexpr auto rgb_to_xyz_matrix = Matrix<T, 3, MatrixLayout::row>
+            (T(M00), T(M01), T(M02), T(M10), T(M11), T(M12), T(M20), T(M21), T(M22)) / T(Divisor);
+        template <typename T> static constexpr auto xyz_to_rgb_matrix = rgb_to_xyz_matrix<T>.inverse();
+    };
+
+    template <typename WorkingSpace, int64_t GammaNumerator, int64_t GammaDenominator>
+    class NonlinearRGBSpace {
+    public:
+        using base = WorkingSpace;
+        static constexpr int n_channels = 3;
+        static constexpr std::array<ChannelSpec, n_channels> channels = {{
+            { 'R', ChannelMode::unit },
+            { 'G', ChannelMode::unit },
+            { 'B', ChannelMode::unit },
+        }};
+        template <typename T> Vector<T, 3> from_base(Vector<T, 3> colour) const noexcept {
+            for (auto& c: colour)
+                c = std::pow(std::max(c, T(0)), inverse_gamma<T>);
+            return colour;
+        }
+        template <typename T> Vector<T, 3> to_base(Vector<T, 3> colour) const noexcept {
+            for (auto& c: colour)
+                c = std::pow(std::max(c, T(0)), gamma<T>);
+            return colour;
+        }
+    private:
+        template <typename T> static constexpr T gamma = T(GammaNumerator) / T(GammaDenominator);
+        template <typename T> static constexpr T inverse_gamma = T(1) / gamma<T>;
     };
 
     // http://www.brucelindbloom.com/index.html?Eqn_RGB_XYZ_Matrix.html
@@ -151,28 +175,10 @@ namespace RS::Graphics::Core {
         10'000'000
     >;
 
-    // class LinearRGB {
-    // public:
-    //     using base = CIEXYZ;
-    //     static constexpr int n_channels = 3;
-    //     static constexpr std::array<ChannelSpec, n_channels> channels = {{
-    //         { 'R', ChannelMode::unit },
-    //         { 'G', ChannelMode::unit },
-    //         { 'B', ChannelMode::unit },
-    //     }};
-    //     template <typename T> static Vector<T, 3> from_base(Vector<T, 3> colour) noexcept;
-    //     template <typename T> static Vector<T, 3> to_base(Vector<T, 3> colour) noexcept;
-    // };
 
-    //     template <typename T>
-    //     Vector<T, 3> LinearRGB::from_base(Vector<T, 3> colour) noexcept {
-    //         return Detail::ciexyz_to_linear_srgb_matrix<T>() * colour;
-    //     }
 
-    //     template <typename T>
-    //     Vector<T, 3> LinearRGB::to_base(Vector<T, 3> colour) noexcept {
-    //         return Detail::linear_srgb_to_ciexyz_matrix<T>() * colour;
-    //     }
+
+
 
     class CIELab {
     public:
@@ -183,25 +189,19 @@ namespace RS::Graphics::Core {
             { 'a', ChannelMode::unconstrained },
             { 'b', ChannelMode::unconstrained },
         }};
-        template <typename T> static Vector<T, 3> from_base(Vector<T, 3> colour) noexcept;
-        template <typename T> static Vector<T, 3> to_base(Vector<T, 3> colour) noexcept;
+        template <typename T> constexpr Vector<T, 3> from_base(Vector<T, 3> colour) const noexcept {
+            Vector<T, 3> out;
+            // TODO
+            (void)colour;
+            return out;
+        }
+        template <typename T> constexpr Vector<T, 3> to_base(Vector<T, 3> colour) const noexcept {
+            Vector<T, 3> out;
+            // TODO
+            (void)colour;
+            return out;
+        }
     };
-
-        template <typename T>
-        Vector<T, 3> CIELab::from_base(Vector<T, 3> colour) noexcept {
-            Vector<T, 3> out;
-            // TODO
-            (void)colour;
-            return out;
-        }
-
-        template <typename T>
-        Vector<T, 3> CIELab::to_base(Vector<T, 3> colour) noexcept {
-            Vector<T, 3> out;
-            // TODO
-            (void)colour;
-            return out;
-        }
 
     class CIELuv {
     public:
@@ -212,25 +212,19 @@ namespace RS::Graphics::Core {
             { 'u', ChannelMode::unconstrained },
             { 'v', ChannelMode::unconstrained },
         }};
-        template <typename T> static Vector<T, 3> from_base(Vector<T, 3> colour) noexcept;
-        template <typename T> static Vector<T, 3> to_base(Vector<T, 3> colour) noexcept;
+        template <typename T> constexpr Vector<T, 3> from_base(Vector<T, 3> colour) const noexcept {
+            Vector<T, 3> out;
+            // TODO
+            (void)colour;
+            return out;
+        }
+        template <typename T> constexpr Vector<T, 3> to_base(Vector<T, 3> colour) const noexcept {
+            Vector<T, 3> out;
+            // TODO
+            (void)colour;
+            return out;
+        }
     };
-
-        template <typename T>
-        Vector<T, 3> CIELuv::from_base(Vector<T, 3> colour) noexcept {
-            Vector<T, 3> out;
-            // TODO
-            (void)colour;
-            return out;
-        }
-
-        template <typename T>
-        Vector<T, 3> CIELuv::to_base(Vector<T, 3> colour) noexcept {
-            Vector<T, 3> out;
-            // TODO
-            (void)colour;
-            return out;
-        }
 
     class CIExyY {
     public:
@@ -241,12 +235,7 @@ namespace RS::Graphics::Core {
             { 'y', ChannelMode::unit },
             { 'Y', ChannelMode::non_negative },
         }};
-        template <typename T> static Vector<T, 3> from_base(Vector<T, 3> colour) noexcept;
-        template <typename T> static Vector<T, 3> to_base(Vector<T, 3> colour) noexcept;
-    };
-
-        template <typename T>
-        Vector<T, 3> CIExyY::from_base(Vector<T, 3> colour) noexcept {
+        template <typename T> constexpr Vector<T, 3> from_base(Vector<T, 3> colour) const noexcept {
             Vector<T, 3> out;
             T sum = colour[0] + colour[1] + colour[2];
             out[0] = colour[0] / sum;
@@ -254,9 +243,7 @@ namespace RS::Graphics::Core {
             out[2] = colour[1];
             return out;
         }
-
-        template <typename T>
-        Vector<T, 3> CIExyY::to_base(Vector<T, 3> colour) noexcept {
+        template <typename T> constexpr Vector<T, 3> to_base(Vector<T, 3> colour) const noexcept {
             Vector<T, 3> out;
             T scale = colour[2] / colour[1];
             out[0] = scale * colour[0];
@@ -264,6 +251,7 @@ namespace RS::Graphics::Core {
             out[2] = scale * (1 - colour[0] - colour[1]);
             return out;
         }
+    };
 
     class HSL {
     public:
@@ -274,25 +262,19 @@ namespace RS::Graphics::Core {
             { 'S', ChannelMode::unit },
             { 'L', ChannelMode::circle },
         }};
-        template <typename T> static Vector<T, 3> from_base(Vector<T, 3> colour) noexcept;
-        template <typename T> static Vector<T, 3> to_base(Vector<T, 3> colour) noexcept;
+        template <typename T> constexpr Vector<T, 3> from_base(Vector<T, 3> colour) const noexcept {
+            Vector<T, 3> out;
+            // TODO
+            (void)colour;
+            return out;
+        }
+        template <typename T> constexpr Vector<T, 3> to_base(Vector<T, 3> colour) const noexcept {
+            Vector<T, 3> out;
+            // TODO
+            (void)colour;
+            return out;
+        }
     };
-
-        template <typename T>
-        Vector<T, 3> HSL::from_base(Vector<T, 3> colour) noexcept {
-            Vector<T, 3> out;
-            // TODO
-            (void)colour;
-            return out;
-        }
-
-        template <typename T>
-        Vector<T, 3> HSL::to_base(Vector<T, 3> colour) noexcept {
-            Vector<T, 3> out;
-            // TODO
-            (void)colour;
-            return out;
-        }
 
     class HSV {
     public:
@@ -303,25 +285,19 @@ namespace RS::Graphics::Core {
             { 'S', ChannelMode::unit },
             { 'V', ChannelMode::circle },
         }};
-        template <typename T> static Vector<T, 3> from_base(Vector<T, 3> colour) noexcept;
-        template <typename T> static Vector<T, 3> to_base(Vector<T, 3> colour) noexcept;
+        template <typename T> constexpr Vector<T, 3> from_base(Vector<T, 3> colour) const noexcept {
+            Vector<T, 3> out;
+            // TODO
+            (void)colour;
+            return out;
+        }
+        template <typename T> constexpr Vector<T, 3> to_base(Vector<T, 3> colour) const noexcept {
+            Vector<T, 3> out;
+            // TODO
+            (void)colour;
+            return out;
+        }
     };
-
-        template <typename T>
-        Vector<T, 3> HSV::from_base(Vector<T, 3> colour) noexcept {
-            Vector<T, 3> out;
-            // TODO
-            (void)colour;
-            return out;
-        }
-
-        template <typename T>
-        Vector<T, 3> HSV::to_base(Vector<T, 3> colour) noexcept {
-            Vector<T, 3> out;
-            // TODO
-            (void)colour;
-            return out;
-        }
 
     class sRGB {
     public:
@@ -332,24 +308,18 @@ namespace RS::Graphics::Core {
             { 'G', ChannelMode::unit },
             { 'B', ChannelMode::unit },
         }};
-        template <typename T> static Vector<T, 3> from_base(Vector<T, 3> colour) noexcept;
-        template <typename T> static Vector<T, 3> to_base(Vector<T, 3> colour) noexcept;
+        template <typename T> constexpr Vector<T, 3> from_base(Vector<T, 3> colour) const noexcept {
+            Vector<T, 3> out;
+            // TODO
+            (void)colour;
+            return out;
+        }
+        template <typename T> constexpr Vector<T, 3> to_base(Vector<T, 3> colour) const noexcept {
+            Vector<T, 3> out;
+            // TODO
+            (void)colour;
+            return out;
+        }
     };
-
-        template <typename T>
-        Vector<T, 3> sRGB::from_base(Vector<T, 3> colour) noexcept {
-            Vector<T, 3> out;
-            // TODO
-            (void)colour;
-            return out;
-        }
-
-        template <typename T>
-        Vector<T, 3> sRGB::to_base(Vector<T, 3> colour) noexcept {
-            Vector<T, 3> out;
-            // TODO
-            (void)colour;
-            return out;
-        }
 
 }
