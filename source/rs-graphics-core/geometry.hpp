@@ -156,7 +156,7 @@ namespace RS::Graphics::Core {
         constexpr Sphere<T, N>::Sphere(const vector_type& c, T r) noexcept:
         centre_(c), radius_(r) {
             if constexpr (std::is_signed_v<T>)
-                radius_ = std::abs(r);
+                radius_ = const_abs(r);
         }
 
         template <typename T, int N>

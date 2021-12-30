@@ -92,6 +92,50 @@ void test_rs_graphics_core_maths_euclidean_division() {
 
 }
 
+void test_rs_graphics_core_maths_fraction() {
+
+    TEST_EQUAL(fraction(-3.00),  0.00);
+    TEST_EQUAL(fraction(-2.75),  0.25);
+    TEST_EQUAL(fraction(-2.50),  0.50);
+    TEST_EQUAL(fraction(-2.25),  0.75);
+    TEST_EQUAL(fraction(-2.00),  0.00);
+    TEST_EQUAL(fraction(-1.75),  0.25);
+    TEST_EQUAL(fraction(-1.50),  0.50);
+    TEST_EQUAL(fraction(-1.25),  0.75);
+    TEST_EQUAL(fraction(-1.00),  0.00);
+    TEST_EQUAL(fraction(-0.75),  0.25);
+    TEST_EQUAL(fraction(-0.50),  0.50);
+    TEST_EQUAL(fraction(-0.25),  0.75);
+    TEST_EQUAL(fraction(0.00),   0.00);
+    TEST_EQUAL(fraction(0.25),   0.25);
+    TEST_EQUAL(fraction(0.50),   0.50);
+    TEST_EQUAL(fraction(0.75),   0.75);
+    TEST_EQUAL(fraction(1.00),   0.00);
+    TEST_EQUAL(fraction(1.25),   0.25);
+    TEST_EQUAL(fraction(1.50),   0.50);
+    TEST_EQUAL(fraction(1.75),   0.75);
+    TEST_EQUAL(fraction(2.00),   0.00);
+    TEST_EQUAL(fraction(2.25),   0.25);
+    TEST_EQUAL(fraction(2.50),   0.50);
+    TEST_EQUAL(fraction(2.75),   0.75);
+    TEST_EQUAL(fraction(3.00),   0.00);
+
+}
+
+void test_rs_graphics_core_maths_interpolate() {
+
+    TEST_EQUAL(interpolate(2.0, 1.0, 6.0, 2.0, 0.0), 0.50);
+    TEST_EQUAL(interpolate(2.0, 1.0, 6.0, 2.0, 1.0), 0.75);
+    TEST_EQUAL(interpolate(2.0, 1.0, 6.0, 2.0, 2.0), 1.00);
+    TEST_EQUAL(interpolate(2.0, 1.0, 6.0, 2.0, 3.0), 1.25);
+    TEST_EQUAL(interpolate(2.0, 1.0, 6.0, 2.0, 4.0), 1.50);
+    TEST_EQUAL(interpolate(2.0, 1.0, 6.0, 2.0, 5.0), 1.75);
+    TEST_EQUAL(interpolate(2.0, 1.0, 6.0, 2.0, 6.0), 2.00);
+    TEST_EQUAL(interpolate(2.0, 1.0, 6.0, 2.0, 7.0), 2.25);
+    TEST_EQUAL(interpolate(2.0, 1.0, 6.0, 2.0, 8.0), 2.50);
+
+}
+
 void test_rs_graphics_core_maths_symmetric_division() {
 
     {
@@ -175,20 +219,6 @@ void test_rs_graphics_core_maths_symmetric_division() {
         x = 8;   y = -4;  TRY(std::tie(q, r) = symmetric_divide(x, y));  TEST_EQUAL(q, -2);  TEST_EQUAL(r, 0);   TEST_EQUAL(q * y + r, x);
 
     }
-
-}
-
-void test_rs_graphics_core_maths_interpolate() {
-
-    TEST_EQUAL(interpolate(2.0, 1.0, 6.0, 2.0, 0.0), 0.50);
-    TEST_EQUAL(interpolate(2.0, 1.0, 6.0, 2.0, 1.0), 0.75);
-    TEST_EQUAL(interpolate(2.0, 1.0, 6.0, 2.0, 2.0), 1.00);
-    TEST_EQUAL(interpolate(2.0, 1.0, 6.0, 2.0, 3.0), 1.25);
-    TEST_EQUAL(interpolate(2.0, 1.0, 6.0, 2.0, 4.0), 1.50);
-    TEST_EQUAL(interpolate(2.0, 1.0, 6.0, 2.0, 5.0), 1.75);
-    TEST_EQUAL(interpolate(2.0, 1.0, 6.0, 2.0, 6.0), 2.00);
-    TEST_EQUAL(interpolate(2.0, 1.0, 6.0, 2.0, 7.0), 2.25);
-    TEST_EQUAL(interpolate(2.0, 1.0, 6.0, 2.0, 8.0), 2.50);
 
 }
 

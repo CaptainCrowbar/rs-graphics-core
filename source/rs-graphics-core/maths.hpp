@@ -16,8 +16,18 @@ namespace RS::Graphics::Core {
     // Algorithms
 
     template <typename T>
+    constexpr T const_abs(T x) noexcept {
+        static_assert(std::is_arithmetic_v<T>);
+        if (std::is_signed_v<T>)
+            return x < 0 ? - x : x;
+        else
+            return x;
+    }
+
+    template <typename T>
     constexpr std::pair<T, T> euclidean_divide(T x, T y) noexcept {
         static_assert(std::is_arithmetic_v<T>);
+        static_assert(! std::is_same_v<T, bool>);
         T q, r;
         if constexpr (std::is_floating_point_v<T>) {
             q = x / y;
@@ -51,6 +61,28 @@ namespace RS::Graphics::Core {
     }
 
     template <typename T>
+    constexpr T fraction(T x) noexcept {
+        static_assert(std::is_arithmetic_v<T>);
+        if constexpr (std::is_floating_point_v<T>) {
+            using limits64 = std::numeric_limits<int64_t>;
+            if (x >= T(limits64::max()) || x <= T(limits64::min()))
+                return 0;
+            T f = x - int64_t(x);
+            if (f < 0)
+                f += 1;
+            return f;
+        } else {
+            return 0;
+        }
+    }
+
+    template <typename X, typename Y>
+    constexpr Y interpolate(X x1, Y y1, X x2, Y y2, X x3) noexcept {
+        static_assert(std::is_floating_point_v<X>);
+        return y1 + (y2 - y1) * ((x3 - x1) / (x2 - x1));
+    }
+
+    template <typename T>
     constexpr std::pair<T, T> symmetric_divide(T x, T y) noexcept {
         static_assert(std::is_arithmetic_v<T>);
         static_assert(std::is_signed_v<T>);
@@ -73,19 +105,15 @@ namespace RS::Graphics::Core {
         return symmetric_divide(x, y).second;
     }
 
-    template <typename X, typename Y>
-    constexpr Y interpolate(X x1, Y y1, X x2, Y y2, X x3) noexcept {
-        static_assert(std::is_floating_point_v<X>);
-        return y1 + (y2 - y1) * ((x3 - x1) / (x2 - x1));
-    }
-
     template <typename T>
     constexpr T to_degrees(T rad) noexcept {
+        static_assert(std::is_floating_point_v<T>);
         return rad * (T(180) / pi<T>);
     }
 
     template <typename T>
     constexpr T to_radians(T deg) noexcept {
+        static_assert(std::is_floating_point_v<T>);
         return deg * (pi<T> / T(180));
     }
 

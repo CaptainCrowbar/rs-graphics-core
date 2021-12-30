@@ -11,8 +11,9 @@ int main(int argc, char** argv) {
 
     // maths-test.cpp
     UNIT_TEST(rs_graphics_core_maths_euclidean_division)
-    UNIT_TEST(rs_graphics_core_maths_symmetric_division)
+    UNIT_TEST(rs_graphics_core_maths_fraction)
     UNIT_TEST(rs_graphics_core_maths_interpolate)
+    UNIT_TEST(rs_graphics_core_maths_symmetric_division)
     UNIT_TEST(rs_graphics_core_maths_numeric_literals)
 
     // root-finding-test.cpp

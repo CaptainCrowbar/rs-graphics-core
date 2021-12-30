@@ -1,6 +1,8 @@
 #pragma once
 
 #include "rs-unit-test.hpp"
+#include <cmath>
+#include <cstdlib>
 
 // Check that every element of two vectors matches within epsilon
 

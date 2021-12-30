@@ -29,6 +29,15 @@ Mathematical constants.
 
 ## Algorithms
 
+Unless otherwise stated, these are defined for all primitive arithmetic types.
+
+```c++
+template <typename T> constexpr T const_abs(T x) noexcept;
+```
+
+Absolute value function (defined here because `std::abs()` is not guaranteed
+to be `constexpr`).
+
 ```c++
 template <typename T> constexpr std::pair<T, T> euclidean_divide(T x, T y) noexcept;
 template <typename T> constexpr T euclidean_quotient(T x, T y) noexcept;
@@ -40,15 +49,12 @@ These perform Euclidean division, where the remainder is always in the range
 is undefined if `y=0`, or if the correct result is outside the range of `T`.
 
 ```c++
-template <typename T> constexpr std::pair<T, T> symmetric_divide(T x, T y) noexcept;
-template <typename T> constexpr T symmetric_quotient(T x, T y) noexcept;
-template <typename T> constexpr T symmetric_remainder(T x, T y) noexcept;
+template <typename T> constexpr T fraction(T x) noexcept;
 ```
 
-These perform symmetric division, where the remainder is in the range
-`(-|y|/2,|y|/2]`. `T` must be a floating point type or a signed integer.
-Behaviour is undefined if `y=0`, or if the correct result is outside the range
-of `T`.
+Returns the fractional part of a floating point number (defined as
+`x-floor(x)`; equivalent to `euclidean_remainder(x,1)`). For integer types
+this will always return zero.
 
 ```c++
 template <typename X, typename Y> constexpr Y interpolate(X x1, Y y1, X x2, Y y2, X x3) noexcept;
@@ -58,6 +64,17 @@ Given two points, `(x1,y1)` and `(x2,y2)`, and a third input argument `x3`,
 this calculates the value `y3` by linear interpolation or extrapolation. `X`
 must be a floating point arithmetic type; `Y` only needs to define `Y-Y` and
 `X*Y`, and need not be an arithmetic type. Behaviour is undefined if `x1=x2`.
+
+```c++
+template <typename T> constexpr std::pair<T, T> symmetric_divide(T x, T y) noexcept;
+template <typename T> constexpr T symmetric_quotient(T x, T y) noexcept;
+template <typename T> constexpr T symmetric_remainder(T x, T y) noexcept;
+```
+
+These perform symmetric division, where the remainder is in the range
+`(-|y|/2,|y|/2]`. `T` must be a floating point type or a signed integer.
+Behaviour is undefined if `y=0`, or if the correct result is outside the range
+of `T`.
 
 ```c++
 template <typename T> constexpr T to_degrees(T rad) noexcept;

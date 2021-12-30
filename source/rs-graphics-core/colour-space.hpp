@@ -61,9 +61,7 @@ namespace RS::Graphics::Core {
                         t = 1;
                     break;
                 case ChannelMode::circle:
-                    t -= int64_t(t);
-                    if (t < 0)
-                        t += 1;
+                    t = fraction(t);
                     break;
                 default:
                     break;
@@ -305,7 +303,7 @@ namespace RS::Graphics::Core {
         template <typename T>
         constexpr void hcm_to_rgb(T h, T c, T m, T& r, T& g, T& b) noexcept {
             h *= 6;
-            T x = c * (1 - std::abs(euclidean_remainder(h, T(2)) - 1));
+            T x = c * (1 - const_abs(euclidean_remainder(h, T(2)) - 1));
             r = g = b = m;
             switch (int(h)) {
                 case 0:   r += c; g += x; break;
@@ -333,12 +331,12 @@ namespace RS::Graphics::Core {
             T c, v;
             Detail::rgb_to_hcv(colour[0], colour[1], colour[2], out[0], c, v);
             out[2] = (T(2) * v - c) / T(2);
-            out[1] = c == T(0) ? T(0) : c / (T(1) - std::abs(T(2) * out[2] - T(1)));
+            out[1] = c == T(0) ? T(0) : c / (T(1) - const_abs(T(2) * out[2] - T(1)));
             return out;
         }
         template <typename T> constexpr Vector<T, 3> to_base(Vector<T, 3> colour) const noexcept {
             Vector<T, 3> out;
-            T c = (T(1) - std::abs(T(2) * colour[2] - T(1))) * colour[1];
+            T c = (T(1) - const_abs(T(2) * colour[2] - T(1))) * colour[1];
             T m = colour[2] - c / T(2);
             Detail::hcm_to_rgb(colour[0], c, m, out[0], out[1], out[2]);
             return out;
