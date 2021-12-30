@@ -249,21 +249,43 @@ namespace RS::Graphics::Core {
         using base = CIEXYZ;
         static constexpr int n_channels = 3;
         static constexpr std::array<ChannelSpec, n_channels> channels = {{
-            { 'L', ChannelMode::unit },
+            { 'L', ChannelMode::non_negative },
             { 'a', ChannelMode::unconstrained },
             { 'b', ChannelMode::unconstrained },
         }};
-        template <typename T> constexpr Vector<T, 3> from_base(Vector<T, 3> colour) const noexcept {
+        template <typename T> Vector<T, 3> from_base(Vector<T, 3> colour) const noexcept {
             Vector<T, 3> out;
-            // TODO
-            (void)colour;
+            colour /= illuminant<T>;
+            out[0] = 116 * f(colour.y()) - 16;
+            out[1] = 500 * (f(colour.x()) - f(colour.y()));
+            out[2] = 200 * (f(colour.y()) - f(colour.z()));
             return out;
         }
-        template <typename T> constexpr Vector<T, 3> to_base(Vector<T, 3> colour) const noexcept {
+        template <typename T> Vector<T, 3> to_base(Vector<T, 3> colour) const noexcept {
             Vector<T, 3> out;
-            // TODO
-            (void)colour;
-            return out;
+            T lx = (colour[0] + 16) / 116;
+            out.x() = inverse_f(lx + colour[1] / 500);
+            out.y() = inverse_f(lx);
+            out.z() = inverse_f(lx - colour[2] / 200);
+            return out * illuminant<T>;
+        }
+    private:
+        template <typename T> static constexpr Vector<T, 3> illuminant = {T(0.950489),T(1),T(1.088840)}; // D65
+        template <typename T> static constexpr T delta = T(6) / T(29);
+        template <typename T> static constexpr T c1 = delta<T> * delta<T> * delta<T>;
+        template <typename T> static constexpr T c2 = 3 * delta<T> * delta<T>;
+        template <typename T> static constexpr T c3 = T(4) / T(29);
+        template <typename T> static T f(T t) noexcept {
+            if (t <= c1<T>)
+                return t / c2<T> + c3<T>;
+            else
+                return std::cbrt(t);
+        }
+        template <typename T> static T inverse_f(T t) noexcept {
+            if (t <= delta<T>)
+                return c2<T> * (t - c3<T>);
+            else
+                return t * t * t;
         }
     };
 
@@ -278,16 +300,43 @@ namespace RS::Graphics::Core {
         }};
         template <typename T> constexpr Vector<T, 3> from_base(Vector<T, 3> colour) const noexcept {
             Vector<T, 3> out;
-            // TODO
-            (void)colour;
+            T y = colour.y() / illuminant<T>.y();
+            if (y <= c1<T>)
+                out[0] = c3<T> * y;
+            else
+                out[0] = 116 * std::cbrt(y) - 16;
+            out[1] = 13 * out[0] * (u_prime(colour) - u_prime_n<T>);
+            out[2] = 13 * out[0] * (v_prime(colour) - v_prime_n<T>);
             return out;
         }
         template <typename T> constexpr Vector<T, 3> to_base(Vector<T, 3> colour) const noexcept {
             Vector<T, 3> out;
-            // TODO
-            (void)colour;
+            T u = colour[1] / (13 * colour[0]) + u_prime_n<T>;
+            T v = colour[2] / (13 * colour[0]) + v_prime_n<T>;
+            if (colour[0] <= 8)
+                out[1] = c4<T> * colour[0];
+            else
+                out[1] = std::pow((colour[0] + 16) / 116, T(3));
+            out[1] *= illuminant<T>.y();
+            out[0] = out[1] * 9 * u / (4 * v);
+            out[2] = out[1] * (12 - 3 * u - 20 * v) / (4 * v);
             return out;
         }
+    private:
+        template <typename T> static constexpr Vector<T, 3> illuminant = {T(0.950489),T(1),T(1.088840)}; // D65
+        template <typename T> static constexpr T delta = T(6) / T(29);
+        template <typename T> static constexpr T c1 = delta<T> * delta<T> * delta<T>;
+        template <typename T> static constexpr T c2 = T(29) / T(3);
+        template <typename T> static constexpr T c3 = c2<T> * c2<T> * c2<T>;
+        template <typename T> static constexpr T c4 = 1 / c3<T>;
+        template <typename T> static constexpr T u_prime(Vector<T, 3> xyz) noexcept {
+            return 4 * xyz.x() / (xyz.x() + 15 * xyz.y() + 3 * xyz.z());
+        }
+        template <typename T> static constexpr T v_prime(Vector<T, 3> xyz) noexcept {
+            return 9 * xyz.y() / (xyz.x() + 15 * xyz.y() + 3 * xyz.z());
+        }
+        template <typename T> static constexpr T u_prime_n = u_prime(illuminant<T>);
+        template <typename T> static constexpr T v_prime_n = v_prime(illuminant<T>);
     };
 
     namespace Detail {
