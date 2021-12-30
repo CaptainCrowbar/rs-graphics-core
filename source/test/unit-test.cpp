@@ -51,7 +51,6 @@ int main(int argc, char** argv) {
     UNIT_TEST(rs_graphics_core_geometry_sphere)
 
     // colour-space-test.cpp
-    UNIT_TEST(rs_graphics_core_colour_space_linear_rgb)
     UNIT_TEST(rs_graphics_core_colour_space_srgb)
 
     // colour-test.cpp

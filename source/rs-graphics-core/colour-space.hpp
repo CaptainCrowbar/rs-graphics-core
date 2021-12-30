@@ -115,6 +115,33 @@ namespace RS::Graphics::Core {
         template <typename T> constexpr Vector<T, 3> to_base(Vector<T, 3> colour) const noexcept { return colour; }
     };
 
+    class CIExyY {
+    public:
+        using base = CIEXYZ;
+        static constexpr int n_channels = 3;
+        static constexpr std::array<ChannelSpec, n_channels> channels = {{
+            { 'x', ChannelMode::unit },
+            { 'y', ChannelMode::unit },
+            { 'Y', ChannelMode::unit },
+        }};
+        template <typename T> constexpr Vector<T, 3> from_base(Vector<T, 3> colour) const noexcept {
+            T sum = colour.x() + colour.y() + colour.z();
+            Vector<T, 3> out;
+            out.x() = colour.x() / sum;
+            out.y() = colour.y() / sum;
+            out.z() = colour.y();
+            return out;
+        }
+        template <typename T> constexpr Vector<T, 3> to_base(Vector<T, 3> colour) const noexcept {
+            T scale = colour.z() / colour.y();
+            Vector<T, 3> out;
+            out.x() = scale * colour.x();
+            out.y() = colour.z();
+            out.z() = scale * (1 - colour.x() - colour.y());
+            return out;
+        }
+    };
+
     template <int64_t M00, int64_t M01, int64_t M02,
         int64_t M10, int64_t M11, int64_t M12,
         int64_t M20, int64_t M21, int64_t M22,
@@ -151,7 +178,7 @@ namespace RS::Graphics::Core {
             { 'B', ChannelMode::unit },
         }};
         template <typename T> Vector<T, 3> from_base(Vector<T, 3> colour) const noexcept {
-            static constexpr T inverse_gamma = T(GammaDenominator) / T(GammaDenominator);
+            static constexpr T inverse_gamma = T(GammaDenominator) / T(GammaNumerator);
             for (auto& c: colour)
                 c = std::pow(std::max(c, T(0)), inverse_gamma);
             return colour;
@@ -185,7 +212,7 @@ namespace RS::Graphics::Core {
         }};
         template <typename T> Vector<T, 3> from_base(Vector<T, 3> colour) const noexcept {
             for (auto& c: colour) {
-                if (c < T(0.0031308))
+                if (c < T(0.003'130'8))
                     c *= T(12.92);
                 else
                     c = T(1.055) * std::pow(c, T(1) / T(2.4)) - T(0.055);
@@ -194,7 +221,7 @@ namespace RS::Graphics::Core {
         }
         template <typename T> Vector<T, 3> to_base(Vector<T, 3> colour) const noexcept {
             for (auto& c: colour) {
-                if (c < T(0.04045))
+                if (c < T(0.040'45))
                     c /= T(12.92);
                 else
                     c = std::pow((c + T(0.055)) / T(1.055), T(2.4));
@@ -202,6 +229,24 @@ namespace RS::Graphics::Core {
             return colour;
         }
     };
+
+    using LinearAdobeRGB = RGBWorkingSpace<
+        5'767'309,  1'855'540,  1'881'852,
+        2'973'769,  6'273'491,  752'741,
+        270'343,    706'872,    9'911'085,
+        10'000'000
+    >;
+
+    using AdobeRGB = NonlinearRGBSpace<LinearAdobeRGB, 22, 10>;
+
+    using LinearWideGamut = RGBWorkingSpace<
+        7'161'046,  1'009'296,  1'471'858,
+        2'581'874,  7'249'378,  168'748,
+        0,          517'813,    7'734'287,
+        10'000'000
+    >;
+
+    using WideGamut = NonlinearRGBSpace<LinearWideGamut, 563, 256>;
 
     class CIELab {
     public:
@@ -245,33 +290,6 @@ namespace RS::Graphics::Core {
             Vector<T, 3> out;
             // TODO
             (void)colour;
-            return out;
-        }
-    };
-
-    class CIExyY {
-    public:
-        using base = CIEXYZ;
-        static constexpr int n_channels = 3;
-        static constexpr std::array<ChannelSpec, n_channels> channels = {{
-            { 'x', ChannelMode::unit },
-            { 'y', ChannelMode::unit },
-            { 'Y', ChannelMode::non_negative },
-        }};
-        template <typename T> constexpr Vector<T, 3> from_base(Vector<T, 3> colour) const noexcept {
-            Vector<T, 3> out;
-            T sum = colour[0] + colour[1] + colour[2];
-            out[0] = colour[0] / sum;
-            out[1] = colour[1] / sum;
-            out[2] = colour[1];
-            return out;
-        }
-        template <typename T> constexpr Vector<T, 3> to_base(Vector<T, 3> colour) const noexcept {
-            Vector<T, 3> out;
-            T scale = colour[2] / colour[1];
-            out[0] = scale * colour[0];
-            out[1] = colour[2];
-            out[2] = scale * (1 - colour[0] - colour[1]);
             return out;
         }
     };
