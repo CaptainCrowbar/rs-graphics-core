@@ -107,9 +107,9 @@ namespace RS::Graphics::Core {
         using base = CIEXYZ;
         static constexpr int n_channels = 3;
         static constexpr std::array<ChannelSpec, n_channels> channels = {{
-            { 'X', ChannelMode::non_negative },
-            { 'Y', ChannelMode::non_negative },
-            { 'Z', ChannelMode::non_negative },
+            { 'X', ChannelMode::unit },
+            { 'Y', ChannelMode::unit },
+            { 'Z', ChannelMode::unit },
         }};
         template <typename T> constexpr Vector<T, 3> from_base(Vector<T, 3> colour) const noexcept { return colour; }
         template <typename T> constexpr Vector<T, 3> to_base(Vector<T, 3> colour) const noexcept { return colour; }
@@ -151,18 +151,17 @@ namespace RS::Graphics::Core {
             { 'B', ChannelMode::unit },
         }};
         template <typename T> Vector<T, 3> from_base(Vector<T, 3> colour) const noexcept {
+            static constexpr T inverse_gamma = T(GammaDenominator) / T(GammaDenominator);
             for (auto& c: colour)
-                c = std::pow(std::max(c, T(0)), inverse_gamma<T>);
+                c = std::pow(std::max(c, T(0)), inverse_gamma);
             return colour;
         }
         template <typename T> Vector<T, 3> to_base(Vector<T, 3> colour) const noexcept {
+            static constexpr T gamma = T(GammaNumerator) / T(GammaDenominator);
             for (auto& c: colour)
-                c = std::pow(std::max(c, T(0)), gamma<T>);
+                c = std::pow(std::max(c, T(0)), gamma);
             return colour;
         }
-    private:
-        template <typename T> static constexpr T gamma = T(GammaNumerator) / T(GammaDenominator);
-        template <typename T> static constexpr T inverse_gamma = T(1) / gamma<T>;
     };
 
     // http://www.brucelindbloom.com/index.html?Eqn_RGB_XYZ_Matrix.html
@@ -175,10 +174,34 @@ namespace RS::Graphics::Core {
         10'000'000
     >;
 
-
-
-
-
+    class sRGB {
+    public:
+        using base = LinearRGB;
+        static constexpr int n_channels = 3;
+        static constexpr std::array<ChannelSpec, n_channels> channels = {{
+            { 'R', ChannelMode::unit },
+            { 'G', ChannelMode::unit },
+            { 'B', ChannelMode::unit },
+        }};
+        template <typename T> Vector<T, 3> from_base(Vector<T, 3> colour) const noexcept {
+            for (auto& c: colour) {
+                if (c < T(0.0031308))
+                    c *= T(12.92);
+                else
+                    c = T(1.055) * std::pow(c, T(1) / T(2.4)) - T(0.055);
+            }
+            return colour;
+        }
+        template <typename T> Vector<T, 3> to_base(Vector<T, 3> colour) const noexcept {
+            for (auto& c: colour) {
+                if (c < T(0.04045))
+                    c /= T(12.92);
+                else
+                    c = std::pow((c + T(0.055)) / T(1.055), T(2.4));
+            }
+            return colour;
+        }
+    };
 
     class CIELab {
     public:
@@ -284,29 +307,6 @@ namespace RS::Graphics::Core {
             { 'H', ChannelMode::unit },
             { 'S', ChannelMode::unit },
             { 'V', ChannelMode::circle },
-        }};
-        template <typename T> constexpr Vector<T, 3> from_base(Vector<T, 3> colour) const noexcept {
-            Vector<T, 3> out;
-            // TODO
-            (void)colour;
-            return out;
-        }
-        template <typename T> constexpr Vector<T, 3> to_base(Vector<T, 3> colour) const noexcept {
-            Vector<T, 3> out;
-            // TODO
-            (void)colour;
-            return out;
-        }
-    };
-
-    class sRGB {
-    public:
-        using base = LinearRGB;
-        static constexpr int n_channels = 3;
-        static constexpr std::array<ChannelSpec, n_channels> channels = {{
-            { 'R', ChannelMode::unit },
-            { 'G', ChannelMode::unit },
-            { 'B', ChannelMode::unit },
         }};
         template <typename T> constexpr Vector<T, 3> from_base(Vector<T, 3> colour) const noexcept {
             Vector<T, 3> out;
