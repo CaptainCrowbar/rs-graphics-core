@@ -144,35 +144,35 @@ namespace RS::Graphics::Core {
     // http://www.brucelindbloom.com/index.html?Eqn_RGB_XYZ_Matrix.html
     // http://www.brucelindbloom.com/index.html?WorkingSpaceInfo.html
 
-    // using LinearRGB = RGBWorkingSpace<
-    //     4'124'564,  3'575'761,  1'804'375,
-    //     2'126'729,  7'151'522,  721'750,
-    //     193'339,    1'191'920,  9'503'041,
-    //     10'000'000
-    // >;
+    using LinearRGB = RGBWorkingSpace<
+        4'124'564,  3'575'761,  1'804'375,
+        2'126'729,  7'151'522,  721'750,
+        193'339,    1'191'920,  9'503'041,
+        10'000'000
+    >;
 
-    class LinearRGB {
-    public:
-        using base = CIEXYZ;
-        static constexpr int n_channels = 3;
-        static constexpr std::array<ChannelSpec, n_channels> channels = {{
-            { 'R', ChannelMode::unit },
-            { 'G', ChannelMode::unit },
-            { 'B', ChannelMode::unit },
-        }};
-        template <typename T> static Vector<T, 3> from_base(Vector<T, 3> colour) noexcept;
-        template <typename T> static Vector<T, 3> to_base(Vector<T, 3> colour) noexcept;
-    };
+    // class LinearRGB {
+    // public:
+    //     using base = CIEXYZ;
+    //     static constexpr int n_channels = 3;
+    //     static constexpr std::array<ChannelSpec, n_channels> channels = {{
+    //         { 'R', ChannelMode::unit },
+    //         { 'G', ChannelMode::unit },
+    //         { 'B', ChannelMode::unit },
+    //     }};
+    //     template <typename T> static Vector<T, 3> from_base(Vector<T, 3> colour) noexcept;
+    //     template <typename T> static Vector<T, 3> to_base(Vector<T, 3> colour) noexcept;
+    // };
 
-        template <typename T>
-        Vector<T, 3> LinearRGB::from_base(Vector<T, 3> colour) noexcept {
-            return Detail::ciexyz_to_linear_srgb_matrix<T>() * colour;
-        }
+    //     template <typename T>
+    //     Vector<T, 3> LinearRGB::from_base(Vector<T, 3> colour) noexcept {
+    //         return Detail::ciexyz_to_linear_srgb_matrix<T>() * colour;
+    //     }
 
-        template <typename T>
-        Vector<T, 3> LinearRGB::to_base(Vector<T, 3> colour) noexcept {
-            return Detail::linear_srgb_to_ciexyz_matrix<T>() * colour;
-        }
+    //     template <typename T>
+    //     Vector<T, 3> LinearRGB::to_base(Vector<T, 3> colour) noexcept {
+    //         return Detail::linear_srgb_to_ciexyz_matrix<T>() * colour;
+    //     }
 
     class CIELab {
     public:

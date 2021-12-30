@@ -23,20 +23,20 @@ namespace RS::Graphics::Core {
         template <typename T, int N>
         struct MatrixLayoutTraits<T, N, MatrixLayout::column> {
             using V = Vector<T, N>;
-            static T& get_ref(T* ptr, int r, int c) noexcept { return ptr[r + N * c]; }
-            static const T& get_ref(const T* ptr, int r, int c) noexcept { return ptr[r + N * c]; }
-            static V get_column(const T* ptr, int c) noexcept { return V(ptr + N * c); }
-            static V get_row(const T* ptr, int r) noexcept { V v; for (int i = 0, j = r; i < N; ++i, j += N) v[i] = ptr[j]; return v; }
-            static void set_column(T* ptr, int c, const T* src) noexcept { for (int i = 0, j = N * c; i < N; ++i, ++j) ptr[j] = src[i]; }
-            static void set_row(T* ptr, int r, const T* src) noexcept { for (int i = r, j = 0; j < N; i += N, ++j) ptr[i] = src[j]; }
-            static void swap_columns(T* ptr, int c1, int c2) noexcept {
+            static constexpr T& get_ref(T* ptr, int r, int c) noexcept { return ptr[r + N * c]; }
+            static constexpr const T& get_ref(const T* ptr, int r, int c) noexcept { return ptr[r + N * c]; }
+            static constexpr V get_column(const T* ptr, int c) noexcept { return V(ptr + N * c); }
+            static constexpr V get_row(const T* ptr, int r) noexcept { V v; for (int i = 0, j = r; i < N; ++i, j += N) v[i] = ptr[j]; return v; }
+            static constexpr void set_column(T* ptr, int c, const T* src) noexcept { for (int i = 0, j = N * c; i < N; ++i, ++j) ptr[j] = src[i]; }
+            static constexpr void set_row(T* ptr, int r, const T* src) noexcept { for (int i = r, j = 0; j < N; i += N, ++j) ptr[i] = src[j]; }
+            static constexpr void swap_columns(T* ptr, int c1, int c2) noexcept {
                 if (c1 != c2) {
                     int i = N * c1, j = N * c2;
                     for (int k = 0; k < N; ++k)
                         std::swap(ptr[i + k], ptr[j + k]);
                 }
             }
-            static void swap_rows(T* ptr, int r1, int r2) noexcept {
+            static constexpr void swap_rows(T* ptr, int r1, int r2) noexcept {
                 if (r1 != r2)
                     for (; r1 < N * N; r1 += N, r2 += N)
                         std::swap(ptr[r1], ptr[r2]);
@@ -46,18 +46,18 @@ namespace RS::Graphics::Core {
         template <typename T, int N>
         struct MatrixLayoutTraits<T, N, MatrixLayout::row> {
             using V = Vector<T, N>;
-            static T& get_ref(T* ptr, int r, int c) noexcept { return ptr[N * r + c]; }
-            static const T& get_ref(const T* ptr, int r, int c) noexcept { return ptr[N * r + c]; }
-            static V get_column(const T* ptr, int c) noexcept { V v; for (int i = 0, j = c; i < N; ++i, j += N) v[i] = ptr[j]; return v; }
-            static V get_row(const T* ptr, int r) noexcept { return V(ptr + N * r); }
-            static void set_column(T* ptr, int c, const T* src) noexcept { for (int i = c, j = 0; j < N; i += N, ++j) ptr[i] = src[j]; }
-            static void set_row(T* ptr, int r, const T* src) noexcept { for (int i = 0, j = N * r; i < N; ++i, ++j) ptr[j] = src[i]; }
-            static void swap_columns(T* ptr, int c1, int c2) noexcept {
+            static constexpr T& get_ref(T* ptr, int r, int c) noexcept { return ptr[N * r + c]; }
+            static constexpr const T& get_ref(const T* ptr, int r, int c) noexcept { return ptr[N * r + c]; }
+            static constexpr V get_column(const T* ptr, int c) noexcept { V v; for (int i = 0, j = c; i < N; ++i, j += N) v[i] = ptr[j]; return v; }
+            static constexpr V get_row(const T* ptr, int r) noexcept { return V(ptr + N * r); }
+            static constexpr void set_column(T* ptr, int c, const T* src) noexcept { for (int i = c, j = 0; j < N; i += N, ++j) ptr[i] = src[j]; }
+            static constexpr void set_row(T* ptr, int r, const T* src) noexcept { for (int i = 0, j = N * r; i < N; ++i, ++j) ptr[j] = src[i]; }
+            static constexpr void swap_columns(T* ptr, int c1, int c2) noexcept {
                 if (c1 != c2)
                     for (; c1 < N * N; c1 += N, c2 += N)
                         std::swap(ptr[c1], ptr[c2]);
             }
-            static void swap_rows(T* ptr, int r1, int r2) noexcept {
+            static constexpr void swap_rows(T* ptr, int r1, int r2) noexcept {
                 if (r1 != r2) {
                     int i = N * r1, j = N * r2;
                     for (int k = 0; k < N; ++k)
@@ -90,10 +90,11 @@ namespace RS::Graphics::Core {
         static constexpr int cells = N * N;
         static constexpr MatrixLayout layout = L;
 
-        constexpr Matrix() noexcept { for (auto& x: array_) x = T(0); }
-        constexpr explicit Matrix(T x) noexcept { for (auto& y: array_) y = x; }
+        constexpr Matrix() noexcept: array_{} { for (auto& x: array_) x = T(0); }
+        constexpr explicit Matrix(T x) noexcept: array_{} { for (auto& y: array_) y = x; }
         constexpr Matrix(T lead, T other) noexcept: Matrix(other) { for (int i = 0; i < cells; i += N + 1) array_[i] = lead; }
-        constexpr Matrix(const alt_matrix& m) noexcept { for (int r = 0; r < N; ++r) for (int c = 0; c < N; ++c) (*this)(r, c) = m(r, c); }
+        constexpr Matrix(const alt_matrix& m) noexcept: array_{}
+            { for (int r = 0; r < N; ++r) for (int c = 0; c < N; ++c) (*this)(r, c) = m(r, c); }
         template <typename... Args> constexpr
             Matrix(T x, std::enable_if_t<sizeof...(Args) + 2 == cells && (std::is_convertible_v<Args, T> && ...), T> y, Args... args):
             array_{{x, y, args...}} {}
