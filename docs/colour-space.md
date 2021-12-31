@@ -77,7 +77,7 @@ when reading or writing pixels.
 As a simplification, I treat colour spaces as stateless. When the definition
 of a colour space includes state, such as a choice of standard illuminant,
 this will need to be hardcoded into the colour space class, with different
-classes(probably template instantiations) for different illuminants. See the
+classes (probably template instantiations) for different illuminants. See the
 `WorkingSpace` and `NonlinearSpace` templates below for examples.
 
 Definitions of a colour space sometimes vary in the scaling of the
@@ -214,7 +214,7 @@ class WorkingSpace {
 
 Template for a generic linear RGB working space. The template arguments are
 the elements of the RGB to XYZ conversion matrix, expressed as integer
-ratios, in row major order(e.g. the top left entry is `M00/Divisor`).
+ratios, in row major order (e.g. the top left entry is `M00/Divisor`).
 
 ```c++
 template <typename WorkingSpace,
