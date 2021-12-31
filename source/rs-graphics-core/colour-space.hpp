@@ -11,89 +11,81 @@
 
 namespace RS::Graphics::Core {
 
-    RS_DEFINE_ENUM_CLASS(ChannelMode, uint8_t, 0,
-        unconstrained,  // Any real value
-        non_negative,   // Non-negative real value
-        unit,           // Unit interval [0,1]
-        circle,         // Circular interval [0,1)
-    )
+    // Colour space concept:
+    //  - using base = [colour space]
+    //  - static constexpr int flags
+    //      - linear_rgb and nonlinear_rgb are mutually exclusive
+    //      - if flags has linear_rgb, base must be CIEXYZ
+    //      - if flags has nonlinear_rgb, base is the corresponding linear space
+    //      - if flags has neither, base must be CIEXYZ or LinearRGB
+    //  - static constexpr std::array<char,N> channels
+    //  - Vector<T,N> from_base(Vector<T,N2> colour) const
+    //  - Vector<T,N2> to_base(Vector<T,N> colour) const
 
-    struct ChannelSpec {
-        char id;
-        ChannelMode mode;
+    // class            base             lrgb  nlrgb  polar  unit
+    // CIEXYZ           CIEXYZ           --    --     --     unit
+    // CIExyY           CIEXYZ           --    --     --     unit
+    // CIELab           CIEXYZ           --    --     --     --
+    // CIELuv           CIEXYZ           --    --     --     --
+    // LinearRGB        CIEXYZ           lrgb  --     --     unit
+    // sRGB             LinearRGB        --    nlrgb  --     unit
+    // LinearAdobeRGB   CIEXYZ           lrgb  --     --     unit
+    // AdobeRGB         LinearAdobeRGB   --    nlrgb  --     unit
+    // LinearWideGamut  CIEXYZ           lrgb  --     --     unit
+    // WideGamut        LinearWideGamut  --    nlrgb  --     unit
+    // HSL              LinearRGB        --    --     polar  unit
+    // HSV              LinearRGB        --    --     polar  unit
+
+    // Source for RGB vs XYZ matrices:
+    // http://www.brucelindbloom.com/index.html?Eqn_RGB_XYZ_Matrix.html
+    // http://www.brucelindbloom.com/index.html?WorkingSpaceInfo.html
+
+    namespace ColourSpace {
+
+        constexpr int linear_rgb     = 1 << 0;  // Linear RGB-based colour space
+        constexpr int nonlinear_rgb  = 1 << 1;  // Non-linear RGB-based colour space
+        constexpr int polar          = 1 << 2;  // First channel is polar
+        constexpr int unit           = 1 << 3;  // Colour space is a unit cube
+
     };
 
-    namespace Detail {
-
-        template <typename T>
-        constexpr bool is_channel_in_gamut(T t, ChannelMode cm) noexcept {
-            static_assert(std::is_floating_point_v<T>);
-            switch (cm) {
-                case ChannelMode::non_negative:  return t >= 0;
-                case ChannelMode::unit:          return t >= 0 && t <= 1;
-                case ChannelMode::circle:        return t >= 0 && t < 1;
-                default:                         return true;
-            }
-        };
-
-        template <typename ColourSpace, typename T, int N>
-        constexpr bool is_colour_in_gamut(Vector<T, N> colour) noexcept {
-            static_assert(std::is_floating_point_v<T>);
-            static_assert(N == ColourSpace::n_channels);
-            for (int i = 0; i < N; ++i)
-                if (! is_channel_in_gamut(colour[i], ColourSpace::channels[i].mode))
+    template <typename CS, typename T, int N>
+    constexpr bool is_colour_in_gamut(Vector<T, N> colour) noexcept {
+        static_assert(std::is_floating_point_v<T>);
+        static_assert(N == int(CS::channels.size()));
+        if constexpr ((CS::flags & ColourSpace::unit) != 0) {
+            for (auto t: colour)
+                if (t < 0 || t > 1)
                     return false;
-            return true;
+        } else if constexpr ((CS::flags & ColourSpace::polar) != 0) {
+            if (colour[0] < 0 || colour[0] > 1)
+                return false;
         }
-
-        template <typename T>
-        constexpr void clamp_channel(T& t, ChannelMode cm) noexcept {
-            static_assert(std::is_floating_point_v<T>);
-            switch (cm) {
-                case ChannelMode::non_negative:
-                    if (t < 0)
-                        t = 0;
-                    break;
-                case ChannelMode::unit:
-                    if (t < 0)
-                        t = 0;
-                    else if (t > 1)
-                        t = 1;
-                    break;
-                case ChannelMode::circle:
-                    t = fraction(t);
-                    break;
-                default:
-                    break;
-            }
-        };
-
-        template <typename ColourSpace, typename T, int N>
-        constexpr void clamp_colour(Vector<T, N>& colour) noexcept {
-            static_assert(std::is_floating_point_v<T>);
-            static_assert(N == ColourSpace::n_channels);
-            for (int i = 0; i < N; ++i)
-                clamp_channel(colour[i], ColourSpace::channels[i].mode);
-        }
-
+        return true;
     }
 
-    // Colour space concept:
-    // - using base = [colour space]
-    // - static constexpr int n_channels
-    // - static constexpr std::array<ChannelSpec, n_channels> channels
-    // - Vector<T, n_channels> from_base(Vector<T, 3> colour) const
-    // - Vector<T, 3> to_base(Vector<T, n_channels> colour) const
+    template <typename CS, typename T, int N>
+    constexpr void clamp_colour(Vector<T, N>& colour) noexcept {
+        static_assert(std::is_floating_point_v<T>);
+        static_assert(N == int(CS::channels.size()));
+        constexpr bool is_polar =(CS::flags & ColourSpace::polar) != 0;
+        if constexpr (is_polar)
+            colour[0] = fraction(colour[0]);
+        if constexpr ((CS::flags & ColourSpace::unit) != 0) {
+            for (int i = int(is_polar); i < N; ++i) {
+                if (colour[i] < 0)
+                    colour[i] = 0;
+                else if (colour[i] > 1)
+                    colour[i] = 1;
+            }
+        }
+    }
 
     class CIEXYZ {
     public:
         using base = CIEXYZ;
-        static constexpr int n_channels = 3;
-        static constexpr std::array<ChannelSpec, n_channels> channels = {{
-            { 'X', ChannelMode::unit },
-            { 'Y', ChannelMode::unit },
-            { 'Z', ChannelMode::unit },
-        }};
+        static constexpr int flags = ColourSpace::unit;
+        static constexpr std::array<char, 3> channels = {{ 'X', 'Y', 'Z' }};
         template <typename T> constexpr Vector<T, 3> from_base(Vector<T, 3> colour) const noexcept { return colour; }
         template <typename T> constexpr Vector<T, 3> to_base(Vector<T, 3> colour) const noexcept { return colour; }
     };
@@ -101,12 +93,8 @@ namespace RS::Graphics::Core {
     class CIExyY {
     public:
         using base = CIEXYZ;
-        static constexpr int n_channels = 3;
-        static constexpr std::array<ChannelSpec, n_channels> channels = {{
-            { 'x', ChannelMode::unit },
-            { 'y', ChannelMode::unit },
-            { 'Y', ChannelMode::unit },
-        }};
+        static constexpr int flags = ColourSpace::unit;
+        static constexpr std::array<char, 3> channels = {{ 'x', 'y', 'Y' }};
         template <typename T> constexpr Vector<T, 3> from_base(Vector<T, 3> colour) const noexcept {
             Vector<T, 3> out;
             T sum = colour.x() + colour.y() + colour.z();
@@ -127,6 +115,93 @@ namespace RS::Graphics::Core {
         }
     };
 
+    class CIELab {
+    public:
+        using base = CIEXYZ;
+        static constexpr int flags = 0;
+        static constexpr std::array<char, 3> channels = {{ 'L', 'a', 'b' }};
+        template <typename T> Vector<T, 3> from_base(Vector<T, 3> colour) const noexcept {
+            Vector<T, 3> out;
+            colour /= illuminant<T>;
+            out[0] = 116 * f(colour.y()) - 16;
+            out[1] = 500 * (f(colour.x()) - f(colour.y()));
+            out[2] = 200 * (f(colour.y()) - f(colour.z()));
+            return out;
+        }
+        template <typename T> Vector<T, 3> to_base(Vector<T, 3> colour) const noexcept {
+            Vector<T, 3> out;
+            T lx = (colour[0] + 16) / 116;
+            out.x() = inverse_f(lx + colour[1] / 500);
+            out.y() = inverse_f(lx);
+            out.z() = inverse_f(lx - colour[2] / 200);
+            return out * illuminant<T>;
+        }
+    private:
+        template <typename T> static constexpr Vector<T, 3> illuminant = {T(0.950489),T(1),T(1.088840)}; // D65
+        template <typename T> static constexpr T delta = T(6) / T(29);
+        template <typename T> static constexpr T c1 = delta<T> * delta<T> * delta<T>;
+        template <typename T> static constexpr T c2 = 3 * delta<T> * delta<T>;
+        template <typename T> static constexpr T c3 = T(4) / T(29);
+        template <typename T> static T f(T t) noexcept {
+            if (t <= c1<T>)
+                return t / c2<T> + c3<T>;
+            else
+                return std::cbrt(t);
+        }
+        template <typename T> static T inverse_f(T t) noexcept {
+            if (t <= delta<T>)
+                return c2<T> * (t - c3<T>);
+            else
+                return t * t * t;
+        }
+    };
+
+    class CIELuv {
+    public:
+        using base = CIEXYZ;
+        static constexpr int flags = 0;
+        static constexpr std::array<char, 3> channels = {{ 'L', 'u', 'v' }};
+        template <typename T> constexpr Vector<T, 3> from_base(Vector<T, 3> colour) const noexcept {
+            Vector<T, 3> out;
+            T y = colour.y() / illuminant<T>.y();
+            if (y <= c1<T>)
+                out[0] = c3<T> * y;
+            else
+                out[0] = 116 * std::cbrt(y) - 16;
+            out[1] = 13 * out[0] * (u_prime(colour) - u_prime_n<T>);
+            out[2] = 13 * out[0] * (v_prime(colour) - v_prime_n<T>);
+            return out;
+        }
+        template <typename T> constexpr Vector<T, 3> to_base(Vector<T, 3> colour) const noexcept {
+            Vector<T, 3> out;
+            T u = colour[1] / (13 * colour[0]) + u_prime_n<T>;
+            T v = colour[2] / (13 * colour[0]) + v_prime_n<T>;
+            if (colour[0] <= 8)
+                out[1] = c4<T> * colour[0];
+            else
+                out[1] = std::pow((colour[0] + 16) / 116, T(3));
+            out[1] *= illuminant<T>.y();
+            out[0] = out[1] * 9 * u / (4 * v);
+            out[2] = out[1] * (12 - 3 * u - 20 * v) / (4 * v);
+            return out;
+        }
+    private:
+        template <typename T> static constexpr Vector<T, 3> illuminant = {T(0.950489),T(1),T(1.088840)}; // D65
+        template <typename T> static constexpr T delta = T(6) / T(29);
+        template <typename T> static constexpr T c1 = delta<T> * delta<T> * delta<T>;
+        template <typename T> static constexpr T c2 = T(29) / T(3);
+        template <typename T> static constexpr T c3 = c2<T> * c2<T> * c2<T>;
+        template <typename T> static constexpr T c4 = 1 / c3<T>;
+        template <typename T> static constexpr T u_prime(Vector<T, 3> xyz) noexcept {
+            return 4 * xyz.x() / (xyz.x() + 15 * xyz.y() + 3 * xyz.z());
+        }
+        template <typename T> static constexpr T v_prime(Vector<T, 3> xyz) noexcept {
+            return 9 * xyz.y() / (xyz.x() + 15 * xyz.y() + 3 * xyz.z());
+        }
+        template <typename T> static constexpr T u_prime_n = u_prime(illuminant<T>);
+        template <typename T> static constexpr T v_prime_n = v_prime(illuminant<T>);
+    };
+
     template <int64_t M00, int64_t M01, int64_t M02,
         int64_t M10, int64_t M11, int64_t M12,
         int64_t M20, int64_t M21, int64_t M22,
@@ -134,12 +209,8 @@ namespace RS::Graphics::Core {
     class WorkingSpace {
     public:
         using base = CIEXYZ;
-        static constexpr int n_channels = 3;
-        static constexpr std::array<ChannelSpec, n_channels> channels = {{
-            { 'R', ChannelMode::unit },
-            { 'G', ChannelMode::unit },
-            { 'B', ChannelMode::unit },
-        }};
+        static constexpr int flags = ColourSpace::linear_rgb | ColourSpace::unit;
+        static constexpr std::array<char, 3> channels = {{ 'R', 'G', 'B' }};
         template <typename T> constexpr Vector<T, 3> from_base(Vector<T, 3> colour) const noexcept {
             return xyz_to_rgb_matrix<T> * colour;
         }
@@ -156,12 +227,8 @@ namespace RS::Graphics::Core {
     class NonlinearSpace {
     public:
         using base = WorkingSpace;
-        static constexpr int n_channels = 3;
-        static constexpr std::array<ChannelSpec, n_channels> channels = {{
-            { 'R', ChannelMode::unit },
-            { 'G', ChannelMode::unit },
-            { 'B', ChannelMode::unit },
-        }};
+        static constexpr int flags = ColourSpace::nonlinear_rgb | ColourSpace::unit;
+        static constexpr std::array<char, 3> channels = {{ 'R', 'G', 'B' }};
         template <typename T> Vector<T, 3> from_base(Vector<T, 3> colour) const noexcept {
             static constexpr T inverse_gamma = T(GammaDenominator) / T(GammaNumerator);
             for (auto& c: colour)
@@ -176,10 +243,6 @@ namespace RS::Graphics::Core {
         }
     };
 
-    // Source for matrices:
-    // http://www.brucelindbloom.com/index.html?Eqn_RGB_XYZ_Matrix.html
-    // http://www.brucelindbloom.com/index.html?WorkingSpaceInfo.html
-
     using LinearRGB = WorkingSpace<
          4'124'564,  3'575'761,  1'804'375,
          2'126'729,  7'151'522,    721'750,
@@ -190,12 +253,8 @@ namespace RS::Graphics::Core {
     class sRGB {
     public:
         using base = LinearRGB;
-        static constexpr int n_channels = 3;
-        static constexpr std::array<ChannelSpec, n_channels> channels = {{
-            { 'R', ChannelMode::unit },
-            { 'G', ChannelMode::unit },
-            { 'B', ChannelMode::unit },
-        }};
+        static constexpr int flags = ColourSpace::nonlinear_rgb | ColourSpace::unit;
+        static constexpr std::array<char, 3> channels = {{ 'R', 'G', 'B' }};
         template <typename T> Vector<T, 3> from_base(Vector<T, 3> colour) const noexcept {
             static constexpr T a = T(0.003'130'8);
             static constexpr T b = T(12.92);
@@ -244,101 +303,6 @@ namespace RS::Graphics::Core {
 
     using WideGamut = NonlinearSpace<LinearWideGamut, 563, 256>;
 
-    class CIELab {
-    public:
-        using base = CIEXYZ;
-        static constexpr int n_channels = 3;
-        static constexpr std::array<ChannelSpec, n_channels> channels = {{
-            { 'L', ChannelMode::non_negative },
-            { 'a', ChannelMode::unconstrained },
-            { 'b', ChannelMode::unconstrained },
-        }};
-        template <typename T> Vector<T, 3> from_base(Vector<T, 3> colour) const noexcept {
-            Vector<T, 3> out;
-            colour /= illuminant<T>;
-            out[0] = 116 * f(colour.y()) - 16;
-            out[1] = 500 * (f(colour.x()) - f(colour.y()));
-            out[2] = 200 * (f(colour.y()) - f(colour.z()));
-            return out;
-        }
-        template <typename T> Vector<T, 3> to_base(Vector<T, 3> colour) const noexcept {
-            Vector<T, 3> out;
-            T lx = (colour[0] + 16) / 116;
-            out.x() = inverse_f(lx + colour[1] / 500);
-            out.y() = inverse_f(lx);
-            out.z() = inverse_f(lx - colour[2] / 200);
-            return out * illuminant<T>;
-        }
-    private:
-        template <typename T> static constexpr Vector<T, 3> illuminant = {T(0.950489),T(1),T(1.088840)}; // D65
-        template <typename T> static constexpr T delta = T(6) / T(29);
-        template <typename T> static constexpr T c1 = delta<T> * delta<T> * delta<T>;
-        template <typename T> static constexpr T c2 = 3 * delta<T> * delta<T>;
-        template <typename T> static constexpr T c3 = T(4) / T(29);
-        template <typename T> static T f(T t) noexcept {
-            if (t <= c1<T>)
-                return t / c2<T> + c3<T>;
-            else
-                return std::cbrt(t);
-        }
-        template <typename T> static T inverse_f(T t) noexcept {
-            if (t <= delta<T>)
-                return c2<T> * (t - c3<T>);
-            else
-                return t * t * t;
-        }
-    };
-
-    class CIELuv {
-    public:
-        using base = CIEXYZ;
-        static constexpr int n_channels = 3;
-        static constexpr std::array<ChannelSpec, n_channels> channels = {{
-            { 'L', ChannelMode::non_negative },
-            { 'u', ChannelMode::unconstrained },
-            { 'v', ChannelMode::unconstrained },
-        }};
-        template <typename T> constexpr Vector<T, 3> from_base(Vector<T, 3> colour) const noexcept {
-            Vector<T, 3> out;
-            T y = colour.y() / illuminant<T>.y();
-            if (y <= c1<T>)
-                out[0] = c3<T> * y;
-            else
-                out[0] = 116 * std::cbrt(y) - 16;
-            out[1] = 13 * out[0] * (u_prime(colour) - u_prime_n<T>);
-            out[2] = 13 * out[0] * (v_prime(colour) - v_prime_n<T>);
-            return out;
-        }
-        template <typename T> constexpr Vector<T, 3> to_base(Vector<T, 3> colour) const noexcept {
-            Vector<T, 3> out;
-            T u = colour[1] / (13 * colour[0]) + u_prime_n<T>;
-            T v = colour[2] / (13 * colour[0]) + v_prime_n<T>;
-            if (colour[0] <= 8)
-                out[1] = c4<T> * colour[0];
-            else
-                out[1] = std::pow((colour[0] + 16) / 116, T(3));
-            out[1] *= illuminant<T>.y();
-            out[0] = out[1] * 9 * u / (4 * v);
-            out[2] = out[1] * (12 - 3 * u - 20 * v) / (4 * v);
-            return out;
-        }
-    private:
-        template <typename T> static constexpr Vector<T, 3> illuminant = {T(0.950489),T(1),T(1.088840)}; // D65
-        template <typename T> static constexpr T delta = T(6) / T(29);
-        template <typename T> static constexpr T c1 = delta<T> * delta<T> * delta<T>;
-        template <typename T> static constexpr T c2 = T(29) / T(3);
-        template <typename T> static constexpr T c3 = c2<T> * c2<T> * c2<T>;
-        template <typename T> static constexpr T c4 = 1 / c3<T>;
-        template <typename T> static constexpr T u_prime(Vector<T, 3> xyz) noexcept {
-            return 4 * xyz.x() / (xyz.x() + 15 * xyz.y() + 3 * xyz.z());
-        }
-        template <typename T> static constexpr T v_prime(Vector<T, 3> xyz) noexcept {
-            return 9 * xyz.y() / (xyz.x() + 15 * xyz.y() + 3 * xyz.z());
-        }
-        template <typename T> static constexpr T u_prime_n = u_prime(illuminant<T>);
-        template <typename T> static constexpr T v_prime_n = v_prime(illuminant<T>);
-    };
-
     namespace Detail {
 
         template <typename T>
@@ -376,12 +340,8 @@ namespace RS::Graphics::Core {
     class HSL {
     public:
         using base = LinearRGB;
-        static constexpr int n_channels = 3;
-        static constexpr std::array<ChannelSpec, n_channels> channels = {{
-            { 'H', ChannelMode::circle },
-            { 'S', ChannelMode::unit },
-            { 'L', ChannelMode::unit },
-        }};
+        static constexpr int flags = ColourSpace::polar | ColourSpace::unit;
+        static constexpr std::array<char, 3> channels = {{ 'H', 'S', 'L' }};
         template <typename T> constexpr Vector<T, 3> from_base(Vector<T, 3> colour) const noexcept {
             Vector<T, 3> out;
             T c, v;
@@ -403,12 +363,8 @@ namespace RS::Graphics::Core {
     class HSV {
     public:
         using base = LinearRGB;
-        static constexpr int n_channels = 3;
-        static constexpr std::array<ChannelSpec, n_channels> channels = {{
-            { 'H', ChannelMode::circle },
-            { 'S', ChannelMode::unit },
-            { 'V', ChannelMode::unit },
-        }};
+        static constexpr int flags = ColourSpace::polar | ColourSpace::unit;
+        static constexpr std::array<char, 3> channels = {{ 'H', 'S', 'V' }};
         template <typename T> constexpr Vector<T, 3> from_base(Vector<T, 3> colour) const noexcept {
             Vector<T, 3> out;
             T c;

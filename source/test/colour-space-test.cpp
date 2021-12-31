@@ -2,11 +2,9 @@
 #include "rs-graphics-core/vector.hpp"
 #include "rs-unit-test.hpp"
 #include "test/vector-test.hpp"
-#include <algorithm>
 #include <vector>
 
 using namespace RS::Graphics::Core;
-using namespace RS::Graphics::Core::Detail;
 
 namespace {
 
@@ -57,6 +55,34 @@ void test_rs_graphics_core_colour_space_ciexyy() {
 
 }
 
+void test_rs_graphics_core_colour_space_cielab() {
+
+    Double3 colour, xyz;
+
+    for (auto& sample: samples) {
+        TRY(colour = CIELab().from_base(sample.CIEXYZ));
+        TEST(is_colour_in_gamut<CIELab>(colour));
+        TEST_VECTORS(colour, sample.CIELab, 0.01);
+        TRY(xyz = CIELab().to_base(sample.CIELab));
+        TEST_VECTORS(xyz, sample.CIEXYZ, 0.01);
+    }
+
+}
+
+void test_rs_graphics_core_colour_space_cieluv() {
+
+    Double3 colour, xyz;
+
+    for (auto& sample: samples) {
+        TRY(colour = CIELuv().from_base(sample.CIEXYZ));
+        TEST(is_colour_in_gamut<CIELuv>(colour));
+        TEST_VECTORS(colour, sample.CIELuv, 0.01);
+        TRY(xyz = CIELuv().to_base(sample.CIELuv));
+        TEST_VECTORS(xyz, sample.CIEXYZ, 0.01);
+    }
+
+}
+
 void test_rs_graphics_core_colour_space_srgb() {
 
     Double3 linear, nonlinear, xyz;
@@ -100,34 +126,6 @@ void test_rs_graphics_core_colour_space_wide_gamut() {
         TRY(linear = WideGamut().to_base(nonlinear));
         TRY(xyz = LinearWideGamut().to_base(linear));
         TEST_VECTORS(xyz, sample.CIEXYZ, 1e-6);
-    }
-
-}
-
-void test_rs_graphics_core_colour_space_cielab() {
-
-    Double3 colour, xyz;
-
-    for (auto& sample: samples) {
-        TRY(colour = CIELab().from_base(sample.CIEXYZ));
-        TEST(is_colour_in_gamut<CIELab>(colour));
-        TEST_VECTORS(colour, sample.CIELab, 0.01);
-        TRY(xyz = CIELab().to_base(sample.CIELab));
-        TEST_VECTORS(xyz, sample.CIEXYZ, 0.01);
-    }
-
-}
-
-void test_rs_graphics_core_colour_space_cieluv() {
-
-    Double3 colour, xyz;
-
-    for (auto& sample: samples) {
-        TRY(colour = CIELuv().from_base(sample.CIEXYZ));
-        TEST(is_colour_in_gamut<CIELuv>(colour));
-        TEST_VECTORS(colour, sample.CIELuv, 0.01);
-        TRY(xyz = CIELuv().to_base(sample.CIELuv));
-        TEST_VECTORS(xyz, sample.CIEXYZ, 0.01);
     }
 
 }
