@@ -60,6 +60,7 @@ int main(int argc, char** argv) {
     UNIT_TEST(rs_graphics_core_colour_space_wide_gamut)
     UNIT_TEST(rs_graphics_core_colour_space_hsl)
     UNIT_TEST(rs_graphics_core_colour_space_hsv)
+    UNIT_TEST(rs_graphics_core_colour_space_conversion)
 
     // colour-test.cpp
     UNIT_TEST(rs_graphics_core_colour)

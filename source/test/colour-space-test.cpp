@@ -161,3 +161,14 @@ void test_rs_graphics_core_colour_space_hsv() {
     }
 
 }
+
+void test_rs_graphics_core_colour_space_conversion() {
+
+    Double3 a, b;
+
+    TRY(b = convert_colour_space(a, CIEXYZ(), sRGB()));
+    TEST_VECTORS(b, Double3(), 1e-6);
+
+    // TODO
+
+}

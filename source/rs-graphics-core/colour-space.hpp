@@ -14,40 +14,42 @@ namespace RS::Graphics::Core {
     // Colour space concept:
     //  - using base = [colour space]
     //  - static constexpr int flags
-    //      - linear_rgb and nonlinear_rgb are mutually exclusive
-    //      - if flags has linear_rgb, base must be CIEXYZ
-    //      - if flags has nonlinear_rgb, base is the corresponding linear space
-    //      - if flags has neither, base must be CIEXYZ or LinearRGB
+    //      - if flags has nonlinear, base is the corresponding linear space
+    //      - otherwise, base must be CIEXYZ or LinearRGB
     //  - static constexpr std::array<char,N> channels
     //  - Vector<T,N> from_base(Vector<T,N2> colour) const
     //  - Vector<T,N2> to_base(Vector<T,N> colour) const
+    //  - operator== and operator!=
 
-    // class            base             lrgb  nlrgb  polar  unit
-    // CIEXYZ           CIEXYZ           --    --     --     unit
-    // CIExyY           CIEXYZ           --    --     --     unit
-    // CIELab           CIEXYZ           --    --     --     --
-    // CIELuv           CIEXYZ           --    --     --     --
-    // LinearRGB        CIEXYZ           lrgb  --     --     unit
-    // sRGB             LinearRGB        --    nlrgb  --     unit
-    // LinearAdobeRGB   CIEXYZ           lrgb  --     --     unit
-    // AdobeRGB         LinearAdobeRGB   --    nlrgb  --     unit
-    // LinearWideGamut  CIEXYZ           lrgb  --     --     unit
-    // WideGamut        LinearWideGamut  --    nlrgb  --     unit
-    // HSL              LinearRGB        --    --     polar  unit
-    // HSV              LinearRGB        --    --     polar  unit
+    // class            base             nonlinear  polar  unit
+    // CIEXYZ           CIEXYZ           --         --     unit
+    // CIExyY           CIEXYZ           --         --     unit
+    // CIELab           CIEXYZ           --         --     --
+    // CIELuv           CIEXYZ           --         --     --
+    // LinearRGB        CIEXYZ           --         --     unit
+    // sRGB             LinearRGB        nonlinear  --     unit
+    // LinearAdobeRGB   CIEXYZ           --         --     unit
+    // AdobeRGB         LinearAdobeRGB   nonlinear  --     unit
+    // LinearWideGamut  CIEXYZ           --         --     unit
+    // WideGamut        LinearWideGamut  nonlinear  --     unit
+    // HSL              LinearRGB        --         polar  unit
+    // HSV              LinearRGB        --         polar  unit
 
     // Source for RGB vs XYZ matrices:
     // http://www.brucelindbloom.com/index.html?Eqn_RGB_XYZ_Matrix.html
     // http://www.brucelindbloom.com/index.html?WorkingSpaceInfo.html
 
+    // Constants
+
     namespace ColourSpace {
 
-        constexpr int linear_rgb     = 1 << 0;  // Linear RGB-based colour space
-        constexpr int nonlinear_rgb  = 1 << 1;  // Non-linear RGB-based colour space
-        constexpr int polar          = 1 << 2;  // First channel is polar
-        constexpr int unit           = 1 << 3;  // Colour space is a unit cube
+        constexpr int nonlinear  = 1 << 0;  // Non-linear RGB-based colour space
+        constexpr int polar      = 1 << 1;  // First channel is polar
+        constexpr int unit       = 1 << 2;  // Colour space is a unit cube
 
     };
+
+    // Utility functions
 
     template <typename CS, typename T, int N>
     constexpr bool is_colour_in_gamut(Vector<T, N> colour) noexcept {
@@ -81,6 +83,8 @@ namespace RS::Graphics::Core {
         }
     }
 
+    // Colour space classes
+
     class CIEXYZ {
     public:
         using base = CIEXYZ;
@@ -88,6 +92,8 @@ namespace RS::Graphics::Core {
         static constexpr std::array<char, 3> channels = {{ 'X', 'Y', 'Z' }};
         template <typename T> constexpr Vector<T, 3> from_base(Vector<T, 3> colour) const noexcept { return colour; }
         template <typename T> constexpr Vector<T, 3> to_base(Vector<T, 3> colour) const noexcept { return colour; }
+        constexpr bool operator==(CIEXYZ) const noexcept { return true; }
+        constexpr bool operator!=(CIEXYZ) const noexcept { return false; }
     };
 
     class CIExyY {
@@ -113,6 +119,8 @@ namespace RS::Graphics::Core {
             out.z() = scale * (1 - colour.x() - colour.y());
             return out;
         }
+        constexpr bool operator==(CIExyY) const noexcept { return true; }
+        constexpr bool operator!=(CIExyY) const noexcept { return false; }
     };
 
     class CIELab {
@@ -136,6 +144,8 @@ namespace RS::Graphics::Core {
             out.z() = inverse_f(lx - colour[2] / 200);
             return out * illuminant<T>;
         }
+        constexpr bool operator==(CIELab) const noexcept { return true; }
+        constexpr bool operator!=(CIELab) const noexcept { return false; }
     private:
         template <typename T> static constexpr Vector<T, 3> illuminant = {T(0.950489),T(1),T(1.088840)}; // D65
         template <typename T> static constexpr T delta = T(6) / T(29);
@@ -185,6 +195,8 @@ namespace RS::Graphics::Core {
             out[2] = out[1] * (12 - 3 * u - 20 * v) / (4 * v);
             return out;
         }
+        constexpr bool operator==(CIELuv) const noexcept { return true; }
+        constexpr bool operator!=(CIELuv) const noexcept { return false; }
     private:
         template <typename T> static constexpr Vector<T, 3> illuminant = {T(0.950489),T(1),T(1.088840)}; // D65
         template <typename T> static constexpr T delta = T(6) / T(29);
@@ -209,7 +221,7 @@ namespace RS::Graphics::Core {
     class WorkingSpace {
     public:
         using base = CIEXYZ;
-        static constexpr int flags = ColourSpace::linear_rgb | ColourSpace::unit;
+        static constexpr int flags = ColourSpace::unit;
         static constexpr std::array<char, 3> channels = {{ 'R', 'G', 'B' }};
         template <typename T> constexpr Vector<T, 3> from_base(Vector<T, 3> colour) const noexcept {
             return xyz_to_rgb_matrix<T> * colour;
@@ -217,6 +229,8 @@ namespace RS::Graphics::Core {
         template <typename T> constexpr Vector<T, 3> to_base(Vector<T, 3> colour) const noexcept {
             return rgb_to_xyz_matrix<T> * colour;
         }
+        constexpr bool operator==(WorkingSpace) const noexcept { return true; }
+        constexpr bool operator!=(WorkingSpace) const noexcept { return false; }
     private:
         template <typename T> static constexpr auto rgb_to_xyz_matrix = Matrix<T, 3, MatrixLayout::row>
             (T(M00), T(M01), T(M02), T(M10), T(M11), T(M12), T(M20), T(M21), T(M22)) / T(Divisor);
@@ -227,7 +241,7 @@ namespace RS::Graphics::Core {
     class NonlinearSpace {
     public:
         using base = WorkingSpace;
-        static constexpr int flags = ColourSpace::nonlinear_rgb | ColourSpace::unit;
+        static constexpr int flags = ColourSpace::nonlinear | ColourSpace::unit;
         static constexpr std::array<char, 3> channels = {{ 'R', 'G', 'B' }};
         template <typename T> Vector<T, 3> from_base(Vector<T, 3> colour) const noexcept {
             static constexpr T inverse_gamma = T(GammaDenominator) / T(GammaNumerator);
@@ -241,6 +255,8 @@ namespace RS::Graphics::Core {
                 c = std::pow(std::max(c, T(0)), gamma);
             return colour;
         }
+        constexpr bool operator==(NonlinearSpace) const noexcept { return true; }
+        constexpr bool operator!=(NonlinearSpace) const noexcept { return false; }
     };
 
     using LinearRGB = WorkingSpace<
@@ -253,7 +269,7 @@ namespace RS::Graphics::Core {
     class sRGB {
     public:
         using base = LinearRGB;
-        static constexpr int flags = ColourSpace::nonlinear_rgb | ColourSpace::unit;
+        static constexpr int flags = ColourSpace::nonlinear | ColourSpace::unit;
         static constexpr std::array<char, 3> channels = {{ 'R', 'G', 'B' }};
         template <typename T> Vector<T, 3> from_base(Vector<T, 3> colour) const noexcept {
             static constexpr T a = T(0.003'130'8);
@@ -283,6 +299,8 @@ namespace RS::Graphics::Core {
             }
             return colour;
         }
+        constexpr bool operator==(sRGB) const noexcept { return true; }
+        constexpr bool operator!=(sRGB) const noexcept { return false; }
     };
 
     using LinearAdobeRGB = WorkingSpace<
@@ -358,6 +376,8 @@ namespace RS::Graphics::Core {
             Detail::hcm_to_rgb(colour[0], c, m, out[0], out[1], out[2]);
             return out;
         }
+        constexpr bool operator==(HSL) const noexcept { return true; }
+        constexpr bool operator!=(HSL) const noexcept { return false; }
     };
 
     class HSV {
@@ -380,6 +400,49 @@ namespace RS::Graphics::Core {
             Detail::hcm_to_rgb(colour[0], c, m, out[0], out[1], out[2]);
             return out;
         }
+        constexpr bool operator==(HSV) const noexcept { return true; }
+        constexpr bool operator!=(HSV) const noexcept { return false; }
     };
+
+    // Conversion functions
+
+    template <typename T, int N, typename CS1, typename CS2>
+    Vector<T, CS2::channels.size()> convert_colour_space(Vector<T, N> colour, const CS1& cs1, const CS2& cs2) {
+
+        static_assert(N == int(CS1::channels.size()));
+
+        using BCS1 = typename CS1::base;
+        using BCS2 = typename CS2::base;
+
+        if constexpr (std::is_same_v<CS1, CS2>) {
+
+            if (cs1 == cs2) {
+                return colour;
+            } else {
+                auto bc = cs1.to_base(colour);
+                return cs2.from_base(bc);
+            }
+
+        } else if constexpr (std::is_same_v<CS1, CIEXYZ> && std::is_same_v<CS2, LinearRGB>) {
+
+            return cs2.from_base(colour);
+
+        } else if constexpr (std::is_same_v<CS1, LinearRGB> && std::is_same_v<CS2, CIEXYZ>) {
+
+            return cs1.to_base(colour);
+
+        } else if constexpr (! std::is_same_v<CS1, BCS1>) {
+
+            auto bc1 = cs1.to_base(colour);
+            return convert_colour_space(bc1, BCS1(), cs2);
+
+        } else {
+
+            auto bc2 = convert_colour_space(colour, cs1, BCS2());
+            return cs2.from_base(bc2);
+
+        }
+
+    }
 
 }
