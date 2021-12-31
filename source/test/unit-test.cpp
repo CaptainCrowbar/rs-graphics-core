@@ -64,7 +64,7 @@ int main(int argc, char** argv) {
     UNIT_TEST(rs_graphics_core_colour_space_conversion)
 
     // colour-test.cpp
-    UNIT_TEST(rs_graphics_core_colour)
+    UNIT_TEST(rs_graphics_core_colour_elements)
 
     // noise-test.cpp
     UNIT_TEST(rs_graphics_core_noise_result_stability)

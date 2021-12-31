@@ -74,7 +74,8 @@ This copies the elements from the pointed-to data. Behaviour is undefined if
 the pointer is null or does not point to an array of at least `N` elements.
 
 ```c++
-template <typename U> constexpr explicit Vector::Vector(const Vector<U, N>& v) noexcept;
+template <typename U>
+    constexpr explicit Vector::Vector(const Vector<U, N>& v) noexcept;
 ```
 
 Converts a vector from one element type to another. An implicit conversion
@@ -217,7 +218,8 @@ Returns `N`.
 
 ```c++
 size_t Vector::hash() const noexcept;
-template <typename T, int N> struct std::hash<RS::Graphics::Core::Vector<T, N>>;
+template <typename T, int N>
+    struct std::hash<RS::Graphics::Core::Vector<T, N>>;
 ```
 
 Hash function.
@@ -245,10 +247,12 @@ constexpr static Vector Vector::null() noexcept;
 Returns a null vector (equivalent to `Vector(0)`).
 
 ```c++
-constexpr Vector clampv(const Vector& x, const Vector& min, const Vector& max) noexcept;
+constexpr Vector clampv(const Vector& x,
+    const Vector& min, const Vector& max) noexcept;
 constexpr Vector minv(const Vector& x, const Vector& y) noexcept;
 constexpr Vector maxv(const Vector& x, const Vector& y) noexcept;
-constexpr std::pair<Vector, Vector> minmaxv(const Vector& x, const Vector& y) noexcept;
+constexpr std::pair<Vector, Vector>
+    minmaxv(const Vector& x, const Vector& y) noexcept;
 ```
 
 These perform element-wise `clamp()`, `min()`, and `max()` operations on
