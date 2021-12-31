@@ -13,11 +13,37 @@
         auto rs_unit_test_rhs = rhs; \
         auto rs_unit_test_epsilon = epsilon; \
         for (size_t i = 0; i < lhs.size(); ++i) { \
-            if (std::abs((rs_unit_test_rhs)[i] - (rs_unit_test_lhs)[i]) > (rs_unit_test_epsilon)) { \
+            if (std::abs(rs_unit_test_rhs[i] - rs_unit_test_lhs[i]) > rs_unit_test_epsilon) { \
                 FAIL_TEST("Vectors are not close enough: " \
-                    << # lhs << " = " << (rs_unit_test_lhs) << ", " \
-                    << # rhs << " = " << (rs_unit_test_rhs) << ", " \
-                    << "epsilon = " << (rs_unit_test_epsilon)); \
+                    << # lhs << " = " << rs_unit_test_lhs << ", " \
+                    << # rhs << " = " << rs_unit_test_rhs << ", " \
+                    << "epsilon = " << rs_unit_test_epsilon); \
+                break; \
+            } \
+        } \
+    } \
+    catch (const std::exception& ex) { \
+        FAIL_TEST("Unexpected exception: " << ex.what()); \
+    } \
+    catch (...) { \
+        FAIL_TEST("Unexpected exception"); \
+    }
+
+// HSL/HSV colours need special treatment because the hue can go haywire if the saturation is tiny
+
+#define TEST_VECTORS_HSPACE(lhs, rhs, epsilon) \
+    try { \
+        REQUIRE(lhs.size() == rhs.size()); \
+        auto rs_unit_test_lhs = lhs; \
+        auto rs_unit_test_rhs = rhs; \
+        auto rs_unit_test_epsilon = epsilon; \
+        bool rs_unit_test_unsaturated = rs_unit_test_lhs[1] < epsilon && rs_unit_test_rhs[1] < epsilon; \
+        for (auto i = size_t(rs_unit_test_unsaturated); i < lhs.size(); ++i) { \
+            if (std::abs(rs_unit_test_rhs[i] - rs_unit_test_lhs[i]) > rs_unit_test_epsilon) { \
+                FAIL_TEST("Vectors are not close enough: " \
+                    << # lhs << " = " << rs_unit_test_lhs << ", " \
+                    << # rhs << " = " << rs_unit_test_rhs << ", " \
+                    << "epsilon = " << rs_unit_test_epsilon); \
                 break; \
             } \
         } \

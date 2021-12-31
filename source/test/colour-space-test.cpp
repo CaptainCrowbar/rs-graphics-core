@@ -164,5 +164,75 @@ void test_rs_graphics_core_colour_space_hsv() {
 
 void test_rs_graphics_core_colour_space_conversion() {
 
+    Double3 c;
+
+    for (auto& sample: samples) {
+
+        TRY((c = convert_colour_space<sRGB, sRGB>(sample.sRGB)));              TEST_VECTORS(c, sample.sRGB, 0.001);
+        TRY((c = convert_colour_space<sRGB, AdobeRGB>(sample.sRGB)));          TEST_VECTORS(c, sample.AdobeRGB, 0.001);
+        TRY((c = convert_colour_space<sRGB, CIEXYZ>(sample.sRGB)));            TEST_VECTORS(c, sample.CIEXYZ, 0.001);
+        TRY((c = convert_colour_space<sRGB, CIExyY>(sample.sRGB)));            TEST_VECTORS(c, sample.CIExyY, 0.001);
+        TRY((c = convert_colour_space<sRGB, CIELab>(sample.sRGB)));            TEST_VECTORS(c, sample.CIELab, 0.1);
+        TRY((c = convert_colour_space<sRGB, CIELuv>(sample.sRGB)));            TEST_VECTORS(c, sample.CIELuv, 0.1);
+        TRY((c = convert_colour_space<sRGB, HSL>(sample.sRGB)));               TEST_VECTORS_HSPACE(c, sample.HSL, 0.001);
+        TRY((c = convert_colour_space<sRGB, HSV>(sample.sRGB)));               TEST_VECTORS_HSPACE(c, sample.HSV, 0.001);
+        TRY((c = convert_colour_space<AdobeRGB, sRGB>(sample.AdobeRGB)));      TEST_VECTORS(c, sample.sRGB, 0.001);
+        TRY((c = convert_colour_space<AdobeRGB, AdobeRGB>(sample.AdobeRGB)));  TEST_VECTORS(c, sample.AdobeRGB, 0.001);
+        TRY((c = convert_colour_space<AdobeRGB, CIEXYZ>(sample.AdobeRGB)));    TEST_VECTORS(c, sample.CIEXYZ, 0.001);
+        TRY((c = convert_colour_space<AdobeRGB, CIExyY>(sample.AdobeRGB)));    TEST_VECTORS(c, sample.CIExyY, 0.001);
+        TRY((c = convert_colour_space<AdobeRGB, CIELab>(sample.AdobeRGB)));    TEST_VECTORS(c, sample.CIELab, 0.1);
+        TRY((c = convert_colour_space<AdobeRGB, CIELuv>(sample.AdobeRGB)));    TEST_VECTORS(c, sample.CIELuv, 0.1);
+        TRY((c = convert_colour_space<AdobeRGB, HSL>(sample.AdobeRGB)));       TEST_VECTORS_HSPACE(c, sample.HSL, 0.001);
+        TRY((c = convert_colour_space<AdobeRGB, HSV>(sample.AdobeRGB)));       TEST_VECTORS_HSPACE(c, sample.HSV, 0.001);
+        TRY((c = convert_colour_space<CIEXYZ, sRGB>(sample.CIEXYZ)));          TEST_VECTORS(c, sample.sRGB, 0.001);
+        TRY((c = convert_colour_space<CIEXYZ, AdobeRGB>(sample.CIEXYZ)));      TEST_VECTORS(c, sample.AdobeRGB, 0.001);
+        TRY((c = convert_colour_space<CIEXYZ, CIEXYZ>(sample.CIEXYZ)));        TEST_VECTORS(c, sample.CIEXYZ, 0.001);
+        TRY((c = convert_colour_space<CIEXYZ, CIExyY>(sample.CIEXYZ)));        TEST_VECTORS(c, sample.CIExyY, 0.001);
+        TRY((c = convert_colour_space<CIEXYZ, CIELab>(sample.CIEXYZ)));        TEST_VECTORS(c, sample.CIELab, 0.1);
+        TRY((c = convert_colour_space<CIEXYZ, CIELuv>(sample.CIEXYZ)));        TEST_VECTORS(c, sample.CIELuv, 0.1);
+        TRY((c = convert_colour_space<CIEXYZ, HSL>(sample.CIEXYZ)));           TEST_VECTORS_HSPACE(c, sample.HSL, 0.001);
+        TRY((c = convert_colour_space<CIEXYZ, HSV>(sample.CIEXYZ)));           TEST_VECTORS_HSPACE(c, sample.HSV, 0.001);
+        TRY((c = convert_colour_space<CIExyY, sRGB>(sample.CIExyY)));          TEST_VECTORS(c, sample.sRGB, 0.001);
+        TRY((c = convert_colour_space<CIExyY, AdobeRGB>(sample.CIExyY)));      TEST_VECTORS(c, sample.AdobeRGB, 0.001);
+        TRY((c = convert_colour_space<CIExyY, CIEXYZ>(sample.CIExyY)));        TEST_VECTORS(c, sample.CIEXYZ, 0.001);
+        TRY((c = convert_colour_space<CIExyY, CIExyY>(sample.CIExyY)));        TEST_VECTORS(c, sample.CIExyY, 0.001);
+        TRY((c = convert_colour_space<CIExyY, CIELab>(sample.CIExyY)));        TEST_VECTORS(c, sample.CIELab, 0.1);
+        TRY((c = convert_colour_space<CIExyY, CIELuv>(sample.CIExyY)));        TEST_VECTORS(c, sample.CIELuv, 0.1);
+        TRY((c = convert_colour_space<CIExyY, HSL>(sample.CIExyY)));           TEST_VECTORS_HSPACE(c, sample.HSL, 0.001);
+        TRY((c = convert_colour_space<CIExyY, HSV>(sample.CIExyY)));           TEST_VECTORS_HSPACE(c, sample.HSV, 0.001);
+        TRY((c = convert_colour_space<CIELab, sRGB>(sample.CIELab)));          TEST_VECTORS(c, sample.sRGB, 0.001);
+        TRY((c = convert_colour_space<CIELab, AdobeRGB>(sample.CIELab)));      TEST_VECTORS(c, sample.AdobeRGB, 0.001);
+        TRY((c = convert_colour_space<CIELab, CIEXYZ>(sample.CIELab)));        TEST_VECTORS(c, sample.CIEXYZ, 0.001);
+        TRY((c = convert_colour_space<CIELab, CIExyY>(sample.CIELab)));        TEST_VECTORS(c, sample.CIExyY, 0.001);
+        TRY((c = convert_colour_space<CIELab, CIELab>(sample.CIELab)));        TEST_VECTORS(c, sample.CIELab, 0.1);
+        TRY((c = convert_colour_space<CIELab, CIELuv>(sample.CIELab)));        TEST_VECTORS(c, sample.CIELuv, 0.1);
+        TRY((c = convert_colour_space<CIELab, HSL>(sample.CIELab)));           TEST_VECTORS_HSPACE(c, sample.HSL, 0.001);
+        TRY((c = convert_colour_space<CIELab, HSV>(sample.CIELab)));           TEST_VECTORS_HSPACE(c, sample.HSV, 0.001);
+        TRY((c = convert_colour_space<CIELuv, sRGB>(sample.CIELuv)));          TEST_VECTORS(c, sample.sRGB, 0.001);
+        TRY((c = convert_colour_space<CIELuv, AdobeRGB>(sample.CIELuv)));      TEST_VECTORS(c, sample.AdobeRGB, 0.001);
+        TRY((c = convert_colour_space<CIELuv, CIEXYZ>(sample.CIELuv)));        TEST_VECTORS(c, sample.CIEXYZ, 0.001);
+        TRY((c = convert_colour_space<CIELuv, CIExyY>(sample.CIELuv)));        TEST_VECTORS(c, sample.CIExyY, 0.001);
+        TRY((c = convert_colour_space<CIELuv, CIELab>(sample.CIELuv)));        TEST_VECTORS(c, sample.CIELab, 0.1);
+        TRY((c = convert_colour_space<CIELuv, CIELuv>(sample.CIELuv)));        TEST_VECTORS(c, sample.CIELuv, 0.1);
+        TRY((c = convert_colour_space<CIELuv, HSL>(sample.CIELuv)));           TEST_VECTORS_HSPACE(c, sample.HSL, 0.001);
+        TRY((c = convert_colour_space<CIELuv, HSV>(sample.CIELuv)));           TEST_VECTORS_HSPACE(c, sample.HSV, 0.001);
+        TRY((c = convert_colour_space<HSL, sRGB>(sample.HSL)));                TEST_VECTORS(c, sample.sRGB, 0.001);
+        TRY((c = convert_colour_space<HSL, AdobeRGB>(sample.HSL)));            TEST_VECTORS(c, sample.AdobeRGB, 0.001);
+        TRY((c = convert_colour_space<HSL, CIEXYZ>(sample.HSL)));              TEST_VECTORS(c, sample.CIEXYZ, 0.001);
+        TRY((c = convert_colour_space<HSL, CIExyY>(sample.HSL)));              TEST_VECTORS(c, sample.CIExyY, 0.001);
+        TRY((c = convert_colour_space<HSL, CIELab>(sample.HSL)));              TEST_VECTORS(c, sample.CIELab, 0.1);
+        TRY((c = convert_colour_space<HSL, CIELuv>(sample.HSL)));              TEST_VECTORS(c, sample.CIELuv, 0.1);
+        TRY((c = convert_colour_space<HSL, HSL>(sample.HSL)));                 TEST_VECTORS_HSPACE(c, sample.HSL, 0.001);
+        TRY((c = convert_colour_space<HSL, HSV>(sample.HSL)));                 TEST_VECTORS_HSPACE(c, sample.HSV, 0.001);
+        TRY((c = convert_colour_space<HSV, sRGB>(sample.HSV)));                TEST_VECTORS(c, sample.sRGB, 0.001);
+        TRY((c = convert_colour_space<HSV, AdobeRGB>(sample.HSV)));            TEST_VECTORS(c, sample.AdobeRGB, 0.001);
+        TRY((c = convert_colour_space<HSV, CIEXYZ>(sample.HSV)));              TEST_VECTORS(c, sample.CIEXYZ, 0.001);
+        TRY((c = convert_colour_space<HSV, CIExyY>(sample.HSV)));              TEST_VECTORS(c, sample.CIExyY, 0.001);
+        TRY((c = convert_colour_space<HSV, CIELab>(sample.HSV)));              TEST_VECTORS(c, sample.CIELab, 0.1);
+        TRY((c = convert_colour_space<HSV, CIELuv>(sample.HSV)));              TEST_VECTORS(c, sample.CIELuv, 0.1);
+        TRY((c = convert_colour_space<HSV, HSL>(sample.HSV)));                 TEST_VECTORS_HSPACE(c, sample.HSL, 0.001);
+        TRY((c = convert_colour_space<HSV, HSV>(sample.HSV)));                 TEST_VECTORS_HSPACE(c, sample.HSV, 0.001);
+
+    }
 
 }
