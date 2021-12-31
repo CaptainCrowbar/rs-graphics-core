@@ -11,14 +11,6 @@
 
 namespace RS::Graphics::Core {
 
-    // Colour space concept:
-    //  - using base = [colour space]
-    //  - static bool is_polar
-    //  - static bool is_unit
-    //  - static constexpr std::array<char,N> channels
-    //  - static Vector<T,N> from_base(Vector<T,N2> colour)
-    //  - static Vector<T,N2> to_base(Vector<T,N> colour)
-
     // class            base             nonlinear  polar  unit
     // CIEXYZ           CIEXYZ           --         --     unit
     // CIExyY           CIEXYZ           --         --     unit
@@ -36,16 +28,6 @@ namespace RS::Graphics::Core {
     // Source for RGB vs XYZ matrices:
     // http://www.brucelindbloom.com/index.html?Eqn_RGB_XYZ_Matrix.html
     // http://www.brucelindbloom.com/index.html?WorkingSpaceInfo.html
-
-    // Constants
-
-    namespace ColourSpace {
-
-        constexpr int nonlinear  = 1 << 0;  // Non-linear RGB-based colour space
-        constexpr int polar      = 1 << 1;  // First channel is polar
-        constexpr int unit       = 1 << 2;  // Colour space is a unit cube
-
-    };
 
     // Utility functions
 
@@ -392,7 +374,7 @@ namespace RS::Graphics::Core {
         }
     };
 
-    // Colour space conversion
+    // Conversion functions
 
     template <typename CS1, typename CS2, typename T>
     Vector<T, CS2::channels.size()> convert_colour_space(Vector<T, int(CS1::channels.size())> colour) {
