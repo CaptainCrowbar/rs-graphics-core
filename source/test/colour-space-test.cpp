@@ -46,10 +46,10 @@ void test_rs_graphics_core_colour_space_ciexyy() {
     Double3 xyy, xyz;
 
     for (auto& sample: samples) {
-        TRY(xyy = CIExyY().from_base(sample.CIEXYZ));
+        TRY(xyy = CIExyY::from_base(sample.CIEXYZ));
         TEST(is_colour_in_gamut<CIExyY>(xyy));
         TEST_VECTORS(xyy, sample.CIExyY, 1e-4);
-        TRY(xyz = CIExyY().to_base(sample.CIExyY));
+        TRY(xyz = CIExyY::to_base(sample.CIExyY));
         TEST_VECTORS(xyz, sample.CIEXYZ, 1e-4);
     }
 
@@ -60,10 +60,10 @@ void test_rs_graphics_core_colour_space_cielab() {
     Double3 colour, xyz;
 
     for (auto& sample: samples) {
-        TRY(colour = CIELab().from_base(sample.CIEXYZ));
+        TRY(colour = CIELab::from_base(sample.CIEXYZ));
         TEST(is_colour_in_gamut<CIELab>(colour));
         TEST_VECTORS(colour, sample.CIELab, 0.01);
-        TRY(xyz = CIELab().to_base(sample.CIELab));
+        TRY(xyz = CIELab::to_base(sample.CIELab));
         TEST_VECTORS(xyz, sample.CIEXYZ, 0.01);
     }
 
@@ -74,10 +74,10 @@ void test_rs_graphics_core_colour_space_cieluv() {
     Double3 colour, xyz;
 
     for (auto& sample: samples) {
-        TRY(colour = CIELuv().from_base(sample.CIEXYZ));
+        TRY(colour = CIELuv::from_base(sample.CIEXYZ));
         TEST(is_colour_in_gamut<CIELuv>(colour));
         TEST_VECTORS(colour, sample.CIELuv, 0.01);
-        TRY(xyz = CIELuv().to_base(sample.CIELuv));
+        TRY(xyz = CIELuv::to_base(sample.CIELuv));
         TEST_VECTORS(xyz, sample.CIEXYZ, 0.01);
     }
 
@@ -88,12 +88,12 @@ void test_rs_graphics_core_colour_space_srgb() {
     Double3 linear, nonlinear, xyz;
 
     for (auto& sample: samples) {
-        TRY(linear = LinearRGB().from_base(sample.CIEXYZ));
-        TRY(nonlinear = sRGB().from_base(linear));
+        TRY(linear = LinearRGB::from_base(sample.CIEXYZ));
+        TRY(nonlinear = sRGB::from_base(linear));
         TEST(is_colour_in_gamut<sRGB>(nonlinear));
         TEST_VECTORS(nonlinear, sample.sRGB, 1e-4);
-        TRY(linear = sRGB().to_base(sample.sRGB));
-        TRY(xyz = LinearRGB().to_base(linear));
+        TRY(linear = sRGB::to_base(sample.sRGB));
+        TRY(xyz = LinearRGB::to_base(linear));
         TEST_VECTORS(xyz, sample.CIEXYZ, 1e-4);
     }
 
@@ -104,12 +104,12 @@ void test_rs_graphics_core_colour_space_adobe_rgb() {
     Double3 linear, nonlinear, xyz;
 
     for (auto& sample: samples) {
-        TRY(linear = LinearAdobeRGB().from_base(sample.CIEXYZ));
-        TRY(nonlinear = AdobeRGB().from_base(linear));
+        TRY(linear = LinearAdobeRGB::from_base(sample.CIEXYZ));
+        TRY(nonlinear = AdobeRGB::from_base(linear));
         TEST(is_colour_in_gamut<AdobeRGB>(nonlinear));
         TEST_VECTORS(nonlinear, sample.AdobeRGB, 1e-3);
-        TRY(linear = AdobeRGB().to_base(sample.AdobeRGB));
-        TRY(xyz = LinearAdobeRGB().to_base(linear));
+        TRY(linear = AdobeRGB::to_base(sample.AdobeRGB));
+        TRY(xyz = LinearAdobeRGB::to_base(linear));
         TEST_VECTORS(xyz, sample.CIEXYZ, 1e-3);
     }
 
@@ -120,11 +120,11 @@ void test_rs_graphics_core_colour_space_wide_gamut() {
     Double3 linear, nonlinear, xyz;
 
     for (auto& sample: samples) {
-        TRY(linear = LinearWideGamut().from_base(sample.CIEXYZ));
-        TRY(nonlinear = WideGamut().from_base(linear));
+        TRY(linear = LinearWideGamut::from_base(sample.CIEXYZ));
+        TRY(nonlinear = WideGamut::from_base(linear));
         TEST(is_colour_in_gamut<WideGamut>(nonlinear));
-        TRY(linear = WideGamut().to_base(nonlinear));
-        TRY(xyz = LinearWideGamut().to_base(linear));
+        TRY(linear = WideGamut::to_base(nonlinear));
+        TRY(xyz = LinearWideGamut::to_base(linear));
         TEST_VECTORS(xyz, sample.CIEXYZ, 1e-6);
     }
 
@@ -135,12 +135,12 @@ void test_rs_graphics_core_colour_space_hsl() {
     Double3 rgb, polar, xyz;
 
     for (auto& sample: samples) {
-        TRY(rgb = LinearRGB().from_base(sample.CIEXYZ));
-        TRY(polar = HSL().from_base(rgb));
+        TRY(rgb = LinearRGB::from_base(sample.CIEXYZ));
+        TRY(polar = HSL::from_base(rgb));
         TEST(is_colour_in_gamut<HSL>(polar));
         TEST_VECTORS(polar, sample.HSL, 1e-5);
-        TRY(rgb = HSL().to_base(sample.HSL));
-        TRY(xyz = LinearRGB().to_base(rgb));
+        TRY(rgb = HSL::to_base(sample.HSL));
+        TRY(xyz = LinearRGB::to_base(rgb));
         TEST_VECTORS(xyz, sample.CIEXYZ, 1e-5);
     }
 
@@ -151,12 +151,12 @@ void test_rs_graphics_core_colour_space_hsv() {
     Double3 rgb, polar, xyz;
 
     for (auto& sample: samples) {
-        TRY(rgb = LinearRGB().from_base(sample.CIEXYZ));
-        TRY(polar = HSV().from_base(rgb));
+        TRY(rgb = LinearRGB::from_base(sample.CIEXYZ));
+        TRY(polar = HSV::from_base(rgb));
         TEST(is_colour_in_gamut<HSV>(polar));
         TEST_VECTORS(polar, sample.HSV, 1e-5);
-        TRY(rgb = HSV().to_base(sample.HSV));
-        TRY(xyz = LinearRGB().to_base(rgb));
+        TRY(rgb = HSV::to_base(sample.HSV));
+        TRY(xyz = LinearRGB::to_base(rgb));
         TEST_VECTORS(xyz, sample.CIEXYZ, 1e-5);
     }
 
@@ -164,11 +164,5 @@ void test_rs_graphics_core_colour_space_hsv() {
 
 void test_rs_graphics_core_colour_space_conversion() {
 
-    Double3 a, b;
-
-    TRY(b = convert_colour_space(a, CIEXYZ(), sRGB()));
-    TEST_VECTORS(b, Double3(), 1e-6);
-
-    // TODO
 
 }

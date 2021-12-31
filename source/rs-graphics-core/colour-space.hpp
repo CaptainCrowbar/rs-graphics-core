@@ -13,13 +13,11 @@ namespace RS::Graphics::Core {
 
     // Colour space concept:
     //  - using base = [colour space]
-    //  - static constexpr int flags
-    //      - if flags has nonlinear, base is the corresponding linear space
-    //      - otherwise, base must be CIEXYZ or LinearRGB
+    //  - static bool is_polar
+    //  - static bool is_unit
     //  - static constexpr std::array<char,N> channels
-    //  - Vector<T,N> from_base(Vector<T,N2> colour) const
-    //  - Vector<T,N2> to_base(Vector<T,N> colour) const
-    //  - operator== and operator!=
+    //  - static Vector<T,N> from_base(Vector<T,N2> colour)
+    //  - static Vector<T,N2> to_base(Vector<T,N> colour)
 
     // class            base             nonlinear  polar  unit
     // CIEXYZ           CIEXYZ           --         --     unit
@@ -55,11 +53,11 @@ namespace RS::Graphics::Core {
     constexpr bool is_colour_in_gamut(Vector<T, N> colour) noexcept {
         static_assert(std::is_floating_point_v<T>);
         static_assert(N == int(CS::channels.size()));
-        if constexpr ((CS::flags & ColourSpace::unit) != 0) {
+        if constexpr (CS::is_unit) {
             for (auto t: colour)
                 if (t < 0 || t > 1)
                     return false;
-        } else if constexpr ((CS::flags & ColourSpace::polar) != 0) {
+        } else if constexpr (CS::is_polar) {
             if (colour[0] < 0 || colour[0] > 1)
                 return false;
         }
@@ -70,11 +68,10 @@ namespace RS::Graphics::Core {
     constexpr void clamp_colour(Vector<T, N>& colour) noexcept {
         static_assert(std::is_floating_point_v<T>);
         static_assert(N == int(CS::channels.size()));
-        constexpr bool is_polar =(CS::flags & ColourSpace::polar) != 0;
-        if constexpr (is_polar)
+        if constexpr (CS::is_polar)
             colour[0] = fraction(colour[0]);
-        if constexpr ((CS::flags & ColourSpace::unit) != 0) {
-            for (int i = int(is_polar); i < N; ++i) {
+        if constexpr (CS::is_unit) {
+            for (int i = int(CS::is_polar); i < N; ++i) {
                 if (colour[i] < 0)
                     colour[i] = 0;
                 else if (colour[i] > 1)
@@ -88,20 +85,20 @@ namespace RS::Graphics::Core {
     class CIEXYZ {
     public:
         using base = CIEXYZ;
-        static constexpr int flags = ColourSpace::unit;
+        static constexpr bool is_polar = false;
+        static constexpr bool is_unit = true;
         static constexpr std::array<char, 3> channels = {{ 'X', 'Y', 'Z' }};
-        template <typename T> constexpr Vector<T, 3> from_base(Vector<T, 3> colour) const noexcept { return colour; }
-        template <typename T> constexpr Vector<T, 3> to_base(Vector<T, 3> colour) const noexcept { return colour; }
-        constexpr bool operator==(CIEXYZ) const noexcept { return true; }
-        constexpr bool operator!=(CIEXYZ) const noexcept { return false; }
+        template <typename T> static constexpr Vector<T, 3> from_base(Vector<T, 3> colour) noexcept { return colour; }
+        template <typename T> static constexpr Vector<T, 3> to_base(Vector<T, 3> colour) noexcept { return colour; }
     };
 
     class CIExyY {
     public:
         using base = CIEXYZ;
-        static constexpr int flags = ColourSpace::unit;
+        static constexpr bool is_polar = false;
+        static constexpr bool is_unit = true;
         static constexpr std::array<char, 3> channels = {{ 'x', 'y', 'Y' }};
-        template <typename T> constexpr Vector<T, 3> from_base(Vector<T, 3> colour) const noexcept {
+        template <typename T> static constexpr Vector<T, 3> from_base(Vector<T, 3> colour) noexcept {
             Vector<T, 3> out;
             T sum = colour.x() + colour.y() + colour.z();
             if (sum != 0) {
@@ -111,7 +108,7 @@ namespace RS::Graphics::Core {
             }
             return out;
         }
-        template <typename T> constexpr Vector<T, 3> to_base(Vector<T, 3> colour) const noexcept {
+        template <typename T> static constexpr Vector<T, 3> to_base(Vector<T, 3> colour) noexcept {
             Vector<T, 3> out;
             T scale = colour.z() / colour.y();
             out.x() = scale * colour.x();
@@ -119,16 +116,15 @@ namespace RS::Graphics::Core {
             out.z() = scale * (1 - colour.x() - colour.y());
             return out;
         }
-        constexpr bool operator==(CIExyY) const noexcept { return true; }
-        constexpr bool operator!=(CIExyY) const noexcept { return false; }
     };
 
     class CIELab {
     public:
         using base = CIEXYZ;
-        static constexpr int flags = 0;
+        static constexpr bool is_polar = false;
+        static constexpr bool is_unit = false;
         static constexpr std::array<char, 3> channels = {{ 'L', 'a', 'b' }};
-        template <typename T> Vector<T, 3> from_base(Vector<T, 3> colour) const noexcept {
+        template <typename T> static Vector<T, 3> from_base(Vector<T, 3> colour) noexcept {
             Vector<T, 3> out;
             colour /= illuminant<T>;
             out[0] = 116 * f(colour.y()) - 16;
@@ -136,7 +132,7 @@ namespace RS::Graphics::Core {
             out[2] = 200 * (f(colour.y()) - f(colour.z()));
             return out;
         }
-        template <typename T> Vector<T, 3> to_base(Vector<T, 3> colour) const noexcept {
+        template <typename T> static Vector<T, 3> to_base(Vector<T, 3> colour) noexcept {
             Vector<T, 3> out;
             T lx = (colour[0] + 16) / 116;
             out.x() = inverse_f(lx + colour[1] / 500);
@@ -144,8 +140,6 @@ namespace RS::Graphics::Core {
             out.z() = inverse_f(lx - colour[2] / 200);
             return out * illuminant<T>;
         }
-        constexpr bool operator==(CIELab) const noexcept { return true; }
-        constexpr bool operator!=(CIELab) const noexcept { return false; }
     private:
         template <typename T> static constexpr Vector<T, 3> illuminant = {T(0.950489),T(1),T(1.088840)}; // D65
         template <typename T> static constexpr T delta = T(6) / T(29);
@@ -169,9 +163,10 @@ namespace RS::Graphics::Core {
     class CIELuv {
     public:
         using base = CIEXYZ;
-        static constexpr int flags = 0;
+        static constexpr bool is_polar = false;
+        static constexpr bool is_unit = false;
         static constexpr std::array<char, 3> channels = {{ 'L', 'u', 'v' }};
-        template <typename T> constexpr Vector<T, 3> from_base(Vector<T, 3> colour) const noexcept {
+        template <typename T> static Vector<T, 3> from_base(Vector<T, 3> colour) noexcept {
             Vector<T, 3> out;
             T y = colour.y() / illuminant<T>.y();
             if (y <= c1<T>)
@@ -182,7 +177,7 @@ namespace RS::Graphics::Core {
             out[2] = 13 * out[0] * (v_prime(colour) - v_prime_n<T>);
             return out;
         }
-        template <typename T> constexpr Vector<T, 3> to_base(Vector<T, 3> colour) const noexcept {
+        template <typename T> static Vector<T, 3> to_base(Vector<T, 3> colour) noexcept {
             Vector<T, 3> out;
             T u = colour[1] / (13 * colour[0]) + u_prime_n<T>;
             T v = colour[2] / (13 * colour[0]) + v_prime_n<T>;
@@ -195,8 +190,6 @@ namespace RS::Graphics::Core {
             out[2] = out[1] * (12 - 3 * u - 20 * v) / (4 * v);
             return out;
         }
-        constexpr bool operator==(CIELuv) const noexcept { return true; }
-        constexpr bool operator!=(CIELuv) const noexcept { return false; }
     private:
         template <typename T> static constexpr Vector<T, 3> illuminant = {T(0.950489),T(1),T(1.088840)}; // D65
         template <typename T> static constexpr T delta = T(6) / T(29);
@@ -221,16 +214,15 @@ namespace RS::Graphics::Core {
     class WorkingSpace {
     public:
         using base = CIEXYZ;
-        static constexpr int flags = ColourSpace::unit;
+        static constexpr bool is_polar = false;
+        static constexpr bool is_unit = true;
         static constexpr std::array<char, 3> channels = {{ 'R', 'G', 'B' }};
-        template <typename T> constexpr Vector<T, 3> from_base(Vector<T, 3> colour) const noexcept {
+        template <typename T> static constexpr Vector<T, 3> from_base(Vector<T, 3> colour) noexcept {
             return xyz_to_rgb_matrix<T> * colour;
         }
-        template <typename T> constexpr Vector<T, 3> to_base(Vector<T, 3> colour) const noexcept {
+        template <typename T> static constexpr Vector<T, 3> to_base(Vector<T, 3> colour) noexcept {
             return rgb_to_xyz_matrix<T> * colour;
         }
-        constexpr bool operator==(WorkingSpace) const noexcept { return true; }
-        constexpr bool operator!=(WorkingSpace) const noexcept { return false; }
     private:
         template <typename T> static constexpr auto rgb_to_xyz_matrix = Matrix<T, 3, MatrixLayout::row>
             (T(M00), T(M01), T(M02), T(M10), T(M11), T(M12), T(M20), T(M21), T(M22)) / T(Divisor);
@@ -241,22 +233,21 @@ namespace RS::Graphics::Core {
     class NonlinearSpace {
     public:
         using base = WorkingSpace;
-        static constexpr int flags = ColourSpace::nonlinear | ColourSpace::unit;
+        static constexpr bool is_polar = false;
+        static constexpr bool is_unit = true;
         static constexpr std::array<char, 3> channels = {{ 'R', 'G', 'B' }};
-        template <typename T> Vector<T, 3> from_base(Vector<T, 3> colour) const noexcept {
+        template <typename T> static Vector<T, 3> from_base(Vector<T, 3> colour) noexcept {
             static constexpr T inverse_gamma = T(GammaDenominator) / T(GammaNumerator);
             for (auto& c: colour)
                 c = std::pow(std::max(c, T(0)), inverse_gamma);
             return colour;
         }
-        template <typename T> Vector<T, 3> to_base(Vector<T, 3> colour) const noexcept {
+        template <typename T> static Vector<T, 3> to_base(Vector<T, 3> colour) noexcept {
             static constexpr T gamma = T(GammaNumerator) / T(GammaDenominator);
             for (auto& c: colour)
                 c = std::pow(std::max(c, T(0)), gamma);
             return colour;
         }
-        constexpr bool operator==(NonlinearSpace) const noexcept { return true; }
-        constexpr bool operator!=(NonlinearSpace) const noexcept { return false; }
     };
 
     using LinearRGB = WorkingSpace<
@@ -269,9 +260,10 @@ namespace RS::Graphics::Core {
     class sRGB {
     public:
         using base = LinearRGB;
-        static constexpr int flags = ColourSpace::nonlinear | ColourSpace::unit;
+        static constexpr bool is_polar = false;
+        static constexpr bool is_unit = true;
         static constexpr std::array<char, 3> channels = {{ 'R', 'G', 'B' }};
-        template <typename T> Vector<T, 3> from_base(Vector<T, 3> colour) const noexcept {
+        template <typename T> static Vector<T, 3> from_base(Vector<T, 3> colour) noexcept {
             static constexpr T a = T(0.003'130'8);
             static constexpr T b = T(12.92);
             static constexpr T c = T(0.055);
@@ -285,7 +277,7 @@ namespace RS::Graphics::Core {
             }
             return colour;
         }
-        template <typename T> Vector<T, 3> to_base(Vector<T, 3> colour) const noexcept {
+        template <typename T> static Vector<T, 3> to_base(Vector<T, 3> colour) noexcept {
             static constexpr T a = T(0.040'45);
             static constexpr T b = 1 / T(12.92);
             static constexpr T c = T(0.055);
@@ -299,8 +291,6 @@ namespace RS::Graphics::Core {
             }
             return colour;
         }
-        constexpr bool operator==(sRGB) const noexcept { return true; }
-        constexpr bool operator!=(sRGB) const noexcept { return false; }
     };
 
     using LinearAdobeRGB = WorkingSpace<
@@ -358,9 +348,10 @@ namespace RS::Graphics::Core {
     class HSL {
     public:
         using base = LinearRGB;
-        static constexpr int flags = ColourSpace::polar | ColourSpace::unit;
+        static constexpr bool is_polar = true;
+        static constexpr bool is_unit = true;
         static constexpr std::array<char, 3> channels = {{ 'H', 'S', 'L' }};
-        template <typename T> constexpr Vector<T, 3> from_base(Vector<T, 3> colour) const noexcept {
+        template <typename T> static constexpr Vector<T, 3> from_base(Vector<T, 3> colour) noexcept {
             Vector<T, 3> out;
             T c, v;
             Detail::rgb_to_hcv(colour[0], colour[1], colour[2], out[0], c, v);
@@ -369,23 +360,22 @@ namespace RS::Graphics::Core {
                 out[1] = c / (T(1) - const_abs(T(2) * out[2] - T(1)));
             return out;
         }
-        template <typename T> constexpr Vector<T, 3> to_base(Vector<T, 3> colour) const noexcept {
+        template <typename T> static constexpr Vector<T, 3> to_base(Vector<T, 3> colour) noexcept {
             Vector<T, 3> out;
             T c = (T(1) - const_abs(T(2) * colour[2] - T(1))) * colour[1];
             T m = colour[2] - c / T(2);
             Detail::hcm_to_rgb(colour[0], c, m, out[0], out[1], out[2]);
             return out;
         }
-        constexpr bool operator==(HSL) const noexcept { return true; }
-        constexpr bool operator!=(HSL) const noexcept { return false; }
     };
 
     class HSV {
     public:
         using base = LinearRGB;
-        static constexpr int flags = ColourSpace::polar | ColourSpace::unit;
+        static constexpr bool is_polar = true;
+        static constexpr bool is_unit = true;
         static constexpr std::array<char, 3> channels = {{ 'H', 'S', 'V' }};
-        template <typename T> constexpr Vector<T, 3> from_base(Vector<T, 3> colour) const noexcept {
+        template <typename T> static constexpr Vector<T, 3> from_base(Vector<T, 3> colour) noexcept {
             Vector<T, 3> out;
             T c;
             Detail::rgb_to_hcv(colour[0], colour[1], colour[2], out[0], c, out[2]);
@@ -393,56 +383,31 @@ namespace RS::Graphics::Core {
                 out[1] = c / out[2];
             return out;
         }
-        template <typename T> constexpr Vector<T, 3> to_base(Vector<T, 3> colour) const noexcept {
+        template <typename T> static constexpr Vector<T, 3> to_base(Vector<T, 3> colour) noexcept {
             Vector<T, 3> out;
             T c = colour[2] * colour[1];
             T m = colour[2] - c;
             Detail::hcm_to_rgb(colour[0], c, m, out[0], out[1], out[2]);
             return out;
         }
-        constexpr bool operator==(HSV) const noexcept { return true; }
-        constexpr bool operator!=(HSV) const noexcept { return false; }
     };
 
-    // Conversion functions
+    // Colour space conversion
 
-    template <typename T, int N, typename CS1, typename CS2>
-    Vector<T, CS2::channels.size()> convert_colour_space(Vector<T, N> colour, const CS1& cs1, const CS2& cs2) {
-
-        static_assert(N == int(CS1::channels.size()));
-
+    template <typename CS1, typename CS2, typename T>
+    Vector<T, CS2::channels.size()> convert_colour_space(Vector<T, int(CS1::channels.size())> colour) {
         using BCS1 = typename CS1::base;
         using BCS2 = typename CS2::base;
-
-        if constexpr (std::is_same_v<CS1, CS2>) {
-
-            if (cs1 == cs2) {
-                return colour;
-            } else {
-                auto bc = cs1.to_base(colour);
-                return cs2.from_base(bc);
-            }
-
-        } else if constexpr (std::is_same_v<CS1, CIEXYZ> && std::is_same_v<CS2, LinearRGB>) {
-
-            return cs2.from_base(colour);
-
-        } else if constexpr (std::is_same_v<CS1, LinearRGB> && std::is_same_v<CS2, CIEXYZ>) {
-
-            return cs1.to_base(colour);
-
-        } else if constexpr (! std::is_same_v<CS1, BCS1>) {
-
-            auto bc1 = cs1.to_base(colour);
-            return convert_colour_space(bc1, BCS1(), cs2);
-
-        } else {
-
-            auto bc2 = convert_colour_space(colour, cs1, BCS2());
-            return cs2.from_base(bc2);
-
-        }
-
+        if constexpr (std::is_same_v<CS1, CS2>)
+            return colour;
+        else if constexpr (std::is_same_v<CS1, CIEXYZ> && std::is_same_v<CS2, LinearRGB>)
+            return CS2::from_base(colour);
+        else if constexpr (std::is_same_v<CS1, LinearRGB> && std::is_same_v<CS2, CIEXYZ>)
+            return CS1::to_base(colour);
+        else if constexpr (! std::is_same_v<CS1, BCS1>)
+            return convert_colour_space<BCS1, CS2>(CS1::to_base(colour));
+        else
+            return CS2::from_base(convert_colour_space<CS1, BCS2>(colour));
     }
 
 }
