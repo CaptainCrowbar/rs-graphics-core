@@ -139,7 +139,7 @@ class CIEXYZ {
     using base = CIEXYZ;
     static constexpr bool is_polar = false;
     static constexpr bool is_unit = true;
-    static constexpr std::array<char, 3> channels = {{ 'X', 'Y', 'Z' }};
+    static constexpr std::array<char, 3> channels = { 'X', 'Y', 'Z' };
     template <typename T> static constexpr Vector<T, 3>
         from_base(Vector<T, 3> colour) noexcept { return colour; }
     template <typename T> static constexpr Vector<T, 3>
@@ -156,7 +156,7 @@ class CIExyY {
     using base = CIEXYZ;
     static constexpr bool is_polar = false;
     static constexpr bool is_unit = true;
-    static constexpr std::array<char, 3> channels = {{ 'x', 'y', 'Y' }};
+    static constexpr std::array<char, 3> channels = { 'x', 'y', 'Y' };
     template <typename T> static constexpr Vector<T, 3>
         from_base(Vector<T, 3> colour) noexcept;
     template <typename T> static constexpr Vector<T, 3>
@@ -173,7 +173,7 @@ class CIELab {
     using base = CIEXYZ;
     static constexpr bool is_polar = false;
     static constexpr bool is_unit = false;
-    static constexpr std::array<char, 3> channels = {{ 'L', 'a', 'b' }};
+    static constexpr std::array<char, 3> channels = { 'L', 'a', 'b' };
     template <typename T> static Vector<T, 3>
         from_base(Vector<T, 3> colour) noexcept;
     template <typename T> static Vector<T, 3>
@@ -183,7 +183,7 @@ class CIELuv {
     using base = CIEXYZ;
     static constexpr bool is_polar = false;
     static constexpr bool is_unit = false;
-    static constexpr std::array<char, 3> channels = {{ 'L', 'u', 'v' }};
+    static constexpr std::array<char, 3> channels = { 'L', 'u', 'v' };
     template <typename T> static Vector<T, 3>
         from_base(Vector<T, 3> colour) noexcept;
     template <typename T> static Vector<T, 3>
@@ -204,7 +204,7 @@ class WorkingSpace {
     using base = CIEXYZ;
     static constexpr bool is_polar = false;
     static constexpr bool is_unit = true;
-    static constexpr std::array<char, 3> channels = {{ 'R', 'G', 'B' }};
+    static constexpr std::array<char, 3> channels = { 'R', 'G', 'B' };
     template <typename T> static constexpr Vector<T, 3>
         from_base(Vector<T, 3> colour) noexcept;
     template <typename T> static constexpr Vector<T, 3>
@@ -223,7 +223,7 @@ class NonlinearSpace {
     using base = WorkingSpace;
     static constexpr bool is_polar = false;
     static constexpr bool is_unit = true;
-    static constexpr std::array<char, 3> channels = {{ 'R', 'G', 'B' }};
+    static constexpr std::array<char, 3> channels = { 'R', 'G', 'B' };
     template <typename T> static Vector<T, 3>
         from_base(Vector<T, 3> colour) noexcept;
     template <typename T> static Vector<T, 3>
@@ -250,7 +250,7 @@ class sRGB {
     using base = LinearRGB;
     static constexpr bool is_polar = false;
     static constexpr bool is_unit = true;
-    static constexpr std::array<char, 3> channels = {{ 'R', 'G', 'B' }};
+    static constexpr std::array<char, 3> channels = { 'R', 'G', 'B' };
     template <typename T> static Vector<T, 3>
         from_base(Vector<T, 3> colour) noexcept;
     template <typename T> static Vector<T, 3>
@@ -287,7 +287,7 @@ class ProPhoto {
     using base = LinearProPhoto;
     static constexpr bool is_polar = false;
     static constexpr bool is_unit = true;
-    static constexpr std::array<char, 3> channels = {{ 'R', 'G', 'B' }};
+    static constexpr std::array<char, 3> channels = { 'R', 'G', 'B' };
     template <typename T> static Vector<T, 3>
         from_base(Vector<T, 3> colour) noexcept;
     template <typename T> static Vector<T, 3>
@@ -318,7 +318,7 @@ class HSL {
     using base = LinearRGB;
     static constexpr bool is_polar = true;
     static constexpr bool is_unit = true;
-    static constexpr std::array<char, 3> channels = {{ 'H', 'S', 'L' }};
+    static constexpr std::array<char, 3> channels = { 'H', 'S', 'L' };
     template <typename T> static constexpr Vector<T, 3>
         from_base(Vector<T, 3> colour) noexcept;
     template <typename T> static constexpr Vector<T, 3>
@@ -328,7 +328,7 @@ class HSV {
     using base = LinearRGB;
     static constexpr bool is_polar = true;
     static constexpr bool is_unit = true;
-    static constexpr std::array<char, 3> channels = {{ 'H', 'S', 'V' }};
+    static constexpr std::array<char, 3> channels = { 'H', 'S', 'V' };
     template <typename T> static constexpr Vector<T, 3>
         from_base(Vector<T, 3> colour) noexcept;
     template <typename T> static constexpr Vector<T, 3>
