@@ -48,8 +48,9 @@ static constexpr std::array<char,N> CS::channels;
 ```
 
 This is a list of letters representing the colour channels. All elements must
-be ASCII upper or lower case letters, with no duplicates. Capital `'A'` is
-reserved for the alpha channel and may not be used here.
+be ASCII upper or lower case letters, with no duplicates. Channel IDs are
+case sensitive. Capital A is reserved for the alpha channel and may not be
+used here.
 
 ```c++
 static Vector<T,N> CS::from_base(Vector<T,NB> colour);
@@ -92,22 +93,33 @@ such as sRGB, before the transfer function ("gamma") has been applied. The
 base space of a nonlinear space should be the corresponding working space,
 and the working space's own base space should normally be CIE XYZ.
 
+The following conditions are not checked, but behaviour is undefined if a
+colour space violates any of them:
+
+1. `CS::base` must not be the same as `CS` (apart from the CIE XYZ special case).
+2. The graph of colour spaces and their base spaces must be a directed acyclic graph, with no loops or disconnected subgraphs.
+3. The channel list must be the correct length for the colour space's number of channels.
+4. The channel list must contain only ASCII upper and lower case letters, excluding capital A.
+5. The channel list must not contain any duplicates.
+
 ## Colour space classes
 
-| Colour space       | Base space         | Polar?  | Unit?  | Description
-| ------------       | ----------         | ------  | -----  | -----------
-| `CIEXYZ`           | `CIEXYZ`           | No      | Yes    | CIE 1931 XYZ colour space
-| `CIExyY`           | `CIEXYZ`           | No      | Yes    | CIE 1931 xyY colour space
-| `CIELab`           | `CIEXYZ`           | No      | No     | CIE 1976 L\*a\*b\* colour space
-| `CIELuv`           | `CIEXYZ`           | No      | No     | CIE 1976 L\*u\*v\* colour space
-| `sRGB`             | `LinearRGB`        | No      | Yes    | Widely used sRGB standard colour space
-| `LinearRGB`        | `CIEXYZ`           | No      | Yes    | Working space for sRGB
-| `AdobeRGB`         | `LinearAdobeRGB`   | No      | Yes    | Adobe RGB (1998) colour space
-| `LinearAdobeRGB`   | `CIEXYZ`           | No      | Yes    | Working space for Adobe RGB
-| `WideGamut`        | `LinearWideGamut`  | No      | Yes    | Adobe Wide Gamut (or opRGB) colour space
-| `LinearWideGamut`  | `CIEXYZ`           | No      | Yes    | Working space for Wide Gamut
-| `HSL`              | `LinearRGB`        | Yes     | Yes    | Polar transformation of linear RGB
-| `HSV`              | `LinearRGB`        | Yes     | Yes    | Polar transformation of linear RGB
+| Colour space       | Base space         | Polar?  | Unit?  | Description                               |
+| ------------       | ----------         | ------  | -----  | -----------                               |
+| `CIEXYZ`           | `CIEXYZ`           | No      | Yes    | CIE 1931 XYZ colour space                 |
+| `CIExyY`           | `CIEXYZ`           | No      | Yes    | CIE 1931 xyY colour space                 |
+| `CIELab`           | `CIEXYZ`           | No      | No     | CIE 1976 L\*a\*b\* colour space           |
+| `CIELuv`           | `CIEXYZ`           | No      | No     | CIE 1976 L\*u\*v\* colour space           |
+| `sRGB`             | `LinearRGB`        | No      | Yes    | Widely used sRGB standard colour space    |
+| `LinearRGB`        | `CIEXYZ`           | No      | Yes    | Working space for sRGB                    |
+| `AdobeRGB`         | `LinearAdobeRGB`   | No      | Yes    | Adobe RGB (1998) colour space             |
+| `LinearAdobeRGB`   | `CIEXYZ`           | No      | Yes    | Working space for Adobe RGB               |
+| `ProPhoto`         | `LinearProPhoto`   | No      | Yes    | ProPhoto (or ROMM RGB) colour space       |
+| `LinearProPhoto`   | `CIEXYZ`           | No      | Yes    | Working space for ProPhoto                |
+| `WideGamut`        | `LinearWideGamut`  | No      | Yes    | Adobe Wide Gamut (or opRGB) colour space  |
+| `LinearWideGamut`  | `CIEXYZ`           | No      | Yes    | Working space for Wide Gamut              |
+| `HSL`              | `LinearRGB`        | Yes     | Yes    | Polar transformation of linear RGB        |
+| `HSV`              | `LinearRGB`        | Yes     | Yes    | Polar transformation of linear RGB        |
 
 [Bruce Lindbloom's site](http://www.brucelindbloom.com/index.html?Eqn_RGB_XYZ_Matrix.html)
 is my main source for the RGB/XYZ matrices.
@@ -199,6 +211,22 @@ using LinearAdobeRGB = WorkingSpace<
 >;
 
 using AdobeRGB = NonlinearSpace<LinearAdobeRGB, 22, 10>;
+
+using LinearProPhoto = WorkingSpace<
+     7'976'749,  1'351'917,    313'534,
+     2'880'402,  7'118'741,        857,
+             0,          0,  8'252'100,
+    10'000'000
+>;
+
+class ProPhoto {
+    using base = LinearProPhoto;
+    static constexpr bool is_polar = false;
+    static constexpr bool is_unit = true;
+    static constexpr std::array<char, 3> channels = {{ 'R', 'G', 'B' }};
+    template <typename T> static Vector<T, 3> from_base(Vector<T, 3> colour) noexcept {
+    template <typename T> static Vector<T, 3> to_base(Vector<T, 3> colour) noexcept {
+};
 
 using LinearWideGamut = WorkingSpace<
      7'161'046,  1'009'296,  1'471'858,

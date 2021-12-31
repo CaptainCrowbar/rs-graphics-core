@@ -11,24 +11,6 @@
 
 namespace RS::Graphics::Core {
 
-    // class            base             nonlinear  polar  unit
-    // CIEXYZ           CIEXYZ           --         --     unit
-    // CIExyY           CIEXYZ           --         --     unit
-    // CIELab           CIEXYZ           --         --     --
-    // CIELuv           CIEXYZ           --         --     --
-    // LinearRGB        CIEXYZ           --         --     unit
-    // sRGB             LinearRGB        nonlinear  --     unit
-    // LinearAdobeRGB   CIEXYZ           --         --     unit
-    // AdobeRGB         LinearAdobeRGB   nonlinear  --     unit
-    // LinearWideGamut  CIEXYZ           --         --     unit
-    // WideGamut        LinearWideGamut  nonlinear  --     unit
-    // HSL              LinearRGB        --         polar  unit
-    // HSV              LinearRGB        --         polar  unit
-
-    // Source for RGB vs XYZ matrices:
-    // http://www.brucelindbloom.com/index.html?Eqn_RGB_XYZ_Matrix.html
-    // http://www.brucelindbloom.com/index.html?WorkingSpaceInfo.html
-
     // Utility functions
 
     template <typename CS, typename T, int N>
@@ -232,6 +214,24 @@ namespace RS::Graphics::Core {
         }
     };
 
+    using LinearAdobeRGB = WorkingSpace<
+         5'767'309,  1'855'540,  1'881'852,
+         2'973'769,  6'273'491,    752'741,
+           270'343,    706'872,  9'911'085,
+        10'000'000
+    >;
+
+    using AdobeRGB = NonlinearSpace<LinearAdobeRGB, 22, 10>;
+
+    using LinearWideGamut = WorkingSpace<
+         7'161'046,  1'009'296,  1'471'858,
+         2'581'874,  7'249'378,    168'748,
+                 0,    517'813,  7'734'287,
+        10'000'000
+    >;
+
+    using WideGamut = NonlinearSpace<LinearWideGamut, 563, 256>;
+
     using LinearRGB = WorkingSpace<
          4'124'564,  3'575'761,  1'804'375,
          2'126'729,  7'151'522,    721'750,
@@ -250,12 +250,12 @@ namespace RS::Graphics::Core {
             static constexpr T b = T(12.92);
             static constexpr T c = T(0.055);
             static constexpr T d = c + 1;
-            static constexpr T e = 1 / T(2.4);
+            static constexpr T ig = 1 / T(2.4);
             for (auto& x: colour) {
                 if (x < a)
                     x *= b;
                 else
-                    x = d * std::pow(x, e) - c;
+                    x = d * std::pow(x, ig) - c;
             }
             return colour;
         }
@@ -264,34 +264,53 @@ namespace RS::Graphics::Core {
             static constexpr T b = 1 / T(12.92);
             static constexpr T c = T(0.055);
             static constexpr T d = 1 / (c + 1);
-            static constexpr T e = T(2.4);
+            static constexpr T g = T(2.4);
             for (auto& x: colour) {
                 if (x < a)
                     x *= b;
                 else
-                    x = std::pow((x + c) * d, e);
+                    x = std::pow((x + c) * d, g);
             }
             return colour;
         }
     };
 
-    using LinearAdobeRGB = WorkingSpace<
-         5'767'309,  1'855'540,  1'881'852,
-         2'973'769,  6'273'491,    752'741,
-           270'343,    706'872,  9'911'085,
+    using LinearProPhoto = WorkingSpace<
+         7'976'749,  1'351'917,    313'534,
+         2'880'402,  7'118'741,        857,
+                 0,          0,  8'252'100,
         10'000'000
     >;
 
-    using AdobeRGB = NonlinearSpace<LinearAdobeRGB, 22, 10>;
-
-    using LinearWideGamut = WorkingSpace<
-         7'161'046,  1'009'296,  1'471'858,
-         2'581'874,  7'249'378,    168'748,
-                 0,    517'813,  7'734'287,
-        10'000'000
-    >;
-
-    using WideGamut = NonlinearSpace<LinearWideGamut, 563, 256>;
+    class ProPhoto {
+    public:
+        using base = LinearProPhoto;
+        static constexpr bool is_polar = false;
+        static constexpr bool is_unit = true;
+        static constexpr std::array<char, 3> channels = {{ 'R', 'G', 'B' }};
+        template <typename T> static Vector<T, 3> from_base(Vector<T, 3> colour) noexcept {
+            static constexpr T et = 1 / T(512);
+            static constexpr T ig = 1 / T(1.8);
+            for (auto& x: colour) {
+                if (x < et)
+                    x *= 16;
+                else
+                    x = std::pow(x, ig);
+            }
+            return colour;
+        }
+        template <typename T> static Vector<T, 3> to_base(Vector<T, 3> colour) noexcept {
+            static constexpr T etx = 1 / T(32);
+            static constexpr T g = T(1.8);
+            for (auto& x: colour) {
+                if (x < etx)
+                    x /= T(16);
+                else
+                    x = std::pow(x, g);
+            }
+            return colour;
+        }
+    };
 
     namespace Detail {
 

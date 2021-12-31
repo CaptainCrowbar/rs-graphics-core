@@ -115,6 +115,21 @@ void test_rs_graphics_core_colour_space_adobe_rgb() {
 
 }
 
+void test_rs_graphics_core_colour_space_pro_photo() {
+
+    Double3 linear, nonlinear, xyz;
+
+    for (auto& sample: samples) {
+        TRY(linear = LinearProPhoto::from_base(sample.CIEXYZ));
+        TRY(nonlinear = ProPhoto::from_base(linear));
+        TEST(is_colour_in_gamut<ProPhoto>(nonlinear));
+        TRY(linear = ProPhoto::to_base(nonlinear));
+        TRY(xyz = LinearProPhoto::to_base(linear));
+        TEST_VECTORS(xyz, sample.CIEXYZ, 1e-6);
+    }
+
+}
+
 void test_rs_graphics_core_colour_space_wide_gamut() {
 
     Double3 linear, nonlinear, xyz;

@@ -57,6 +57,7 @@ int main(int argc, char** argv) {
     UNIT_TEST(rs_graphics_core_colour_space_cieluv)
     UNIT_TEST(rs_graphics_core_colour_space_srgb)
     UNIT_TEST(rs_graphics_core_colour_space_adobe_rgb)
+    UNIT_TEST(rs_graphics_core_colour_space_pro_photo)
     UNIT_TEST(rs_graphics_core_colour_space_wide_gamut)
     UNIT_TEST(rs_graphics_core_colour_space_hsl)
     UNIT_TEST(rs_graphics_core_colour_space_hsv)
