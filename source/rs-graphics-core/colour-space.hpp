@@ -371,9 +371,9 @@ namespace RS::Graphics::Core {
         using base = LinearRGB;
         static constexpr int n_channels = 3;
         static constexpr std::array<ChannelSpec, n_channels> channels = {{
-            { 'H', ChannelMode::unit },
+            { 'H', ChannelMode::circle },
             { 'S', ChannelMode::unit },
-            { 'L', ChannelMode::circle },
+            { 'L', ChannelMode::unit },
         }};
         template <typename T> constexpr Vector<T, 3> from_base(Vector<T, 3> colour) const noexcept {
             Vector<T, 3> out;
@@ -397,9 +397,9 @@ namespace RS::Graphics::Core {
         using base = LinearRGB;
         static constexpr int n_channels = 3;
         static constexpr std::array<ChannelSpec, n_channels> channels = {{
-            { 'H', ChannelMode::unit },
+            { 'H', ChannelMode::circle },
             { 'S', ChannelMode::unit },
-            { 'V', ChannelMode::circle },
+            { 'V', ChannelMode::unit },
         }};
         template <typename T> constexpr Vector<T, 3> from_base(Vector<T, 3> colour) const noexcept {
             Vector<T, 3> out;
