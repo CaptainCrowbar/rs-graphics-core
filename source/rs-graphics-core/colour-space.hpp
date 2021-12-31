@@ -345,7 +345,14 @@ namespace RS::Graphics::Core {
         constexpr void rgb_to_hcv(T r, T g, T b, T& h, T& c, T& v) noexcept {
             v = std::max({r, g, b});
             c = v - std::min({r, g, b});
-            h = c == 0 ? T(0) : v == r ? (g - b) / c : v == g ? (b - r) / c + 2 : (r - g) / c + 4;
+            if (c == 0)
+                h = 0;
+            else if (v == r)
+                h = (g - b) / c;
+            else if (v == g)
+                h = (b - r) / c + 2;
+            else
+                h = (r - g) / c + 4;
             h = euclidean_remainder(h, T(6)) / 6;
         }
 
@@ -380,7 +387,8 @@ namespace RS::Graphics::Core {
             T c, v;
             Detail::rgb_to_hcv(colour[0], colour[1], colour[2], out[0], c, v);
             out[2] = (T(2) * v - c) / T(2);
-            out[1] = c == T(0) ? T(0) : c / (T(1) - const_abs(T(2) * out[2] - T(1)));
+            if (c != 0)
+                out[1] = c / (T(1) - const_abs(T(2) * out[2] - T(1)));
             return out;
         }
         template <typename T> constexpr Vector<T, 3> to_base(Vector<T, 3> colour) const noexcept {
@@ -405,7 +413,8 @@ namespace RS::Graphics::Core {
             Vector<T, 3> out;
             T c;
             Detail::rgb_to_hcv(colour[0], colour[1], colour[2], out[0], c, out[2]);
-            out[1] = c == T(0) ? T(0) : c / out[2];
+            if (c != 0)
+                out[1] = c / out[2];
             return out;
         }
         template <typename T> constexpr Vector<T, 3> to_base(Vector<T, 3> colour) const noexcept {
