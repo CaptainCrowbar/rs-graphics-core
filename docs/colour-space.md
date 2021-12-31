@@ -104,66 +104,82 @@ colour space violates any of them:
 
 ## Colour space classes
 
-| Colour space       | Base space         | Polar?  | Unit?  | Description                               |
-| ------------       | ----------         | ------  | -----  | -----------                               |
-| `CIEXYZ`           | `CIEXYZ`           | No      | Yes    | CIE 1931 XYZ colour space                 |
-| `CIExyY`           | `CIEXYZ`           | No      | Yes    | CIE 1931 xyY colour space                 |
-| `CIELab`           | `CIEXYZ`           | No      | No     | CIE 1976 L\*a\*b\* colour space           |
-| `CIELuv`           | `CIEXYZ`           | No      | No     | CIE 1976 L\*u\*v\* colour space           |
-| `sRGB`             | `LinearRGB`        | No      | Yes    | Widely used sRGB standard colour space    |
-| `LinearRGB`        | `CIEXYZ`           | No      | Yes    | Working space for sRGB                    |
-| `AdobeRGB`         | `LinearAdobeRGB`   | No      | Yes    | Adobe RGB (1998) colour space             |
-| `LinearAdobeRGB`   | `CIEXYZ`           | No      | Yes    | Working space for Adobe RGB               |
-| `ProPhoto`         | `LinearProPhoto`   | No      | Yes    | ProPhoto (or ROMM RGB) colour space       |
-| `LinearProPhoto`   | `CIEXYZ`           | No      | Yes    | Working space for ProPhoto                |
-| `WideGamut`        | `LinearWideGamut`  | No      | Yes    | Adobe Wide Gamut (or opRGB) colour space  |
-| `LinearWideGamut`  | `CIEXYZ`           | No      | Yes    | Working space for Wide Gamut              |
-| `HSL`              | `LinearRGB`        | Yes     | Yes    | Polar transformation of linear RGB        |
-| `HSV`              | `LinearRGB`        | Yes     | Yes    | Polar transformation of linear RGB        |
+| Colour space       | Base space         | Polar  | Unit  | Description                               |
+| ------------       | ----------         | -----  | ----  | -----------                               |
+| `CIEXYZ`           | `CIEXYZ`           | No     | Yes   | CIE 1931 XYZ colour space                 |
+| `CIExyY`           | `CIEXYZ`           | No     | Yes   | CIE 1931 xyY colour space                 |
+| `CIELab`           | `CIEXYZ`           | No     | No    | CIE 1976 L\*a\*b\* colour space           |
+| `CIELuv`           | `CIEXYZ`           | No     | No    | CIE 1976 L\*u\*v\* colour space           |
+| `sRGB`             | `LinearRGB`        | No     | Yes   | Widely used sRGB standard colour space    |
+| `LinearRGB`        | `CIEXYZ`           | No     | Yes   | Working space for sRGB                    |
+| `AdobeRGB`         | `LinearAdobeRGB`   | No     | Yes   | Adobe RGB (1998) colour space             |
+| `LinearAdobeRGB`   | `CIEXYZ`           | No     | Yes   | Working space for Adobe RGB               |
+| `ProPhoto`         | `LinearProPhoto`   | No     | Yes   | ProPhoto (or ROMM RGB) colour space       |
+| `LinearProPhoto`   | `CIEXYZ`           | No     | Yes   | Working space for ProPhoto                |
+| `WideGamut`        | `LinearWideGamut`  | No     | Yes   | Adobe Wide Gamut (or opRGB) colour space  |
+| `LinearWideGamut`  | `CIEXYZ`           | No     | Yes   | Working space for Wide Gamut              |
+| `HSL`              | `LinearRGB`        | Yes    | Yes   | Polar transformation of linear RGB        |
+| `HSV`              | `LinearRGB`        | Yes    | Yes   | Polar transformation of linear RGB        |
 
 [Bruce Lindbloom's site](http://www.brucelindbloom.com/index.html?Eqn_RGB_XYZ_Matrix.html)
 is my main source for the RGB/XYZ matrices.
 
-
-
-<!--
-
+```c++
 class CIEXYZ {
     using base = CIEXYZ;
     static constexpr bool is_polar = false;
     static constexpr bool is_unit = true;
     static constexpr std::array<char, 3> channels = {{ 'X', 'Y', 'Z' }};
-    template <typename T> static constexpr Vector<T, 3> from_base(Vector<T, 3> colour) noexcept { return colour; }
-    template <typename T> static constexpr Vector<T, 3> to_base(Vector<T, 3> colour) noexcept { return colour; }
+    template <typename T> static constexpr Vector<T, 3>
+        from_base(Vector<T, 3> colour) noexcept { return colour; }
+    template <typename T> static constexpr Vector<T, 3>
+        to_base(Vector<T, 3> colour) noexcept { return colour; }
 };
+```
 
+CIE 1931 XYZ colour space.
+
+```c++
 class CIExyY {
     using base = CIEXYZ;
     static constexpr bool is_polar = false;
     static constexpr bool is_unit = true;
     static constexpr std::array<char, 3> channels = {{ 'x', 'y', 'Y' }};
-    template <typename T> static constexpr Vector<T, 3> from_base(Vector<T, 3> colour) noexcept {
-    template <typename T> static constexpr Vector<T, 3> to_base(Vector<T, 3> colour) noexcept {
+    template <typename T> static constexpr Vector<T, 3>
+        from_base(Vector<T, 3> colour) noexcept;
+    template <typename T> static constexpr Vector<T, 3>
+        to_base(Vector<T, 3> colour) noexcept;
 };
+```
 
+CIE 1931 xyY colour space.
+
+```c++
 class CIELab {
     using base = CIEXYZ;
     static constexpr bool is_polar = false;
     static constexpr bool is_unit = false;
     static constexpr std::array<char, 3> channels = {{ 'L', 'a', 'b' }};
-    template <typename T> static Vector<T, 3> from_base(Vector<T, 3> colour) noexcept {
-    template <typename T> static Vector<T, 3> to_base(Vector<T, 3> colour) noexcept {
+    template <typename T> static Vector<T, 3>
+        from_base(Vector<T, 3> colour) noexcept;
+    template <typename T> static Vector<T, 3>
+        to_base(Vector<T, 3> colour) noexcept;
 };
-
 class CIELuv {
     using base = CIEXYZ;
     static constexpr bool is_polar = false;
     static constexpr bool is_unit = false;
     static constexpr std::array<char, 3> channels = {{ 'L', 'u', 'v' }};
-    template <typename T> static Vector<T, 3> from_base(Vector<T, 3> colour) noexcept {
-    template <typename T> static Vector<T, 3> to_base(Vector<T, 3> colour) noexcept {
+    template <typename T> static Vector<T, 3>
+        from_base(Vector<T, 3> colour) noexcept;
+    template <typename T> static Vector<T, 3>
+        to_base(Vector<T, 3> colour) noexcept;
 };
+```
 
+CIE 1976 L\*a\*b\*  and L\*u\*v\* colour spaces.
+
+```c++
 template <int64_t M00, int64_t M01, int64_t M02,
     int64_t M10, int64_t M11, int64_t M12,
     int64_t M20, int64_t M21, int64_t M22,
@@ -173,95 +189,161 @@ class WorkingSpace {
     static constexpr bool is_polar = false;
     static constexpr bool is_unit = true;
     static constexpr std::array<char, 3> channels = {{ 'R', 'G', 'B' }};
-    template <typename T> static constexpr Vector<T, 3> from_base(Vector<T, 3> colour) noexcept {
-    template <typename T> static constexpr Vector<T, 3> to_base(Vector<T, 3> colour) noexcept {
+    template <typename T> static constexpr Vector<T, 3>
+        from_base(Vector<T, 3> colour) noexcept;
+    template <typename T> static constexpr Vector<T, 3>
+        to_base(Vector<T, 3> colour) noexcept;
 };
+```
 
-template <typename WorkingSpace, int64_t GammaNumerator, int64_t GammaDenominator>
+Template for a generic linear RGB working space. The template arguments are
+the elements of the RGB to XYZ conversion matrix, expressed as integer
+ratios, in row major order(e.g. the top left entry is `M00/Divisor`).
+
+```c++
+template <typename WorkingSpace,
+    int64_t GammaNumerator, int64_t GammaDenominator>
 class NonlinearSpace {
     using base = WorkingSpace;
     static constexpr bool is_polar = false;
     static constexpr bool is_unit = true;
     static constexpr std::array<char, 3> channels = {{ 'R', 'G', 'B' }};
-    template <typename T> static Vector<T, 3> from_base(Vector<T, 3> colour) noexcept {
-    template <typename T> static Vector<T, 3> to_base(Vector<T, 3> colour) noexcept {
+    template <typename T> static Vector<T, 3>
+        from_base(Vector<T, 3> colour) noexcept;
+    template <typename T> static Vector<T, 3>
+        to_base(Vector<T, 3> colour) noexcept;
 };
+```
 
+Template for a generic nonlinear RGB colour space that uses a simple exponent
+(gamma) for the transfer function. The gamma value is equal to
+`GammaNumerator/GammaDenominator`. Colour spaces that use nontrivial transfer
+functions (such as sRGB) will need to be individually defined instead of using
+this template.
+
+```c++
 using LinearRGB = WorkingSpace<
      4'124'564,  3'575'761,  1'804'375,
      2'126'729,  7'151'522,    721'750,
        193'339,  1'191'920,  9'503'041,
     10'000'000
 >;
-
 class sRGB {
     using base = LinearRGB;
     static constexpr bool is_polar = false;
     static constexpr bool is_unit = true;
     static constexpr std::array<char, 3> channels = {{ 'R', 'G', 'B' }};
-    template <typename T> static Vector<T, 3> from_base(Vector<T, 3> colour) noexcept {
-    template <typename T> static Vector<T, 3> to_base(Vector<T, 3> colour) noexcept {
+    template <typename T> static Vector<T, 3>
+        from_base(Vector<T, 3> colour) noexcept;
+    template <typename T> static Vector<T, 3>
+        to_base(Vector<T, 3> colour) noexcept;
 };
+```
 
+The widely used sRGB standard colour space, and its linear working space.
+
+```c++
 using LinearAdobeRGB = WorkingSpace<
      5'767'309,  1'855'540,  1'881'852,
      2'973'769,  6'273'491,    752'741,
        270'343,    706'872,  9'911'085,
     10'000'000
 >;
-
 using AdobeRGB = NonlinearSpace<LinearAdobeRGB, 22, 10>;
+```
 
+Adobe RGB (1998) colour space, and its linear working space.
+
+```c++
 using LinearProPhoto = WorkingSpace<
      7'976'749,  1'351'917,    313'534,
      2'880'402,  7'118'741,        857,
              0,          0,  8'252'100,
     10'000'000
 >;
-
 class ProPhoto {
     using base = LinearProPhoto;
     static constexpr bool is_polar = false;
     static constexpr bool is_unit = true;
     static constexpr std::array<char, 3> channels = {{ 'R', 'G', 'B' }};
-    template <typename T> static Vector<T, 3> from_base(Vector<T, 3> colour) noexcept {
-    template <typename T> static Vector<T, 3> to_base(Vector<T, 3> colour) noexcept {
+    template <typename T> static Vector<T, 3>
+        from_base(Vector<T, 3> colour) noexcept;
+    template <typename T> static Vector<T, 3>
+        to_base(Vector<T, 3> colour) noexcept;
 };
+```
 
+ProPhoto (or ROMM RGB) colour space, and its linear working space.
+
+```c++
 using LinearWideGamut = WorkingSpace<
      7'161'046,  1'009'296,  1'471'858,
      2'581'874,  7'249'378,    168'748,
              0,    517'813,  7'734'287,
     10'000'000
 >;
-
 using WideGamut = NonlinearSpace<LinearWideGamut, 563, 256>;
+```
 
+Adobe Wide Gamut (or opRGB) colour space, and its linear working space.
+
+```c++
 class HSL {
     using base = LinearRGB;
     static constexpr bool is_polar = true;
     static constexpr bool is_unit = true;
     static constexpr std::array<char, 3> channels = {{ 'H', 'S', 'L' }};
-    template <typename T> static constexpr Vector<T, 3> from_base(Vector<T, 3> colour) noexcept {
-    template <typename T> static constexpr Vector<T, 3> to_base(Vector<T, 3> colour) noexcept {
+    template <typename T> static constexpr Vector<T, 3>
+        from_base(Vector<T, 3> colour) noexcept;
+    template <typename T> static constexpr Vector<T, 3>
+        to_base(Vector<T, 3> colour) noexcept;
 };
-
 class HSV {
     using base = LinearRGB;
     static constexpr bool is_polar = true;
     static constexpr bool is_unit = true;
     static constexpr std::array<char, 3> channels = {{ 'H', 'S', 'V' }};
-    template <typename T> static constexpr Vector<T, 3> from_base(Vector<T, 3> colour) noexcept {
-    template <typename T> static constexpr Vector<T, 3> to_base(Vector<T, 3> colour) noexcept {
+    template <typename T> static constexpr Vector<T, 3>
+        from_base(Vector<T, 3> colour) noexcept;
+    template <typename T> static constexpr Vector<T, 3>
+        to_base(Vector<T, 3> colour) noexcept;
 };
+```
+
+Polar transformations of linear RGB.
 
 ## Conversion functions
 
-template <typename CS1, typename CS2, typename T> Vector<T, CS2::channels.size()> convert_colour_space(Vector<T, int(CS1::channels.size())> colour) {
+```c++
+template <typename CS1, typename CS2, typename T>
+    Vector<T, CS2::channels.size()>
+    convert_colour_space(Vector<T, int(CS1::channels.size())> colour);
+```
+
+Converts between any two colour spaces, passing through any intervening base
+spaces along the way, by chaining the colour spaces' `to_base()` and
+`from_base()` functions.
 
 ## Utility functions
 
-template <typename CS, typename T, int N> constexpr bool is_colour_in_gamut(Vector<T, N> colour) noexcept {
-template <typename CS, typename T, int N> constexpr void clamp_colour(Vector<T, N>& colour) noexcept {
+```c++
+template <typename CS, typename T, int N>
+    constexpr bool is_colour_in_gamut(Vector<T, N> colour) noexcept;
+```
 
--->
+True if the colour is in gamut for the colour space. For polar spaces, this
+checks that the first channel is in the range `[0,1)`. For unit-cube spaces,
+this tests that all channels are in the range `[0,1]` (except the first
+channel, if polar is also set). For spaces that are neither polar nor
+unit-cube, this has nothing to check and always returns true.
+
+```c++
+template <typename CS, typename T, int N>
+    constexpr void clamp_colour(Vector<T, N>& colour) noexcept;
+```
+
+Clamps the channel values where necessary to ensure that the colour is in
+gamut. For polar spaces, the first channel is reduced modulo 1, yielding a
+value in the range `[0,1)`. For unit-cube spaces, all channels are clamped to
+the range `[0,1]` (except the first channel, if polar is also set). For
+spaces that are neither polar nor unit-cube, this does nothing.
