@@ -93,6 +93,9 @@ such as sRGB, before the transfer function ("gamma") has been applied. The
 base space of a nonlinear space should be the corresponding working space,
 and the working space's own base space should normally be CIE XYZ.
 
+[Bruce Lindbloom's site](http://www.brucelindbloom.com/index.html?Eqn_RGB_XYZ_Matrix.html)
+is my main source for the RGB/XYZ matrices.
+
 The following conditions are not checked, but behaviour is undefined if a
 colour space violates any of them:
 
@@ -104,25 +107,32 @@ colour space violates any of them:
 
 ## Colour space classes
 
-| Colour space       | Base space         | Polar  | Unit  | Description                               |
-| ------------       | ----------         | -----  | ----  | -----------                               |
-| `CIEXYZ`           | `CIEXYZ`           | No     | Yes   | CIE 1931 XYZ colour space                 |
-| `CIExyY`           | `CIEXYZ`           | No     | Yes   | CIE 1931 xyY colour space                 |
-| `CIELab`           | `CIEXYZ`           | No     | No    | CIE 1976 L\*a\*b\* colour space           |
-| `CIELuv`           | `CIEXYZ`           | No     | No    | CIE 1976 L\*u\*v\* colour space           |
-| `sRGB`             | `LinearRGB`        | No     | Yes   | Widely used sRGB standard colour space    |
-| `LinearRGB`        | `CIEXYZ`           | No     | Yes   | Working space for sRGB                    |
-| `AdobeRGB`         | `LinearAdobeRGB`   | No     | Yes   | Adobe RGB (1998) colour space             |
-| `LinearAdobeRGB`   | `CIEXYZ`           | No     | Yes   | Working space for Adobe RGB               |
-| `ProPhoto`         | `LinearProPhoto`   | No     | Yes   | ProPhoto (or ROMM RGB) colour space       |
-| `LinearProPhoto`   | `CIEXYZ`           | No     | Yes   | Working space for ProPhoto                |
-| `WideGamut`        | `LinearWideGamut`  | No     | Yes   | Adobe Wide Gamut (or opRGB) colour space  |
-| `LinearWideGamut`  | `CIEXYZ`           | No     | Yes   | Working space for Wide Gamut              |
-| `HSL`              | `LinearRGB`        | Yes    | Yes   | Polar transformation of linear RGB        |
-| `HSV`              | `LinearRGB`        | Yes    | Yes   | Polar transformation of linear RGB        |
+### List of classes
 
-[Bruce Lindbloom's site](http://www.brucelindbloom.com/index.html?Eqn_RGB_XYZ_Matrix.html)
-is my main source for the RGB/XYZ matrices.
+| Colour space       | Base space         | Polar  | Unit  | Description                                   |
+| ------------       | ----------         | -----  | ----  | -----------                                   |
+| `CIEXYZ`           | `CIEXYZ`           | No     | Yes   | CIE 1931 XYZ colour space                     |
+| `CIExyY`           | `CIEXYZ`           | No     | Yes   | CIE 1931 xyY colour space                     |
+| `CIELab`           | `CIEXYZ`           | No     | No    | CIE 1976 L\*a\*b\* colour space               |
+| `CIELuv`           | `CIEXYZ`           | No     | No    | CIE 1976 L\*u\*v\* colour space               |
+| `sRGB`             | `LinearRGB`        | No     | Yes   | Widely used sRGB standard colour space        |
+| `LinearRGB`        | `CIEXYZ`           | No     | Yes   | Working space for sRGB                        |
+| `AdobeRGB`         | `LinearAdobeRGB`   | No     | Yes   | Adobe RGB (1998) colour space                 |
+| `LinearAdobeRGB`   | `CIEXYZ`           | No     | Yes   | Working space for Adobe RGB                   |
+| `ProPhoto`         | `LinearProPhoto`   | No     | Yes   | ProPhoto colour space (a.k.a. ROMM RGB)       |
+| `LinearProPhoto`   | `CIEXYZ`           | No     | Yes   | Working space for ProPhoto                    |
+| `WideGamut`        | `LinearWideGamut`  | No     | Yes   | Adobe Wide Gamut colour space (a.k.a. opRGB)  |
+| `LinearWideGamut`  | `CIEXYZ`           | No     | Yes   | Working space for Wide Gamut                  |
+| `HSL`              | `LinearRGB`        | Yes    | Yes   | Polar transformation of linear RGB            |
+| `HSV`              | `LinearRGB`        | Yes    | Yes   | Polar transformation of linear RGB            |
+
+### Relationship diagram
+
+The arrows point from each colour space to its base space.
+
+![Colour space relationship diagram](images/colour-spaces.drawio.png)
+
+### CIE XYZ
 
 ```c++
 class CIEXYZ {
@@ -139,6 +149,8 @@ class CIEXYZ {
 
 CIE 1931 XYZ colour space.
 
+### CIE xyY
+
 ```c++
 class CIExyY {
     using base = CIEXYZ;
@@ -152,7 +164,9 @@ class CIExyY {
 };
 ```
 
-CIE 1931 xyY colour space.
+CIE 1931 xyY chromaticity-based colour space.
+
+### CIE L\*a\*b\* and CIE L\*u\*v\*
 
 ```c++
 class CIELab {
@@ -178,6 +192,8 @@ class CIELuv {
 ```
 
 CIE 1976 L\*a\*b\*  and L\*u\*v\* colour spaces.
+
+### RGB colour space templates
 
 ```c++
 template <int64_t M00, int64_t M01, int64_t M02,
@@ -221,6 +237,8 @@ Template for a generic nonlinear RGB colour space that uses a simple exponent
 functions (such as sRGB) will need to be individually defined instead of using
 this template.
 
+### sRGB
+
 ```c++
 using LinearRGB = WorkingSpace<
      4'124'564,  3'575'761,  1'804'375,
@@ -242,6 +260,8 @@ class sRGB {
 
 The widely used sRGB standard colour space, and its linear working space.
 
+### Adobe RGB
+
 ```c++
 using LinearAdobeRGB = WorkingSpace<
      5'767'309,  1'855'540,  1'881'852,
@@ -253,6 +273,8 @@ using AdobeRGB = NonlinearSpace<LinearAdobeRGB, 22, 10>;
 ```
 
 Adobe RGB (1998) colour space, and its linear working space.
+
+### ProPhoto
 
 ```c++
 using LinearProPhoto = WorkingSpace<
@@ -273,7 +295,9 @@ class ProPhoto {
 };
 ```
 
-ProPhoto (or ROMM RGB) colour space, and its linear working space.
+ProPhoto (a.k.a. ROMM RGB) colour space, and its linear working space.
+
+### Wide Gamut
 
 ```c++
 using LinearWideGamut = WorkingSpace<
@@ -285,7 +309,9 @@ using LinearWideGamut = WorkingSpace<
 using WideGamut = NonlinearSpace<LinearWideGamut, 563, 256>;
 ```
 
-Adobe Wide Gamut (or opRGB) colour space, and its linear working space.
+Adobe Wide Gamut (a.k.a. opRGB) colour space, and its linear working space.
+
+### HSL and HSV
 
 ```c++
 class HSL {
@@ -312,7 +338,9 @@ class HSV {
 
 Polar transformations of linear RGB.
 
-## Conversion functions
+## Functions
+
+### Conversion functions
 
 ```c++
 template <typename CS1, typename CS2, typename T>
@@ -324,7 +352,7 @@ Converts between any two colour spaces, passing through any intervening base
 spaces along the way, by chaining the colour spaces' `to_base()` and
 `from_base()` functions.
 
-## Utility functions
+### Utility functions
 
 ```c++
 template <typename CS, typename T, int N>
