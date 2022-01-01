@@ -192,21 +192,55 @@ namespace RS::Graphics::Core {
     };
 
     using Rgb8 = Colour<uint8_t, LinearRGB, ColourLayout::std>;
-    using Rgba8 = Colour<uint8_t, LinearRGB, ColourLayout::std_alpha>;
-    using sRgb8 = Colour<uint8_t, sRGB, ColourLayout::std>;
-    using sRgba8 = Colour<uint8_t, sRGB, ColourLayout::std_alpha>;
     using Rgb16 = Colour<uint16_t, LinearRGB, ColourLayout::std>;
-    using Rgba16 = Colour<uint16_t, LinearRGB, ColourLayout::std_alpha>;
-    using sRgb16 = Colour<uint16_t, sRGB, ColourLayout::std>;
-    using sRgba16 = Colour<uint16_t, sRGB, ColourLayout::std_alpha>;
     using Rgbf = Colour<float, LinearRGB, ColourLayout::std>;
-    using Rgbaf = Colour<float, LinearRGB, ColourLayout::std_alpha>;
-    using sRgbf = Colour<float, sRGB, ColourLayout::std>;
-    using sRgbaf = Colour<float, sRGB, ColourLayout::std_alpha>;
     using Rgbd = Colour<double, LinearRGB, ColourLayout::std>;
-    using Rgbad = Colour<double, LinearRGB, ColourLayout::std_alpha>;
+    using sRgb8 = Colour<uint8_t, sRGB, ColourLayout::std>;
+    using sRgb16 = Colour<uint16_t, sRGB, ColourLayout::std>;
+    using sRgbf = Colour<float, sRGB, ColourLayout::std>;
     using sRgbd = Colour<double, sRGB, ColourLayout::std>;
+    using Rgba8 = Colour<uint8_t, LinearRGB, ColourLayout::std_alpha>;
+    using Rgba16 = Colour<uint16_t, LinearRGB, ColourLayout::std_alpha>;
+    using Rgbaf = Colour<float, LinearRGB, ColourLayout::std_alpha>;
+    using Rgbad = Colour<double, LinearRGB, ColourLayout::std_alpha>;
+    using sRgba8 = Colour<uint8_t, sRGB, ColourLayout::std_alpha>;
+    using sRgba16 = Colour<uint16_t, sRGB, ColourLayout::std_alpha>;
+    using sRgbaf = Colour<float, sRGB, ColourLayout::std_alpha>;
     using sRgbad = Colour<double, sRGB, ColourLayout::std_alpha>;
+
+    static_assert(std::is_standard_layout_v<Rgb8>);
+    static_assert(std::is_standard_layout_v<Rgb16>);
+    static_assert(std::is_standard_layout_v<Rgbf>);
+    static_assert(std::is_standard_layout_v<Rgbd>);
+    static_assert(std::is_standard_layout_v<sRgb8>);
+    static_assert(std::is_standard_layout_v<sRgb16>);
+    static_assert(std::is_standard_layout_v<sRgbf>);
+    static_assert(std::is_standard_layout_v<sRgbd>);
+    static_assert(std::is_standard_layout_v<Rgba8>);
+    static_assert(std::is_standard_layout_v<Rgba16>);
+    static_assert(std::is_standard_layout_v<Rgbaf>);
+    static_assert(std::is_standard_layout_v<Rgbad>);
+    static_assert(std::is_standard_layout_v<sRgba8>);
+    static_assert(std::is_standard_layout_v<sRgba16>);
+    static_assert(std::is_standard_layout_v<sRgbaf>);
+    static_assert(std::is_standard_layout_v<sRgbad>);
+
+    static_assert(sizeof(Rgb8) == 3);
+    static_assert(sizeof(Rgb16) == 6);
+    static_assert(sizeof(Rgbf) == 12);
+    static_assert(sizeof(Rgbd) == 24);
+    static_assert(sizeof(sRgb8) == 3);
+    static_assert(sizeof(sRgb16) == 6);
+    static_assert(sizeof(sRgbf) == 12);
+    static_assert(sizeof(sRgbd) == 24);
+    static_assert(sizeof(Rgba8) == 4);
+    static_assert(sizeof(Rgba16) == 8);
+    static_assert(sizeof(Rgbaf) == 16);
+    static_assert(sizeof(Rgbad) == 32);
+    static_assert(sizeof(sRgba8) == 4);
+    static_assert(sizeof(sRgba16) == 8);
+    static_assert(sizeof(sRgbaf) == 16);
+    static_assert(sizeof(sRgbad) == 32);
 
 }
 

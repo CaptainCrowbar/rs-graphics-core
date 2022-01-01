@@ -5,19 +5,6 @@
 
 using namespace RS::Graphics::Core;
 
-void test_rs_graphics_core_colour_traits() {
-
-    TEST_EQUAL(sizeof(Rgb8), 3u);
-    TEST_EQUAL(sizeof(Rgb16), 6u);
-    TEST_EQUAL(sizeof(Rgbf), 12u);
-    TEST_EQUAL(sizeof(Rgbd), 24u);
-    TEST_EQUAL(sizeof(Rgba8), 4u);
-    TEST_EQUAL(sizeof(Rgba16), 8u);
-    TEST_EQUAL(sizeof(Rgbaf), 16u);
-    TEST_EQUAL(sizeof(Rgbad), 32u);
-
-}
-
 void test_rs_graphics_core_colour_floating_point_elements() {
 
     Rgbad c;

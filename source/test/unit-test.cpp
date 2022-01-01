@@ -64,7 +64,6 @@ int main(int argc, char** argv) {
     UNIT_TEST(rs_graphics_core_colour_space_conversion)
 
     // colour-test.cpp
-    UNIT_TEST(rs_graphics_core_colour_traits)
     UNIT_TEST(rs_graphics_core_colour_floating_point_elements)
     UNIT_TEST(rs_graphics_core_colour_integer_elements)
 
