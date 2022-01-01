@@ -21,6 +21,8 @@ namespace RS::Graphics::Core {
         alpha_reverse
     )
 
+    template <typename VT, typename CS, ColourLayout CL> class Colour;
+
     namespace Detail {
 
         template <typename CS, char CH, int Offset = 0>
@@ -57,20 +59,50 @@ namespace RS::Graphics::Core {
         template <typename CS, char CH, ColourLayout CL>
         constexpr int colour_channel_index = ColourChannelIndex<CS, CH, CL>::get();
 
+        template <typename VT, typename CS, ColourLayout CL, bool IsLinear = CS::is_linear>
+        class ColourArithmetic {
+        private:
+            static constexpr bool ca_has_alpha = CL != ColourLayout::std && CL != ColourLayout::reverse;
+            static constexpr int ca_channels = int(CS::channels.size()) + int(ca_has_alpha);
+            using ca_colour = Colour<VT, CS, CL>;
+            using ca_vector = Vector<VT, ca_channels>;
+        public:
+            friend constexpr ca_colour operator+(ca_colour c) noexcept { return c; }
+            friend constexpr ca_colour operator-(ca_colour c) noexcept { return ca_colour(- c.vec_); }
+            friend constexpr ca_colour operator+(ca_colour a, ca_colour b) noexcept { return ca_colour(a.vec_ + b.vec_); }
+            friend constexpr ca_colour operator-(ca_colour a, ca_colour b) noexcept { return ca_colour(a.vec_ - b.vec_); }
+            friend constexpr ca_colour operator*(ca_colour a, VT b) noexcept { return ca_colour(a.vec_ * b); }
+            friend constexpr ca_colour operator*(VT a, ca_colour b) noexcept { return ca_colour(a * b.vec_); }
+            friend constexpr ca_colour operator/(ca_colour a, VT b) noexcept { return ca_colour(a.vec_ / b); }
+            friend constexpr ca_colour operator*(ca_colour a, ca_vector b) noexcept { return ca_colour(a.vec_ * b); }
+            friend constexpr ca_colour operator*(ca_vector a, ca_colour b) noexcept { return ca_colour(a * b.vec_); }
+            friend constexpr ca_colour operator/(ca_colour a, ca_vector b) noexcept { return ca_colour(a.vec_ / b); }
+            friend constexpr ca_colour& operator+=(ca_colour& a, ca_colour b) noexcept { return a = a + b; }
+            friend constexpr ca_colour& operator-=(ca_colour& a, ca_colour b) noexcept { return a = a - b; }
+            friend constexpr ca_colour& operator*=(ca_colour& a, VT b) noexcept { return a = a * b; }
+            friend constexpr ca_colour& operator/=(ca_colour& a, VT b) noexcept { return a = a / b; }
+            friend constexpr ca_colour& operator*=(ca_colour& a, ca_vector b) noexcept { return a = a * b; }
+            friend constexpr ca_colour& operator/=(ca_colour& a, ca_vector b) noexcept { return a = a / b; }
+        };
+
+        template <typename VT, typename CS, ColourLayout CL>
+        class ColourArithmetic<VT, CS, CL, false> {};
+
     }
 
     // Don't use single letter template parameters here
 
     template <typename VT, typename CS = LinearRGB, ColourLayout CL = ColourLayout::std_alpha>
-    class Colour {
+    class Colour:
+    public Detail::ColourArithmetic<VT, CS, CL> {
 
     public:
 
         static_assert(std::is_arithmetic_v<VT>);
 
-        static constexpr int colour_channels = int(CS::channels.size());
+        static constexpr int colour_space_channels = int(CS::channels.size());
         static constexpr bool has_alpha = CL != ColourLayout::std && CL != ColourLayout::reverse;
-        static constexpr int channels = colour_channels + int(has_alpha);
+        static constexpr int channels = colour_space_channels + int(has_alpha);
         static constexpr bool is_hdr = std::is_floating_point_v<VT>;
         static constexpr ColourLayout layout = CL;
         static constexpr VT scale = is_hdr || CS::shape == ColourSpace::any ? VT(1) : std::numeric_limits<VT>::max();
@@ -80,7 +112,7 @@ namespace RS::Graphics::Core {
         using const_iterator = const VT*;
         using value_type = VT;
         using vector_type = Vector<VT, channels>;
-        using colour_vector_type = Vector<VT, colour_channels>;
+        using partial_vector_type = Vector<VT, colour_space_channels>;
 
         constexpr Colour() noexcept {}
         explicit constexpr Colour(VT x) noexcept: vec_(x) { if constexpr (has_alpha) alpha() = scale; }
@@ -95,7 +127,7 @@ namespace RS::Graphics::Core {
 
         template <typename... Args>
         constexpr Colour(VT x,
-            std::enable_if_t<has_alpha && sizeof...(Args) + 2 == colour_channels && (std::is_convertible_v<Args, VT> && ...), VT> y,
+            std::enable_if_t<has_alpha && sizeof...(Args) + 2 == colour_space_channels && (std::is_convertible_v<Args, VT> && ...), VT> y,
             Args... args) noexcept:
             vec_(VT(x), VT(y), VT(args)..., scale) {}
 
@@ -103,14 +135,14 @@ namespace RS::Graphics::Core {
             if constexpr (CL == ColourLayout::alpha_std || CL == ColourLayout::alpha_reverse)
                 return vec_[0];
             else
-                return vec_[colour_channels];
+                return vec_[colour_space_channels];
         }
 
         constexpr const VT& alpha() const noexcept {
             if constexpr (CL == ColourLayout::alpha_std || CL == ColourLayout::alpha_reverse)
                 return vec_[0];
             else if constexpr (CL == ColourLayout::std_alpha || CL == ColourLayout::reverse_alpha)
-                return vec_[colour_channels];
+                return vec_[colour_space_channels];
             else
                 return scale;
         }
@@ -156,8 +188,8 @@ namespace RS::Graphics::Core {
         VT& operator[](int i) noexcept { return vec_[i]; }
         const VT& operator[](int i) const noexcept { return vec_[i]; }
 
-        constexpr vector_type as_vector() const noexcept { return vec_; }
-        constexpr colour_vector_type colour_vector() const noexcept { return colour_vector_type(vec_.begin()); }
+        constexpr const vector_type& as_vector() const noexcept { return vec_; }
+        constexpr partial_vector_type partial_vector() const noexcept { return partial_vector_type(vec_.begin()); }
 
         constexpr VT* begin() noexcept { return vec_.begin(); }
         constexpr const VT* begin() const noexcept { return vec_.begin(); }
@@ -187,81 +219,64 @@ namespace RS::Graphics::Core {
         friend constexpr bool operator==(Colour a, Colour b) noexcept { return a.vec_ == b.vec_; }
         friend constexpr bool operator!=(Colour a, Colour b) noexcept { return ! (a == b); }
 
-        constexpr Colour operator+() const noexcept { return *this; }
-        constexpr Colour operator-() const noexcept { return Colour(- vec_); }
-
-        friend constexpr Colour operator+(Colour a, Colour b) noexcept { return Colour(a.vec_ + b.vec_); }
-        friend constexpr Colour operator-(Colour a, Colour b) noexcept { return Colour(a.vec_ - b.vec_); }
-        friend constexpr Colour operator*(Colour a, VT b) noexcept { return Colour(a.vec_ * b); }
-        friend constexpr Colour operator*(VT a, Colour b) noexcept { return Colour(a * b.vec_); }
-        friend constexpr Colour operator/(Colour a, VT b) noexcept { return Colour(a.vec_ / b); }
-        friend constexpr Colour operator*(Colour a, vector_type b) noexcept { return Colour(a.vec_ * b); }
-        friend constexpr Colour operator*(vector_type a, Colour b) noexcept { return Colour(a * b.vec_); }
-        friend constexpr Colour operator/(Colour a, vector_type b) noexcept { return Colour(a.vec_ / b); }
-
-        constexpr Colour& operator+=(Colour c) noexcept { return *this = *this + c; }
-        constexpr Colour& operator-=(Colour c) noexcept { return *this = *this - c; }
-        constexpr Colour& operator*=(VT c) noexcept { return *this = *this * c; }
-        constexpr Colour& operator/=(VT c) noexcept { return *this = *this / c; }
-        constexpr Colour& operator*=(vector_type c) noexcept { return *this = *this * c; }
-        constexpr Colour& operator/=(vector_type c) noexcept { return *this = *this / c; }
-
     private:
+
+        friend class Detail::ColourArithmetic<VT, CS, CL>;
 
         vector_type vec_;
 
     };
 
-        using Rgb8 = Colour<uint8_t, LinearRGB, ColourLayout::std>;
-        using Rgb16 = Colour<uint16_t, LinearRGB, ColourLayout::std>;
-        using Rgbf = Colour<float, LinearRGB, ColourLayout::std>;
-        using Rgbd = Colour<double, LinearRGB, ColourLayout::std>;
-        using sRgb8 = Colour<uint8_t, sRGB, ColourLayout::std>;
-        using sRgb16 = Colour<uint16_t, sRGB, ColourLayout::std>;
-        using sRgbf = Colour<float, sRGB, ColourLayout::std>;
-        using sRgbd = Colour<double, sRGB, ColourLayout::std>;
-        using Rgba8 = Colour<uint8_t, LinearRGB, ColourLayout::std_alpha>;
-        using Rgba16 = Colour<uint16_t, LinearRGB, ColourLayout::std_alpha>;
-        using Rgbaf = Colour<float, LinearRGB, ColourLayout::std_alpha>;
-        using Rgbad = Colour<double, LinearRGB, ColourLayout::std_alpha>;
-        using sRgba8 = Colour<uint8_t, sRGB, ColourLayout::std_alpha>;
-        using sRgba16 = Colour<uint16_t, sRGB, ColourLayout::std_alpha>;
-        using sRgbaf = Colour<float, sRGB, ColourLayout::std_alpha>;
-        using sRgbad = Colour<double, sRGB, ColourLayout::std_alpha>;
+    using Rgb8 = Colour<uint8_t, LinearRGB, ColourLayout::std>;
+    using Rgb16 = Colour<uint16_t, LinearRGB, ColourLayout::std>;
+    using Rgbf = Colour<float, LinearRGB, ColourLayout::std>;
+    using Rgbd = Colour<double, LinearRGB, ColourLayout::std>;
+    using sRgb8 = Colour<uint8_t, sRGB, ColourLayout::std>;
+    using sRgb16 = Colour<uint16_t, sRGB, ColourLayout::std>;
+    using sRgbf = Colour<float, sRGB, ColourLayout::std>;
+    using sRgbd = Colour<double, sRGB, ColourLayout::std>;
+    using Rgba8 = Colour<uint8_t, LinearRGB, ColourLayout::std_alpha>;
+    using Rgba16 = Colour<uint16_t, LinearRGB, ColourLayout::std_alpha>;
+    using Rgbaf = Colour<float, LinearRGB, ColourLayout::std_alpha>;
+    using Rgbad = Colour<double, LinearRGB, ColourLayout::std_alpha>;
+    using sRgba8 = Colour<uint8_t, sRGB, ColourLayout::std_alpha>;
+    using sRgba16 = Colour<uint16_t, sRGB, ColourLayout::std_alpha>;
+    using sRgbaf = Colour<float, sRGB, ColourLayout::std_alpha>;
+    using sRgbad = Colour<double, sRGB, ColourLayout::std_alpha>;
 
-        static_assert(std::is_standard_layout_v<Rgb8>);
-        static_assert(std::is_standard_layout_v<Rgb16>);
-        static_assert(std::is_standard_layout_v<Rgbf>);
-        static_assert(std::is_standard_layout_v<Rgbd>);
-        static_assert(std::is_standard_layout_v<sRgb8>);
-        static_assert(std::is_standard_layout_v<sRgb16>);
-        static_assert(std::is_standard_layout_v<sRgbf>);
-        static_assert(std::is_standard_layout_v<sRgbd>);
-        static_assert(std::is_standard_layout_v<Rgba8>);
-        static_assert(std::is_standard_layout_v<Rgba16>);
-        static_assert(std::is_standard_layout_v<Rgbaf>);
-        static_assert(std::is_standard_layout_v<Rgbad>);
-        static_assert(std::is_standard_layout_v<sRgba8>);
-        static_assert(std::is_standard_layout_v<sRgba16>);
-        static_assert(std::is_standard_layout_v<sRgbaf>);
-        static_assert(std::is_standard_layout_v<sRgbad>);
+    static_assert(std::is_standard_layout_v<Rgb8>);
+    static_assert(std::is_standard_layout_v<Rgb16>);
+    static_assert(std::is_standard_layout_v<Rgbf>);
+    static_assert(std::is_standard_layout_v<Rgbd>);
+    static_assert(std::is_standard_layout_v<sRgb8>);
+    static_assert(std::is_standard_layout_v<sRgb16>);
+    static_assert(std::is_standard_layout_v<sRgbf>);
+    static_assert(std::is_standard_layout_v<sRgbd>);
+    static_assert(std::is_standard_layout_v<Rgba8>);
+    static_assert(std::is_standard_layout_v<Rgba16>);
+    static_assert(std::is_standard_layout_v<Rgbaf>);
+    static_assert(std::is_standard_layout_v<Rgbad>);
+    static_assert(std::is_standard_layout_v<sRgba8>);
+    static_assert(std::is_standard_layout_v<sRgba16>);
+    static_assert(std::is_standard_layout_v<sRgbaf>);
+    static_assert(std::is_standard_layout_v<sRgbad>);
 
-        static_assert(sizeof(Rgb8) == 3);
-        static_assert(sizeof(Rgb16) == 6);
-        static_assert(sizeof(Rgbf) == 12);
-        static_assert(sizeof(Rgbd) == 24);
-        static_assert(sizeof(sRgb8) == 3);
-        static_assert(sizeof(sRgb16) == 6);
-        static_assert(sizeof(sRgbf) == 12);
-        static_assert(sizeof(sRgbd) == 24);
-        static_assert(sizeof(Rgba8) == 4);
-        static_assert(sizeof(Rgba16) == 8);
-        static_assert(sizeof(Rgbaf) == 16);
-        static_assert(sizeof(Rgbad) == 32);
-        static_assert(sizeof(sRgba8) == 4);
-        static_assert(sizeof(sRgba16) == 8);
-        static_assert(sizeof(sRgbaf) == 16);
-        static_assert(sizeof(sRgbad) == 32);
+    static_assert(sizeof(Rgb8) == 3);
+    static_assert(sizeof(Rgb16) == 6);
+    static_assert(sizeof(Rgbf) == 12);
+    static_assert(sizeof(Rgbd) == 24);
+    static_assert(sizeof(sRgb8) == 3);
+    static_assert(sizeof(sRgb16) == 6);
+    static_assert(sizeof(sRgbf) == 12);
+    static_assert(sizeof(sRgbd) == 24);
+    static_assert(sizeof(Rgba8) == 4);
+    static_assert(sizeof(Rgba16) == 8);
+    static_assert(sizeof(Rgbaf) == 16);
+    static_assert(sizeof(Rgbad) == 32);
+    static_assert(sizeof(sRgba8) == 4);
+    static_assert(sizeof(sRgba16) == 8);
+    static_assert(sizeof(sRgbaf) == 16);
+    static_assert(sizeof(sRgbad) == 32);
 
 }
 

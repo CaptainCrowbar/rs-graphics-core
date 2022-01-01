@@ -50,6 +50,20 @@ void test_rs_graphics_core_colour_floating_point_arithmetic() {
     TRY(c = d * a);  TEST_VECTORS(c, Double4(0.2,0.6,1.2,2), 1e-10);
     TRY(c = b / d);  TEST_VECTORS(c, Double4(0.4,0.2,0.1,0.04), 1e-10);
 
+    // These should fail to compile
+
+    // sRgbad s = {0.1,0.2,0.3,0.4};
+    // sRgbad t = {0.8,0.6,0.4,0.2};
+    // sRgbad u;
+
+    // TRY(u = + s);    TEST_VECTORS(u, Double4(0.1,0.2,0.3,0.4), 1e-10);
+    // TRY(u = - s);    TEST_VECTORS(u, Double4(-0.1,-0.2,-0.3,-0.4), 1e-10);
+    // TRY(u = s + t);  TEST_VECTORS(u, Double4(0.9,0.8,0.7,0.6), 1e-10);
+    // TRY(u = s - t);  TEST_VECTORS(u, Double4(-0.7,-0.4,-0.1,0.2), 1e-10);
+    // TRY(u = s * 2);  TEST_VECTORS(u, Double4(0.2,0.4,0.6,0.8), 1e-10);
+    // TRY(u = 2 * s);  TEST_VECTORS(u, Double4(0.2,0.4,0.6,0.8), 1e-10);
+    // TRY(u = s / 2);  TEST_VECTORS(u, Double4(0.05,0.1,0.15,0.2), 1e-10);
+
 }
 
 void test_rs_graphics_core_colour_floating_point_standard_colours() {
