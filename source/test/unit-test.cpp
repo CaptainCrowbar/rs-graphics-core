@@ -65,7 +65,11 @@ int main(int argc, char** argv) {
 
     // colour-test.cpp
     UNIT_TEST(rs_graphics_core_colour_floating_point_elements)
-    UNIT_TEST(rs_graphics_core_colour_integer_elements)
+    UNIT_TEST(rs_graphics_core_colour_floating_point_arithmetic)
+    UNIT_TEST(rs_graphics_core_colour_floating_point_standard_colours)
+    UNIT_TEST(rs_graphics_core_colour_integral_elements)
+    UNIT_TEST(rs_graphics_core_colour_integral_standard_colours)
+    UNIT_TEST(rs_graphics_core_colour_integral_arithmetic)
 
     // noise-test.cpp
     UNIT_TEST(rs_graphics_core_noise_result_stability)

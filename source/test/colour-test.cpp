@@ -24,10 +24,35 @@ void test_rs_graphics_core_colour_floating_point_elements() {
     TEST_EQUAL(c.α(), 1);      TRY(c.α() = 0.5);    TEST_EQUAL(c.α(), 0.5);
 
     TEST_VECTORS(c.as_vector(), Double4(0.25,0.5,0.75,0.5), 1e-15);
+    TEST_VECTORS(c, Double4(0.25,0.5,0.75,0.5), 1e-15);
     TEST_EQUAL(c.str(), "[0.25,0.5,0.75,0.5]");
 
     TRY((c = {0.2,0.4,0.6}));      TEST_EQUAL(c.str(), "[0.2,0.4,0.6,1]");
     TRY((c = {0.2,0.4,0.6,0.8}));  TEST_EQUAL(c.str(), "[0.2,0.4,0.6,0.8]");
+
+}
+
+void test_rs_graphics_core_colour_floating_point_arithmetic() {
+
+    Rgbad a = {0.1,0.2,0.3,0.4};
+    Rgbad b = {0.8,0.6,0.4,0.2};
+    Rgbad c;
+    Double4 d = {2,3,4,5};
+
+    TRY(c = + a);    TEST_VECTORS(c, Double4(0.1,0.2,0.3,0.4), 1e-10);
+    TRY(c = - a);    TEST_VECTORS(c, Double4(-0.1,-0.2,-0.3,-0.4), 1e-10);
+    TRY(c = a + b);  TEST_VECTORS(c, Double4(0.9,0.8,0.7,0.6), 1e-10);
+    TRY(c = a - b);  TEST_VECTORS(c, Double4(-0.7,-0.4,-0.1,0.2), 1e-10);
+    TRY(c = a * 2);  TEST_VECTORS(c, Double4(0.2,0.4,0.6,0.8), 1e-10);
+    TRY(c = 2 * a);  TEST_VECTORS(c, Double4(0.2,0.4,0.6,0.8), 1e-10);
+    TRY(c = a / 2);  TEST_VECTORS(c, Double4(0.05,0.1,0.15,0.2), 1e-10);
+    TRY(c = a * d);  TEST_VECTORS(c, Double4(0.2,0.6,1.2,2), 1e-10);
+    TRY(c = d * a);  TEST_VECTORS(c, Double4(0.2,0.6,1.2,2), 1e-10);
+    TRY(c = b / d);  TEST_VECTORS(c, Double4(0.4,0.2,0.1,0.04), 1e-10);
+
+}
+
+void test_rs_graphics_core_colour_floating_point_standard_colours() {
 
     TEST_EQUAL(Rgbad::black().str(),    "[0,0,0,1]");
     TEST_EQUAL(Rgbad::white().str(),    "[1,1,1,1]");
@@ -40,7 +65,7 @@ void test_rs_graphics_core_colour_floating_point_elements() {
 
 }
 
-void test_rs_graphics_core_colour_integer_elements() {
+void test_rs_graphics_core_colour_integral_elements() {
 
     Rgba8 c;
 
@@ -59,10 +84,15 @@ void test_rs_graphics_core_colour_integer_elements() {
     TEST_EQUAL(c.α(), 1);      TRY(c.α() = 0x80);   TEST_EQUAL(c.α(), 0x80);
 
     TEST_VECTORS(c.as_vector(), Double4(0x40,0x80,0xc0,0x80), 0);
+    TEST_VECTORS(c, Double4(0x40,0x80,0xc0,0x80), 0);
     TEST_EQUAL(c.str(), "[64,128,192,128]");
 
     TRY((c = {0x20,0x40,0x60}));       TEST_EQUAL(c.str(), "[32,64,96,255]");
     TRY((c = {0x20,0x40,0x60,0x80}));  TEST_EQUAL(c.str(), "[32,64,96,128]");
+
+}
+
+void test_rs_graphics_core_colour_integral_standard_colours() {
 
     TEST_EQUAL(Rgba8::black().str(),    "[0,0,0,255]");
     TEST_EQUAL(Rgba8::white().str(),    "[255,255,255,255]");
@@ -72,5 +102,25 @@ void test_rs_graphics_core_colour_integer_elements() {
     TEST_EQUAL(Rgba8::cyan().str(),     "[0,255,255,255]");
     TEST_EQUAL(Rgba8::blue().str(),     "[0,0,255,255]");
     TEST_EQUAL(Rgba8::magenta().str(),  "[255,0,255,255]");
+
+}
+
+void test_rs_graphics_core_colour_integral_arithmetic() {
+
+    Rgba8 a = {10,20,30,40};
+    Rgba8 b = {80,60,40,20};
+    Rgba8 c;
+    Vector<uint8_t, 4> d = {2,3,4,5};
+
+    TRY(c = + a);    TEST_VECTORS(c, Int4(10,20,30,40), 0);
+    TRY(c = - a);    TEST_VECTORS(c, Int4(246,236,226,216), 0);
+    TRY(c = a + b);  TEST_VECTORS(c, Int4(90,80,70,60), 0);
+    TRY(c = a - b);  TEST_VECTORS(c, Int4(186,216,246,20), 0);
+    TRY(c = a * 2);  TEST_VECTORS(c, Int4(20,40,60,80), 0);
+    TRY(c = 2 * a);  TEST_VECTORS(c, Int4(20,40,60,80), 0);
+    TRY(c = a / 2);  TEST_VECTORS(c, Int4(5,10,15,20), 0);
+    TRY(c = a * d);  TEST_VECTORS(c, Int4(20,60,120,200), 0);
+    TRY(c = d * a);  TEST_VECTORS(c, Int4(20,60,120,200), 0);
+    TRY(c = b / d);  TEST_VECTORS(c, Int4(40,20,10,4), 0);
 
 }

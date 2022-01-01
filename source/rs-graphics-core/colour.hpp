@@ -6,6 +6,7 @@
 #include "rs-format/enum.hpp"
 #include "rs-format/format.hpp"
 #include <functional>
+#include <ostream>
 #include <string>
 #include <type_traits>
 
@@ -121,7 +122,7 @@ namespace RS::Graphics::Core {
             constexpr VT& Ch(std::enable_if<Detail::colour_channel_index<CS, Lit, CL> != -1>* = nullptr) noexcept { \
                 return vec_[Detail::colour_channel_index<CS, Lit, CL>]; \
             } \
-            constexpr VT Ch(std::enable_if<Detail::colour_channel_index<CS, Lit, CL> != -1>* = nullptr) const noexcept { \
+            constexpr const VT& Ch(std::enable_if<Detail::colour_channel_index<CS, Lit, CL> != -1>* = nullptr) const noexcept { \
                 return vec_[Detail::colour_channel_index<CS, Lit, CL>]; \
             }
 
@@ -172,6 +173,7 @@ namespace RS::Graphics::Core {
 
         size_t hash() const noexcept { return vec_.hash(); }
         std::string str(RS::Format::FormatSpec spec = {}) const { return vec_.str(spec); }
+        friend std::ostream& operator<<(std::ostream& out, const Colour& c) { return out << c.str(); }
 
         static Colour black(std::enable_if<CS::is_rgb>* = nullptr) noexcept { return Colour(0); }
         static Colour white(std::enable_if<CS::is_rgb>* = nullptr) noexcept { return Colour(scale); }
@@ -185,62 +187,81 @@ namespace RS::Graphics::Core {
         friend constexpr bool operator==(Colour a, Colour b) noexcept { return a.vec_ == b.vec_; }
         friend constexpr bool operator!=(Colour a, Colour b) noexcept { return ! (a == b); }
 
+        constexpr Colour operator+() const noexcept { return *this; }
+        constexpr Colour operator-() const noexcept { return Colour(- vec_); }
+
+        friend constexpr Colour operator+(Colour a, Colour b) noexcept { return Colour(a.vec_ + b.vec_); }
+        friend constexpr Colour operator-(Colour a, Colour b) noexcept { return Colour(a.vec_ - b.vec_); }
+        friend constexpr Colour operator*(Colour a, VT b) noexcept { return Colour(a.vec_ * b); }
+        friend constexpr Colour operator*(VT a, Colour b) noexcept { return Colour(a * b.vec_); }
+        friend constexpr Colour operator/(Colour a, VT b) noexcept { return Colour(a.vec_ / b); }
+        friend constexpr Colour operator*(Colour a, vector_type b) noexcept { return Colour(a.vec_ * b); }
+        friend constexpr Colour operator*(vector_type a, Colour b) noexcept { return Colour(a * b.vec_); }
+        friend constexpr Colour operator/(Colour a, vector_type b) noexcept { return Colour(a.vec_ / b); }
+
+        constexpr Colour& operator+=(Colour c) noexcept { return *this = *this + c; }
+        constexpr Colour& operator-=(Colour c) noexcept { return *this = *this - c; }
+        constexpr Colour& operator*=(VT c) noexcept { return *this = *this * c; }
+        constexpr Colour& operator/=(VT c) noexcept { return *this = *this / c; }
+        constexpr Colour& operator*=(vector_type c) noexcept { return *this = *this * c; }
+        constexpr Colour& operator/=(vector_type c) noexcept { return *this = *this / c; }
+
     private:
 
         vector_type vec_;
 
     };
 
-    using Rgb8 = Colour<uint8_t, LinearRGB, ColourLayout::std>;
-    using Rgb16 = Colour<uint16_t, LinearRGB, ColourLayout::std>;
-    using Rgbf = Colour<float, LinearRGB, ColourLayout::std>;
-    using Rgbd = Colour<double, LinearRGB, ColourLayout::std>;
-    using sRgb8 = Colour<uint8_t, sRGB, ColourLayout::std>;
-    using sRgb16 = Colour<uint16_t, sRGB, ColourLayout::std>;
-    using sRgbf = Colour<float, sRGB, ColourLayout::std>;
-    using sRgbd = Colour<double, sRGB, ColourLayout::std>;
-    using Rgba8 = Colour<uint8_t, LinearRGB, ColourLayout::std_alpha>;
-    using Rgba16 = Colour<uint16_t, LinearRGB, ColourLayout::std_alpha>;
-    using Rgbaf = Colour<float, LinearRGB, ColourLayout::std_alpha>;
-    using Rgbad = Colour<double, LinearRGB, ColourLayout::std_alpha>;
-    using sRgba8 = Colour<uint8_t, sRGB, ColourLayout::std_alpha>;
-    using sRgba16 = Colour<uint16_t, sRGB, ColourLayout::std_alpha>;
-    using sRgbaf = Colour<float, sRGB, ColourLayout::std_alpha>;
-    using sRgbad = Colour<double, sRGB, ColourLayout::std_alpha>;
+        using Rgb8 = Colour<uint8_t, LinearRGB, ColourLayout::std>;
+        using Rgb16 = Colour<uint16_t, LinearRGB, ColourLayout::std>;
+        using Rgbf = Colour<float, LinearRGB, ColourLayout::std>;
+        using Rgbd = Colour<double, LinearRGB, ColourLayout::std>;
+        using sRgb8 = Colour<uint8_t, sRGB, ColourLayout::std>;
+        using sRgb16 = Colour<uint16_t, sRGB, ColourLayout::std>;
+        using sRgbf = Colour<float, sRGB, ColourLayout::std>;
+        using sRgbd = Colour<double, sRGB, ColourLayout::std>;
+        using Rgba8 = Colour<uint8_t, LinearRGB, ColourLayout::std_alpha>;
+        using Rgba16 = Colour<uint16_t, LinearRGB, ColourLayout::std_alpha>;
+        using Rgbaf = Colour<float, LinearRGB, ColourLayout::std_alpha>;
+        using Rgbad = Colour<double, LinearRGB, ColourLayout::std_alpha>;
+        using sRgba8 = Colour<uint8_t, sRGB, ColourLayout::std_alpha>;
+        using sRgba16 = Colour<uint16_t, sRGB, ColourLayout::std_alpha>;
+        using sRgbaf = Colour<float, sRGB, ColourLayout::std_alpha>;
+        using sRgbad = Colour<double, sRGB, ColourLayout::std_alpha>;
 
-    static_assert(std::is_standard_layout_v<Rgb8>);
-    static_assert(std::is_standard_layout_v<Rgb16>);
-    static_assert(std::is_standard_layout_v<Rgbf>);
-    static_assert(std::is_standard_layout_v<Rgbd>);
-    static_assert(std::is_standard_layout_v<sRgb8>);
-    static_assert(std::is_standard_layout_v<sRgb16>);
-    static_assert(std::is_standard_layout_v<sRgbf>);
-    static_assert(std::is_standard_layout_v<sRgbd>);
-    static_assert(std::is_standard_layout_v<Rgba8>);
-    static_assert(std::is_standard_layout_v<Rgba16>);
-    static_assert(std::is_standard_layout_v<Rgbaf>);
-    static_assert(std::is_standard_layout_v<Rgbad>);
-    static_assert(std::is_standard_layout_v<sRgba8>);
-    static_assert(std::is_standard_layout_v<sRgba16>);
-    static_assert(std::is_standard_layout_v<sRgbaf>);
-    static_assert(std::is_standard_layout_v<sRgbad>);
+        static_assert(std::is_standard_layout_v<Rgb8>);
+        static_assert(std::is_standard_layout_v<Rgb16>);
+        static_assert(std::is_standard_layout_v<Rgbf>);
+        static_assert(std::is_standard_layout_v<Rgbd>);
+        static_assert(std::is_standard_layout_v<sRgb8>);
+        static_assert(std::is_standard_layout_v<sRgb16>);
+        static_assert(std::is_standard_layout_v<sRgbf>);
+        static_assert(std::is_standard_layout_v<sRgbd>);
+        static_assert(std::is_standard_layout_v<Rgba8>);
+        static_assert(std::is_standard_layout_v<Rgba16>);
+        static_assert(std::is_standard_layout_v<Rgbaf>);
+        static_assert(std::is_standard_layout_v<Rgbad>);
+        static_assert(std::is_standard_layout_v<sRgba8>);
+        static_assert(std::is_standard_layout_v<sRgba16>);
+        static_assert(std::is_standard_layout_v<sRgbaf>);
+        static_assert(std::is_standard_layout_v<sRgbad>);
 
-    static_assert(sizeof(Rgb8) == 3);
-    static_assert(sizeof(Rgb16) == 6);
-    static_assert(sizeof(Rgbf) == 12);
-    static_assert(sizeof(Rgbd) == 24);
-    static_assert(sizeof(sRgb8) == 3);
-    static_assert(sizeof(sRgb16) == 6);
-    static_assert(sizeof(sRgbf) == 12);
-    static_assert(sizeof(sRgbd) == 24);
-    static_assert(sizeof(Rgba8) == 4);
-    static_assert(sizeof(Rgba16) == 8);
-    static_assert(sizeof(Rgbaf) == 16);
-    static_assert(sizeof(Rgbad) == 32);
-    static_assert(sizeof(sRgba8) == 4);
-    static_assert(sizeof(sRgba16) == 8);
-    static_assert(sizeof(sRgbaf) == 16);
-    static_assert(sizeof(sRgbad) == 32);
+        static_assert(sizeof(Rgb8) == 3);
+        static_assert(sizeof(Rgb16) == 6);
+        static_assert(sizeof(Rgbf) == 12);
+        static_assert(sizeof(Rgbd) == 24);
+        static_assert(sizeof(sRgb8) == 3);
+        static_assert(sizeof(sRgb16) == 6);
+        static_assert(sizeof(sRgbf) == 12);
+        static_assert(sizeof(sRgbd) == 24);
+        static_assert(sizeof(Rgba8) == 4);
+        static_assert(sizeof(Rgba16) == 8);
+        static_assert(sizeof(Rgbaf) == 16);
+        static_assert(sizeof(Rgbad) == 32);
+        static_assert(sizeof(sRgba8) == 4);
+        static_assert(sizeof(sRgba16) == 8);
+        static_assert(sizeof(sRgbaf) == 16);
+        static_assert(sizeof(sRgbad) == 32);
 
 }
 
