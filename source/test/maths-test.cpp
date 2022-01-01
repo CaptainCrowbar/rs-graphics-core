@@ -4,6 +4,44 @@
 
 using namespace RS::Graphics::Core;
 
+void test_rs_graphics_core_maths_rounding() {
+
+    TEST_EQUAL(const_round<int>(-4.00),  -4);
+    TEST_EQUAL(const_round<int>(-3.75),  -4);
+    TEST_EQUAL(const_round<int>(-3.50),  -3);
+    TEST_EQUAL(const_round<int>(-3.25),  -3);
+    TEST_EQUAL(const_round<int>(-3.00),  -3);
+    TEST_EQUAL(const_round<int>(-2.75),  -3);
+    TEST_EQUAL(const_round<int>(-2.50),  -2);
+    TEST_EQUAL(const_round<int>(-2.25),  -2);
+    TEST_EQUAL(const_round<int>(-2.00),  -2);
+    TEST_EQUAL(const_round<int>(-1.75),  -2);
+    TEST_EQUAL(const_round<int>(-1.50),  -1);
+    TEST_EQUAL(const_round<int>(-1.25),  -1);
+    TEST_EQUAL(const_round<int>(-1.00),  -1);
+    TEST_EQUAL(const_round<int>(-0.75),  -1);
+    TEST_EQUAL(const_round<int>(-0.50),  0);
+    TEST_EQUAL(const_round<int>(-0.25),  0);
+    TEST_EQUAL(const_round<int>(0.00),   0);
+    TEST_EQUAL(const_round<int>(0.25),   0);
+    TEST_EQUAL(const_round<int>(0.50),   1);
+    TEST_EQUAL(const_round<int>(0.75),   1);
+    TEST_EQUAL(const_round<int>(1.00),   1);
+    TEST_EQUAL(const_round<int>(1.25),   1);
+    TEST_EQUAL(const_round<int>(1.50),   2);
+    TEST_EQUAL(const_round<int>(1.75),   2);
+    TEST_EQUAL(const_round<int>(2.00),   2);
+    TEST_EQUAL(const_round<int>(2.25),   2);
+    TEST_EQUAL(const_round<int>(2.50),   3);
+    TEST_EQUAL(const_round<int>(2.75),   3);
+    TEST_EQUAL(const_round<int>(3.00),   3);
+    TEST_EQUAL(const_round<int>(3.25),   3);
+    TEST_EQUAL(const_round<int>(3.50),   4);
+    TEST_EQUAL(const_round<int>(3.75),   4);
+    TEST_EQUAL(const_round<int>(4.00),   4);
+
+}
+
 void test_rs_graphics_core_maths_euclidean_division() {
 
     {

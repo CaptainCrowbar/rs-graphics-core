@@ -89,6 +89,22 @@ namespace RS::Graphics::Core {
         template <typename VT, typename CS, ColourLayout CL>
         class ColourArithmetic<VT, CS, CL, false> {};
 
+        template <typename T>
+        using FloatingChannelType =
+            std::conditional_t<std::is_floating_point_v<T>, T,
+            std::conditional_t<(sizeof(T) < sizeof(float)), float,
+            std::conditional_t<(sizeof(T) < sizeof(double)), double, long double>>>;
+
+        template <typename T1, typename T2>
+        using WorkingChannelType =
+            std::conditional_t<(sizeof(FloatingChannelType<T1>) >= sizeof(FloatingChannelType<T2>)),
+            FloatingChannelType<T1>, FloatingChannelType<T2>>;
+
+        // template <typename T1, typename WT>
+        // constexpr WT channel_to_working_type(T1 t) noexcept {
+
+        // }
+
     }
 
     // Don't use single letter template parameters here

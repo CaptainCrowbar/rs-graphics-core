@@ -39,6 +39,15 @@ Absolute value function (defined here because `std::abs()` is not guaranteed
 to be `constexpr`).
 
 ```c++
+template <typename T2, typename T1> constexpr T2 const_round(T1 x) noexcept;
+```
+
+Round to nearest integer (defined here because `std::lround()` is not
+guaranteed to be `constexpr`). `T1` must be a floating point type; `T2` must
+be an integer type (and must be explicitly specified). Behaviour is undefined
+if the result is not representable in the integer type.
+
+```c++
 template <typename T> constexpr std::pair<T, T> euclidean_divide(T x, T y) noexcept;
 template <typename T> constexpr T euclidean_quotient(T x, T y) noexcept;
 template <typename T> constexpr T euclidean_remainder(T x, T y) noexcept;

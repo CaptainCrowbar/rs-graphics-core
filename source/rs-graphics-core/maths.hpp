@@ -24,6 +24,19 @@ namespace RS::Graphics::Core {
             return x;
     }
 
+    template <typename T2, typename T1>
+    constexpr T2 const_round(T1 x) noexcept {
+        static_assert(std::is_floating_point_v<T1>);
+        static_assert(std::is_integral_v<T2>);
+        T2 y = T2(x);
+        T1 d = T1(y) - x;
+        if (d <= T1(-0.5))
+            ++y;
+        else if (d > T1(0.5))
+            --y;
+        return y;
+    }
+
     template <typename T>
     constexpr std::pair<T, T> euclidean_divide(T x, T y) noexcept {
         static_assert(std::is_arithmetic_v<T>);

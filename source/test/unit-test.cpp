@@ -10,6 +10,7 @@ int main(int argc, char** argv) {
     UNIT_TEST(rs_graphics_core_version)
 
     // maths-test.cpp
+    UNIT_TEST(rs_graphics_core_maths_rounding)
     UNIT_TEST(rs_graphics_core_maths_euclidean_division)
     UNIT_TEST(rs_graphics_core_maths_fraction)
     UNIT_TEST(rs_graphics_core_maths_interpolate)
