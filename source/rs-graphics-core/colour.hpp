@@ -163,6 +163,10 @@ namespace RS::Graphics::Core {
         constexpr VT* end() noexcept { return vec_.end(); }
         constexpr const VT* end() const noexcept { return vec_.end(); }
 
+        constexpr void clamp() noexcept { clamp_colour<CS>(vec_); }
+        constexpr Colour clamped() const noexcept { auto c = *this; c.clamp(); return c; }
+        constexpr bool is_clamped() const noexcept { return is_colour_in_gamut<CS>(vec_); }
+
         constexpr bool empty() const noexcept { return false; }
         constexpr size_t size() const noexcept { return size_t(channels); }
 

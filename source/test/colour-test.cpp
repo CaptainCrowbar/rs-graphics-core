@@ -18,7 +18,7 @@ void test_rs_graphics_core_colour_traits() {
 
 }
 
-void test_rs_graphics_core_colour_floating_point_elements_() {
+void test_rs_graphics_core_colour_floating_point_elements() {
 
     Rgbad c;
 
@@ -44,7 +44,7 @@ void test_rs_graphics_core_colour_floating_point_elements_() {
 
 }
 
-void test_rs_graphics_core_colour_integer_elements_() {
+void test_rs_graphics_core_colour_integer_elements() {
 
     Rgba8 c;
 
