@@ -168,15 +168,15 @@ void test_rs_graphics_core_floating_vector_construction() {
     TEST_EQUAL(v2.y(), 98);  TEST_EQUAL(cv2.y(), 98);
     TEST_EQUAL(v2.z(), 97);  TEST_EQUAL(cv2.z(), 97);
 
-    TRY((v3 = Double3{1.0,2.0,3.0}));
+    TRY((v3 = Double3{1,2,3}));
     TEST_EQUAL(v3.str(), "[1,2,3]");
     TEST_EQUAL(cv3.str(), "[1,2,3]");
 
-    TRY((v3 = Double3(2.0,4.0,6.0)));
+    TRY((v3 = Double3(2,4,6)));
     TEST_EQUAL(v3.str(), "[2,4,6]");
     TEST_EQUAL(cv3.str(), "[2,4,6]");
 
-    TRY((v3 = {10.0,20.0,30.0}));
+    TRY((v3 = {10,20,30}));
     TEST_EQUAL(v3.str(), "[10,20,30]");
     TEST_EQUAL(cv3.str(), "[10,20,30]");
 
@@ -194,8 +194,8 @@ void test_rs_graphics_core_floating_vector_arithmetic() {
     double x = 0;
     Double3 v1, v2, v3, v4, v5;
 
-    TRY((v1 = {2.0,3.0,5.0}));
-    TRY((v2 = {7.0,11.0,13.0}));
+    TRY((v1 = {2,3,5}));
+    TRY((v2 = {7,11,13}));
     TRY(v3 = Double3(0.0));
     TRY(v4 = Double3(0.0));
     TEST(v1 == v1);
@@ -225,15 +225,16 @@ void test_rs_graphics_core_floating_vector_arithmetic() {
     TRY(v3 = v1.dir());         TEST_EQUAL(v3.str(), "[0.324443,0.486664,0.811107]");
     TRY(v3 = v2.dir());         TEST_EQUAL(v3.str(), "[0.380188,0.597438,0.706063]");
 
-    TRY((v1 = {1.0,2.0,3.0}));
-    TRY((v2 = {}));                TRY(x = v1.angle(v2));  TEST_EQUAL(x, 0);
-    TRY((v2 = {2.0,4.0,6.0}));     TRY(x = v1.angle(v2));  TEST_EQUAL(x, 0);
-    TRY((v2 = {-2.0,-4.0,-6.0}));  TRY(x = v1.angle(v2));  TEST_NEAR(x, pi_d, 1e-6);
-    TRY((v2 = {3.0,2.0,1.0}));     TRY(x = v1.angle(v2));  TEST_NEAR(x, 0.775193, 1e-6);
-    TRY((v2 = {-3.0,-2.0,-1.0}));  TRY(x = v1.angle(v2));  TEST_NEAR(x, 2.366399, 1e-6);
+    TRY((v1 = {1,2,3}));
 
-    TRY((v1 = {2.0,3.0,5.0}));
-    TRY((v2 = {7.0,11.0,13.0}));
+    TRY((v2 = {}));          TRY(x = v1.angle(v2));  TEST_EQUAL(x, 0);
+    TRY((v2 = {2,4,6}));     TRY(x = v1.angle(v2));  TEST_EQUAL(x, 0);
+    TRY((v2 = {-2,-4,-6}));  TRY(x = v1.angle(v2));  TEST_NEAR(x, pi_d, 1e-6);
+    TRY((v2 = {3,2,1}));     TRY(x = v1.angle(v2));  TEST_NEAR(x, 0.775193, 1e-6);
+    TRY((v2 = {-3,-2,-1}));  TRY(x = v1.angle(v2));  TEST_NEAR(x, 2.366399, 1e-6);
+
+    TRY((v1 = {2,3,5}));
+    TRY((v2 = {7,11,13}));
     TRY(v3 = v1.project(v2));
     TRY(v4 = v1.reject(v2));
     TRY(v5 = v3 + v4);
@@ -243,14 +244,14 @@ void test_rs_graphics_core_floating_vector_arithmetic() {
     TEST_NEAR(v2 % v4, 0, 1e-6);
     TEST_NEAR(v3 % v4, 0, 1e-6);
 
-    TRY((v1 = {1.0,5.0,9.0}));
-    TRY((v2 = {2.0,3.0,4.0}));
-    TRY((v3 = {4.0,6.0,8.0}));
+    TRY((v1 = {1,5,9}));
+    TRY((v2 = {2,3,4}));
+    TRY((v3 = {4,6,8}));
     TRY(v1 = clampv(v1, v2, v3));
     TEST_EQUAL(v1.str(), "[2,5,8]");
 
-    TRY((v1 = {1.0,3.0,5.0}));
-    TRY((v2 = {2.0,3.0,4.0}));
+    TRY((v1 = {1,3,5}));
+    TRY((v2 = {2,3,4}));
     TRY(v3 = minv(v1, v2));
     TEST_EQUAL(v3.str(), "[1,3,4]");
     TRY(v3 = maxv(v1, v2));

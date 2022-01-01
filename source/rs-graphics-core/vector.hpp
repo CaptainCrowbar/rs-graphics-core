@@ -52,7 +52,7 @@ namespace RS::Graphics::Core {
         template <typename... Args>
             constexpr Vector(T x, std::enable_if_t<sizeof...(Args) + 2 == N && (std::is_convertible_v<Args, T> && ...), T> y,
                 Args... args) noexcept:
-            array_{{x, y, args...}} {}
+            array_{{T(x), T(y), T(args)...}} {}
         constexpr explicit Vector(const T* ptr) noexcept: array_{} { for (int i = 0; i < N; ++i) array_[i] = ptr[i]; }
         template <typename U> constexpr explicit Vector(const Vector<U, N>& v) noexcept:
             array_{} { for (int i = 0; i < N; ++i) array_[i] = T(v[i]); }

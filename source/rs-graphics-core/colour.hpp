@@ -72,7 +72,7 @@ namespace RS::Graphics::Core {
         static constexpr int channels = colour_channels + int(has_alpha);
         static constexpr bool is_hdr = std::is_floating_point_v<VT>;
         static constexpr ColourLayout layout = CL;
-        static constexpr VT scale = is_hdr ? VT(1) : std::numeric_limits<VT>::max();
+        static constexpr VT scale = is_hdr || CS::shape == ColourSpace::any ? VT(1) : std::numeric_limits<VT>::max();
 
         using colour_space = CS;
         using iterator = VT*;

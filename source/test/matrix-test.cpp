@@ -50,13 +50,13 @@ void test_rs_graphics_core_matrix_basics() {
         "[1.000,1.000,2.000]]"
     );
 
-    TRY((rm1 = Double3x3r{1.0,2.0,3.0,4.0,5.0,6.0,7.0,8.0,9.0}));
-    TRY((cm1 = Double3x3c{1.0,2.0,3.0,4.0,5.0,6.0,7.0,8.0,9.0}));
+    TRY((rm1 = Double3x3r{1,2,3,4,5,6,7,8,9}));
+    TRY((cm1 = Double3x3c{1,2,3,4,5,6,7,8,9}));
     TEST_EQUAL(format_range(rm1), "[1,2,3,4,5,6,7,8,9]");
     TEST_EQUAL(format_range(cm1), "[1,2,3,4,5,6,7,8,9]");
 
-    TRY((rm1 = {2.0,3.0,5.0,7.0,11.0,13.0,17.0,19.0,23.0}));
-    TRY((cm1 = {2.0,3.0,5.0,7.0,11.0,13.0,17.0,19.0,23.0}));
+    TRY((rm1 = {2,3,5,7,11,13,17,19,23}));
+    TRY((cm1 = {2,3,5,7,11,13,17,19,23}));
     TEST_EQUAL(format_range(rm1), "[2,3,5,7,11,13,17,19,23]");
     TEST_EQUAL(format_range(cm1), "[2,3,5,7,11,13,17,19,23]");
 
@@ -116,7 +116,7 @@ void test_rs_graphics_core_matrix_basics() {
     TEST_EQUAL(cm1(2, 1), 13);
     TEST_EQUAL(cm1(2, 2), 23);
 
-    TRY((rm2 = {29.0,31.0,37.0,41.0,43.0,47.0,53.0,59.0,61.0}));
+    TRY((rm2 = {29,31,37,41,43,47,53,59,61}));
     TRY(cm1 = rm1);
     TRY(cm2 = rm2);
 
@@ -224,7 +224,7 @@ void test_rs_graphics_core_matrix_basics() {
         "[2491,2701,2925]]"
     );
 
-    TRY((v1 = {67.0,71.0,73.0}));
+    TRY((v1 = {67,71,73}));
 
     TRY(v2 = rm1 * v1);  TEST_EQUAL(v2.str(), "[712,2199,4167]");
     TRY(v2 = v1 * rm1);  TEST_EQUAL(v2.str(), "[1872,2369,2937]");
@@ -260,7 +260,7 @@ void test_rs_graphics_core_matrix_basics() {
     TRY(v1 = cm3.row(1));     TEST_EQUAL(v1.str(), "[7,11,13]");
     TRY(v1 = cm3.row(2));     TEST_EQUAL(v1.str(), "[17,19,23]");
 
-    TRY((v1 = {1.0,2.0,3.0}));
+    TRY((v1 = {1,2,3}));
     TRY(rm3 = rm1);
     TRY(rm3.set_column(0, v1));
     TEST_EQUAL(rm3.str(),
@@ -427,7 +427,7 @@ void test_rs_graphics_core_matrix_inversion() {
     Double3x3c c3, d3, e3;
     Double4x4c c4, d4, e4;
 
-    TRY((r2 = {2.0,3.0,5.0,7.0}));
+    TRY((r2 = {2,3,5,7}));
     TEST_EQUAL(r2.str(),
         "[[2,3],"
         "[5,7]]"
@@ -437,7 +437,7 @@ void test_rs_graphics_core_matrix_inversion() {
         "[[2,3],"
         "[5,7]]"
     );
-    TRY((r3 = {2.0,3.0,5.0,7.0,11.0,13.0,17.0,19.0,23.0}));
+    TRY((r3 = {2,3,5,7,11,13,17,19,23}));
     TEST_EQUAL(r3.str(),
         "[[2,3,5],"
         "[7,11,13],"
@@ -449,7 +449,7 @@ void test_rs_graphics_core_matrix_inversion() {
         "[7,11,13],"
         "[17,19,23]]"
     );
-    TRY((r4 = {2.0,3.0,5.0,7.0,11.0,13.0,17.0,19.0,23.0,29.0,31.0,37.0,41.0,43.0,47.0,53.0}));
+    TRY((r4 = {2,3,5,7,11,13,17,19,23,29,31,37,41,43,47,53}));
     TEST_EQUAL(r4.str(),
         "[[2,3,5,7],"
         "[11,13,17,19],"

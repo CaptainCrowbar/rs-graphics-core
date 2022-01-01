@@ -97,7 +97,7 @@ namespace RS::Graphics::Core {
             { for (int r = 0; r < N; ++r) for (int c = 0; c < N; ++c) (*this)(r, c) = m(r, c); }
         template <typename... Args> constexpr
             Matrix(T x, std::enable_if_t<sizeof...(Args) + 2 == cells && (std::is_convertible_v<Args, T> && ...), T> y, Args... args):
-            array_{{x, y, args...}} {}
+            array_{{T(x), T(y), T(args)...}} {}
 
         constexpr Matrix operator+() const noexcept { return *this; }
         constexpr Matrix operator-() const noexcept { auto m = *this; for (auto& x: m) x = - x; return m; }
