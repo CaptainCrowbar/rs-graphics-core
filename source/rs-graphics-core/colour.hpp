@@ -309,17 +309,17 @@ namespace RS::Graphics::Core {
     };
 
     template <typename VT1, typename CS1, ColourLayout CL1,
-        typename V2, typename CS2, ColourLayout CL2>
-    void convert_colour(Colour<VT1, CS1, CL1> in, Colour<V2, CS2, CL2>& out) noexcept {
+        typename VT2, typename CS2, ColourLayout CL2>
+    void convert_colour(Colour<VT1, CS1, CL1> in, Colour<VT2, CS2, CL2>& out) noexcept {
 
         using C1 = Colour<VT1, CS1, CL1>;
-        using C2 = Colour<V2, CS2, CL2>;
+        using C2 = Colour<VT2, CS2, CL2>;
 
-        if constexpr (std::is_same_v<VT1, V2> && std::is_same_v<CS1, CS2> && CL1 == CL2) {
+        if constexpr (std::is_same_v<VT1, VT2> && std::is_same_v<CS1, CS2> && CL1 == CL2) {
 
             out = in;
 
-        } else if constexpr (std::is_same_v<VT1, V2> && std::is_same_v<CS1, CS2>) {
+        } else if constexpr (std::is_same_v<VT1, VT2> && std::is_same_v<CS1, CS2>) {
 
             for (int i = 0; i < C1::colour_space_channels; ++i)
                 out.cs(i) = in.cs(i);
@@ -328,7 +328,7 @@ namespace RS::Graphics::Core {
 
         } else {
 
-            using WT = Detail::WorkingChannelType<VT1, V2>;
+            using WT = Detail::WorkingChannelType<VT1, VT2>;
             using WC1 = Colour<WT, CS1, ColourLayout::forward_alpha>;
             using WC2 = Colour<WT, CS2, ColourLayout::forward_alpha>;
 

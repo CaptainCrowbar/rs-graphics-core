@@ -341,3 +341,21 @@ constexpr bool operator!=(Colour a, Colour b) noexcept;
 ```
 
 Comparison operators.
+
+### Conversion functions
+
+```c++
+template <typename T1, typename CS1, ColourLayout CL1,
+        typename T2, typename CS2, ColourLayout CL2>
+    void convert_colour(Colour<T1, CS1, CL1> in,
+        Colour<T2, CS2, CL2>& out) noexcept;
+```
+
+This converts between any two colours. This will call `convert_colour_space()`
+if the colour spaces are different, as well as converting between different
+channel types and internal layouts. Conversions from floating point to integer
+will round to the nearest integer. If the output contains an alpha channel but
+the input does not, the alpha channel will be set to its fully opaque value.
+If the input colour contains out-of-gamut values that are not representable in
+the output channel type, the output will be garbage if `T2` is an unsigned
+integer, otherwise behaviour is undefined.
