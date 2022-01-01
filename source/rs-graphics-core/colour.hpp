@@ -6,6 +6,7 @@
 #include "rs-format/enum.hpp"
 #include "rs-format/format.hpp"
 #include <functional>
+#include <limits>
 #include <ostream>
 #include <string>
 #include <type_traits>
@@ -13,9 +14,9 @@
 namespace RS::Graphics::Core {
 
     RS_DEFINE_ENUM_CLASS(ColourLayout, int, 0,
-        std,
-        std_alpha,
-        alpha_std,
+        forward,
+        forward_alpha,
+        alpha_forward,
         reverse,
         reverse_alpha,
         alpha_reverse
@@ -45,9 +46,9 @@ namespace RS::Graphics::Core {
             static constexpr int get() noexcept {
                 if constexpr (cs_index == -1)
                     return -1;
-                else if constexpr (CL == ColourLayout::std || CL == ColourLayout::std_alpha)
+                else if constexpr (CL == ColourLayout::forward || CL == ColourLayout::forward_alpha)
                     return cs_index;
-                else if constexpr (CL == ColourLayout::alpha_std)
+                else if constexpr (CL == ColourLayout::alpha_forward)
                     return cs_index + 1;
                 else if constexpr (CL == ColourLayout::reverse || CL == ColourLayout::reverse_alpha)
                     return cs_channels - cs_index - 1;
@@ -62,7 +63,7 @@ namespace RS::Graphics::Core {
         template <typename VT, typename CS, ColourLayout CL, bool IsLinear = CS::is_linear>
         class ColourArithmetic {
         private:
-            static constexpr bool ca_has_alpha = CL != ColourLayout::std && CL != ColourLayout::reverse;
+            static constexpr bool ca_has_alpha = CL != ColourLayout::forward && CL != ColourLayout::reverse;
             static constexpr int ca_channels = int(CS::channels.size()) + int(ca_has_alpha);
             using ca_colour = Colour<VT, CS, CL>;
             using ca_vector = Vector<VT, ca_channels>;
@@ -92,7 +93,7 @@ namespace RS::Graphics::Core {
 
     // Don't use single letter template parameters here
 
-    template <typename VT, typename CS = LinearRGB, ColourLayout CL = ColourLayout::std_alpha>
+    template <typename VT, typename CS = LinearRGB, ColourLayout CL = ColourLayout::forward_alpha>
     class Colour:
     public Detail::ColourArithmetic<VT, CS, CL> {
 
@@ -101,7 +102,7 @@ namespace RS::Graphics::Core {
         static_assert(std::is_arithmetic_v<VT>);
 
         static constexpr int colour_space_channels = int(CS::channels.size());
-        static constexpr bool has_alpha = CL != ColourLayout::std && CL != ColourLayout::reverse;
+        static constexpr bool has_alpha = CL != ColourLayout::forward && CL != ColourLayout::reverse;
         static constexpr int channels = colour_space_channels + int(has_alpha);
         static constexpr bool is_hdr = std::is_floating_point_v<VT>;
         static constexpr ColourLayout layout = CL;
@@ -132,16 +133,16 @@ namespace RS::Graphics::Core {
             vec_(VT(x), VT(y), VT(args)..., scale) {}
 
         constexpr VT& alpha(std::enable_if<has_alpha>* = nullptr) noexcept {
-            if constexpr (CL == ColourLayout::alpha_std || CL == ColourLayout::alpha_reverse)
+            if constexpr (CL == ColourLayout::alpha_forward || CL == ColourLayout::alpha_reverse)
                 return vec_[0];
             else
                 return vec_[colour_space_channels];
         }
 
         constexpr const VT& alpha() const noexcept {
-            if constexpr (CL == ColourLayout::alpha_std || CL == ColourLayout::alpha_reverse)
+            if constexpr (CL == ColourLayout::alpha_forward || CL == ColourLayout::alpha_reverse)
                 return vec_[0];
-            else if constexpr (CL == ColourLayout::std_alpha || CL == ColourLayout::reverse_alpha)
+            else if constexpr (CL == ColourLayout::forward_alpha || CL == ColourLayout::reverse_alpha)
                 return vec_[colour_space_channels];
             else
                 return scale;
@@ -188,7 +189,7 @@ namespace RS::Graphics::Core {
         VT& operator[](int i) noexcept { return vec_[i]; }
         const VT& operator[](int i) const noexcept { return vec_[i]; }
 
-        constexpr const vector_type& as_vector() const noexcept { return vec_; }
+        constexpr vector_type as_vector() const noexcept { return vec_; }
         constexpr partial_vector_type partial_vector() const noexcept { return partial_vector_type(vec_.begin()); }
 
         constexpr VT* begin() noexcept { return vec_.begin(); }
@@ -196,9 +197,32 @@ namespace RS::Graphics::Core {
         constexpr VT* end() noexcept { return vec_.end(); }
         constexpr const VT* end() const noexcept { return vec_.end(); }
 
-        constexpr void clamp() noexcept { clamp_colour<CS>(vec_); }
+        constexpr void clamp() noexcept {
+            if constexpr (has_alpha) {
+                auto pv = partial_vector();
+                clamp_colour<CS>(pv, scale);
+                int offset = int(CL == ColourLayout::alpha_forward || CL == ColourLayout::alpha_reverse);
+                for (int i = 0; i < colour_space_channels; ++i)
+                    vec_[i + offset] = pv[i];
+                if (alpha() < 0)
+                    alpha() = 0;
+                else if (alpha() > scale)
+                    alpha() = scale;
+            } else {
+                clamp_colour<CS>(vec_, scale);
+            }
+        }
+
         constexpr Colour clamped() const noexcept { auto c = *this; c.clamp(); return c; }
-        constexpr bool is_clamped() const noexcept { return is_colour_in_gamut<CS>(vec_); }
+
+        constexpr bool is_clamped() const noexcept {
+            if (! is_colour_in_gamut<CS>(partial_vector(), scale))
+                return false;
+            if constexpr (has_alpha)
+                if (alpha() < 0 || alpha() > scale)
+                    return false;
+            return true;
+        }
 
         constexpr bool empty() const noexcept { return false; }
         constexpr size_t size() const noexcept { return size_t(channels); }
@@ -227,22 +251,22 @@ namespace RS::Graphics::Core {
 
     };
 
-    using Rgb8 = Colour<uint8_t, LinearRGB, ColourLayout::std>;
-    using Rgb16 = Colour<uint16_t, LinearRGB, ColourLayout::std>;
-    using Rgbf = Colour<float, LinearRGB, ColourLayout::std>;
-    using Rgbd = Colour<double, LinearRGB, ColourLayout::std>;
-    using sRgb8 = Colour<uint8_t, sRGB, ColourLayout::std>;
-    using sRgb16 = Colour<uint16_t, sRGB, ColourLayout::std>;
-    using sRgbf = Colour<float, sRGB, ColourLayout::std>;
-    using sRgbd = Colour<double, sRGB, ColourLayout::std>;
-    using Rgba8 = Colour<uint8_t, LinearRGB, ColourLayout::std_alpha>;
-    using Rgba16 = Colour<uint16_t, LinearRGB, ColourLayout::std_alpha>;
-    using Rgbaf = Colour<float, LinearRGB, ColourLayout::std_alpha>;
-    using Rgbad = Colour<double, LinearRGB, ColourLayout::std_alpha>;
-    using sRgba8 = Colour<uint8_t, sRGB, ColourLayout::std_alpha>;
-    using sRgba16 = Colour<uint16_t, sRGB, ColourLayout::std_alpha>;
-    using sRgbaf = Colour<float, sRGB, ColourLayout::std_alpha>;
-    using sRgbad = Colour<double, sRGB, ColourLayout::std_alpha>;
+    using Rgb8 = Colour<uint8_t, LinearRGB, ColourLayout::forward>;
+    using Rgb16 = Colour<uint16_t, LinearRGB, ColourLayout::forward>;
+    using Rgbf = Colour<float, LinearRGB, ColourLayout::forward>;
+    using Rgbd = Colour<double, LinearRGB, ColourLayout::forward>;
+    using sRgb8 = Colour<uint8_t, sRGB, ColourLayout::forward>;
+    using sRgb16 = Colour<uint16_t, sRGB, ColourLayout::forward>;
+    using sRgbf = Colour<float, sRGB, ColourLayout::forward>;
+    using sRgbd = Colour<double, sRGB, ColourLayout::forward>;
+    using Rgba8 = Colour<uint8_t, LinearRGB, ColourLayout::forward_alpha>;
+    using Rgba16 = Colour<uint16_t, LinearRGB, ColourLayout::forward_alpha>;
+    using Rgbaf = Colour<float, LinearRGB, ColourLayout::forward_alpha>;
+    using Rgbad = Colour<double, LinearRGB, ColourLayout::forward_alpha>;
+    using sRgba8 = Colour<uint8_t, sRGB, ColourLayout::forward_alpha>;
+    using sRgba16 = Colour<uint16_t, sRGB, ColourLayout::forward_alpha>;
+    using sRgbaf = Colour<float, sRGB, ColourLayout::forward_alpha>;
+    using sRgbad = Colour<double, sRGB, ColourLayout::forward_alpha>;
 
     static_assert(std::is_standard_layout_v<Rgb8>);
     static_assert(std::is_standard_layout_v<Rgb16>);

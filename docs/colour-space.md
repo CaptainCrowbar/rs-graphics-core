@@ -390,21 +390,26 @@ spaces along the way, by chaining the colour spaces' `to_base()` and
 
 ```c++
 template <typename CS, typename T, int N>
-    constexpr bool is_colour_in_gamut(Vector<T, N> colour) noexcept;
+    constexpr bool is_colour_in_gamut(Vector<T, N> colour,
+        T scale = 1) noexcept;
 ```
 
 True if the colour is in gamut for the colour space. For unit-cube or polar
-spaces, this checks that all channels are in the range `[0,1]`(or `[0,1)` for
-the polar channel). For other spaces, this has nothing to check and always
-returns true.
+spaces, this checks that all channels are in the range `[0,scale]`(or
+`[0,scale)` for the polar channel). Behaviour is undefined if `scale<=0`.
+
+For other spaces, this has nothing to check and always returns true.
 
 ```c++
 template <typename CS, typename T, int N>
-    constexpr void clamp_colour(Vector<T, N>& colour) noexcept;
+    constexpr void clamp_colour(Vector<T, N>& colour,
+        T scale = 1) noexcept;
 ```
 
 Clamps the channel values where necessary to ensure that the colour is in
-gamut. For polar spaces, the first channel is reduced modulo 1, yielding a
-value in the range `[0,1)`. All other channels for polar spaces, and all
-channels for unit spaces, are clamped to the range `[0,1]`. For spaces that
-are neither polar nor unit-cube, this does nothing.
+gamut. For polar spaces, the first channel is reduced modulo `scale`, yielding
+a value in the range `[0,scale)`. All other channels for polar spaces, and all
+channels for unit spaces, are clamped to the range `[0,scale]`. Behaviour is
+undefined if `scale<=0`.
+
+For spaces that are neither polar nor unit-cube, this does nothing.

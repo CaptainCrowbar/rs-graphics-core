@@ -22,32 +22,32 @@ namespace RS::Graphics::Core {
     // Utility functions
 
     template <typename CS, typename T, int N>
-    constexpr bool is_colour_in_gamut(Vector<T, N> colour) noexcept {
-        static_assert(std::is_floating_point_v<T>);
+    constexpr bool is_colour_in_gamut(Vector<T, N> colour, T scale = 1) noexcept {
+        static_assert(std::is_arithmetic_v<T>);
         static_assert(N == int(CS::channels.size()));
         if constexpr (CS::shape == ColourSpace::polar) {
-            if (colour[0] < 0 || colour[0] > 1)
+            if (colour[0] < 0 || colour[0] > scale)
                 return false;
         } else if constexpr (CS::shape == ColourSpace::unit) {
             for (auto t: colour)
-                if (t < 0 || t > 1)
+                if (t < 0 || t > scale)
                     return false;
         }
         return true;
     }
 
     template <typename CS, typename T, int N>
-    constexpr void clamp_colour(Vector<T, N>& colour) noexcept {
-        static_assert(std::is_floating_point_v<T>);
+    constexpr void clamp_colour(Vector<T, N>& colour, T scale = 1) noexcept {
+        static_assert(std::is_arithmetic_v<T>);
         static_assert(N == int(CS::channels.size()));
         if constexpr (CS::shape == ColourSpace::polar)
-            colour[0] = fraction(colour[0]);
+            colour[0] = euclidean_remainder(colour[0], scale);
         if constexpr (CS::shape != ColourSpace::any) {
             for (int i = int(CS::shape == ColourSpace::polar); i < N; ++i) {
                 if (colour[i] < 0)
                     colour[i] = 0;
-                else if (colour[i] > 1)
-                    colour[i] = 1;
+                else if (colour[i] > scale)
+                    colour[i] = scale;
             }
         }
     }

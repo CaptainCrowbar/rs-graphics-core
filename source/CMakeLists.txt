@@ -6,7 +6,7 @@ cmake_minimum_required(VERSION 3.18)
 # and propagate the new version to version.hpp.
 
 project(rs-graphics-core
-    VERSION 0.1.27
+    VERSION 0.1.29
     LANGUAGES CXX
 )
 
