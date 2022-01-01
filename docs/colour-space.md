@@ -49,8 +49,7 @@ static constexpr std::array<char,N> CS::channels;
 
 This is a list of letters representing the colour channels. All elements must
 be ASCII upper or lower case letters, with no duplicates. Channel IDs are
-case sensitive. Capital A is reserved for the alpha channel and may not be
-used here.
+case sensitive.
 
 ```c++
 static Vector<T,N> CS::from_base(Vector<T,NB> colour);
@@ -102,7 +101,7 @@ colour space violates any of them:
 1. `CS::base` must not be the same as `CS` (apart from the CIE XYZ special case).
 2. The graph of colour spaces and their base spaces must be a directed acyclic graph, with no loops or disconnected subgraphs.
 3. The channel list must be the correct length for the colour space's number of channels.
-4. The channel list must contain only ASCII upper and lower case letters, excluding capital A.
+4. The channel list must contain only ASCII upper and lower case letters.
 5. The channel list must not contain any duplicates.
 
 ## Colour space classes

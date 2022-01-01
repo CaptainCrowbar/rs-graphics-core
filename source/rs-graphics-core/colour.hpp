@@ -26,9 +26,7 @@ namespace RS::Graphics::Core {
         struct ColourSpaceChannelIndex {
             static constexpr int cs_channels = int(CS::channels.size());
             static constexpr int get() noexcept {
-                if constexpr (CH == 'A')
-                    return cs_channels;
-                else if constexpr (Offset >= cs_channels)
+                if constexpr (Offset >= cs_channels)
                     return -1;
                 else if constexpr (CS::channels[Offset] == CH)
                     return Offset;
@@ -43,12 +41,6 @@ namespace RS::Graphics::Core {
             static constexpr int cs_index = ColourSpaceChannelIndex<CS, CH>::get();
             static constexpr int get() noexcept {
                 if constexpr (cs_index == -1)
-                    return -1;
-                else if constexpr (CH == 'A' && (CL == ColourLayout::alpha_std || CL == ColourLayout::reverse_alpha))
-                    return 0;
-                else if constexpr (CH == 'A' && (CL == ColourLayout::std_alpha || CL == ColourLayout::reverse_alpha))
-                    return CS::channels.size();
-                else if constexpr (CH == 'A')
                     return -1;
                 else if constexpr (CL == ColourLayout::std || CL == ColourLayout::std_alpha)
                     return cs_index;
@@ -73,13 +65,14 @@ namespace RS::Graphics::Core {
 
     public:
 
-        static_assert(std::is_floating_point_v<VT> || (std::is_integral_v<VT> && std::is_unsigned_v<VT>));
+        static_assert(std::is_arithmetic_v<VT>);
 
         static constexpr int colour_channels = int(CS::channels.size());
         static constexpr bool has_alpha = CL != ColourLayout::std && CL != ColourLayout::reverse;
         static constexpr int channels = colour_channels + int(has_alpha);
+        static constexpr bool is_hdr = std::is_floating_point_v<VT>;
         static constexpr ColourLayout layout = CL;
-        static constexpr VT scale = std::is_floating_point_v<VT> ? VT(1) : VT(0) - VT(1);
+        static constexpr VT scale = is_hdr ? VT(1) : std::numeric_limits<VT>::max();
 
         using colour_space = CS;
         using iterator = VT*;
@@ -89,8 +82,8 @@ namespace RS::Graphics::Core {
         using colour_vector_type = Vector<VT, colour_channels>;
 
         constexpr Colour() noexcept {}
-        explicit constexpr Colour(VT x) noexcept: vec_(x) { if constexpr (has_alpha) A() = scale; }
-        constexpr Colour(VT x, std::enable_if_t<has_alpha, VT> a) noexcept: vec_(x) { A() = a; }
+        explicit constexpr Colour(VT x) noexcept: vec_(x) { if constexpr (has_alpha) alpha() = scale; }
+        template <typename VT2 = VT> constexpr Colour(VT2 x, std::enable_if_t<has_alpha, VT2> a) noexcept: vec_(x) { alpha() = a; }
         explicit constexpr Colour(vector_type v) noexcept: vec_(v) {}
 
         template <typename... Args>
@@ -105,16 +98,24 @@ namespace RS::Graphics::Core {
             Args... args) noexcept:
             vec_(x, y, args..., scale) {}
 
-        constexpr VT& A(std::enable_if<has_alpha>* = nullptr) noexcept {
-            return vec_[Detail::colour_channel_index<CS, 'A', CL>];
+        constexpr VT& alpha(std::enable_if<has_alpha>* = nullptr) noexcept {
+            if constexpr (CL == ColourLayout::alpha_std || CL == ColourLayout::alpha_reverse)
+                return vec_[0];
+            else
+                return vec_[colour_channels];
         }
 
-        constexpr VT A() const noexcept {
-            if constexpr (has_alpha)
-                return vec_[Detail::colour_channel_index<CS, 'A', CL>];
+        constexpr const VT& alpha() const noexcept {
+            if constexpr (CL == ColourLayout::alpha_std || CL == ColourLayout::alpha_reverse)
+                return vec_[0];
+            else if constexpr (CL == ColourLayout::std_alpha || CL == ColourLayout::reverse_alpha)
+                return vec_[colour_channels];
             else
                 return scale;
         }
+
+        constexpr VT& α(std::enable_if<has_alpha>* = nullptr) noexcept { return alpha(); }
+        constexpr const VT& α() const noexcept { return alpha(); }
 
         #define RS_GRAPHICS_COLOUR_CHANNEL(Ch, Lit) \
             constexpr VT& Ch(std::enable_if<Detail::colour_channel_index<CS, Lit, CL> != -1>* = nullptr) noexcept { \
@@ -124,7 +125,7 @@ namespace RS::Graphics::Core {
                 return vec_[Detail::colour_channel_index<CS, Lit, CL>]; \
             }
 
-        RS_GRAPHICS_COLOUR_CHANNEL(a, 'a')
+        RS_GRAPHICS_COLOUR_CHANNEL(a, 'a')  RS_GRAPHICS_COLOUR_CHANNEL(A, 'A')
         RS_GRAPHICS_COLOUR_CHANNEL(b, 'b')  RS_GRAPHICS_COLOUR_CHANNEL(B, 'B')
         RS_GRAPHICS_COLOUR_CHANNEL(c, 'c')  RS_GRAPHICS_COLOUR_CHANNEL(C, 'C')
         RS_GRAPHICS_COLOUR_CHANNEL(d, 'd')  RS_GRAPHICS_COLOUR_CHANNEL(D, 'D')
@@ -151,7 +152,11 @@ namespace RS::Graphics::Core {
         RS_GRAPHICS_COLOUR_CHANNEL(y, 'y')  RS_GRAPHICS_COLOUR_CHANNEL(Y, 'Y')
         RS_GRAPHICS_COLOUR_CHANNEL(z, 'z')  RS_GRAPHICS_COLOUR_CHANNEL(Z, 'Z')
 
+        VT& operator[](int i) noexcept { return vec_[i]; }
+        const VT& operator[](int i) const noexcept { return vec_[i]; }
+
         constexpr vector_type as_vector() const noexcept { return vec_; }
+        constexpr colour_vector_type colour_vector() const noexcept { return colour_vector_type(vec_.begin()); }
 
         constexpr VT* begin() noexcept { return vec_.begin(); }
         constexpr const VT* begin() const noexcept { return vec_.begin(); }
