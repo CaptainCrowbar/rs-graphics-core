@@ -100,10 +100,15 @@ namespace RS::Graphics::Core {
             std::conditional_t<(sizeof(FloatingChannelType<T1>) >= sizeof(FloatingChannelType<T2>)),
             FloatingChannelType<T1>, FloatingChannelType<T2>>;
 
-        // template <typename T1, typename WT>
-        // constexpr WT channel_to_working_type(T1 t) noexcept {
+        template <typename WT, typename T1>
+        constexpr WT channel_to_working_type(T1 c, T1 scale) noexcept {
+            return WT(c) / WT(scale);
+        }
 
-        // }
+        template <typename T2, typename WT>
+        constexpr T2 working_type_to_channel(WT w, T2 scale) noexcept {
+            return const_round<T2>(w * WT(scale));
+        }
 
     }
 
@@ -282,16 +287,40 @@ namespace RS::Graphics::Core {
         typename VT2, typename CS2, ColourLayout CL2>
     void convert_colour(Colour<VT1, CS1, CL1> in, Colour<VT2, CS2, CL2>& out) noexcept {
 
-        // template <typename CS1, typename CS2, typename T>
-        // Vector<T, CS2::channels.size()> convert_colour_space(Vector<T, int(CS1::channels.size())> colour)
+        using C1 = Colour<VT1, CS1, CL1>;
+        using C2 = Colour<VT2, CS2, CL2>;
 
         if constexpr (std::is_same_v<VT1, VT2> && std::is_same_v<CS1, CS2> && CL1 == CL2) {
 
             out = in;
 
-        }
+        } else if constexpr (std::is_same_v<VT1, VT2> && std::is_same_v<CS1, CS2>) {
 
-        // TODO
+            for (int i = 0; i < C1::colour_space_channels; ++i)
+                out.cs(i) = in.cs(i);
+            if constexpr (C2::has_alpha)
+                out.alpha() = in.alpha();
+
+        } else {
+
+            using WT = Detail::WorkingChannelType<VT1, VT2>;
+            using WC1 = Colour<WT, CS1, ColourLayout::forward_alpha>;
+            using WC2 = Colour<WT, CS2, ColourLayout::forward_alpha>;
+
+            // WT is always floating point, so the scale of WC1/2 is always 1
+
+            WC1 wc1;
+            for (int i = 0; i < C1::colour_space_channels; ++i)
+                wc1.cs(i) = Detail::channel_to_working_type(in.cs(i), C1::scale);
+            wc1.alpha() = Detail::channel_to_working_type(in.alpha(), C1::scale);
+
+            auto pvec2 = convert_colour_space<CS1, CS2>(wc1.partial_vector());
+            WC2 wc2 = WC2(pvec2, wc1.alpha());
+
+            for (int i = 0; i < C2::channels; ++i)
+                out.cs(i) = Detail::working_type_to_channel(wc2.cs(i), C2::scale);
+
+        }
 
     }
 
