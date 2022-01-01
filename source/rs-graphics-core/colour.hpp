@@ -90,13 +90,13 @@ namespace RS::Graphics::Core {
         constexpr Colour(VT x,
             std::enable_if_t<sizeof...(Args) + 2 == channels && (std::is_convertible_v<Args, VT> && ...), VT> y,
             Args... args) noexcept:
-            vec_(x, y, args...) {}
+            vec_(VT(x), VT(y), VT(args)...) {}
 
         template <typename... Args>
         constexpr Colour(VT x,
             std::enable_if_t<has_alpha && sizeof...(Args) + 2 == colour_channels && (std::is_convertible_v<Args, VT> && ...), VT> y,
             Args... args) noexcept:
-            vec_(x, y, args..., scale) {}
+            vec_(VT(x), VT(y), VT(args)..., scale) {}
 
         constexpr VT& alpha(std::enable_if<has_alpha>* = nullptr) noexcept {
             if constexpr (CL == ColourLayout::alpha_std || CL == ColourLayout::alpha_reverse)
@@ -172,6 +172,15 @@ namespace RS::Graphics::Core {
 
         size_t hash() const noexcept { return vec_.hash(); }
         std::string str(RS::Format::FormatSpec spec = {}) const { return vec_.str(spec); }
+
+        static Colour black(std::enable_if<CS::is_rgb>* = nullptr) noexcept { return Colour(0); }
+        static Colour white(std::enable_if<CS::is_rgb>* = nullptr) noexcept { return Colour(scale); }
+        static Colour red(std::enable_if<CS::is_rgb>* = nullptr) noexcept { return {scale, 0, 0}; }
+        static Colour yellow(std::enable_if<CS::is_rgb>* = nullptr) noexcept { return {scale, scale, 0}; }
+        static Colour green(std::enable_if<CS::is_rgb>* = nullptr) noexcept { return {0, scale, 0}; }
+        static Colour cyan(std::enable_if<CS::is_rgb>* = nullptr) noexcept { return {0, scale, scale}; }
+        static Colour blue(std::enable_if<CS::is_rgb>* = nullptr) noexcept { return {0, 0, scale}; }
+        static Colour magenta(std::enable_if<CS::is_rgb>* = nullptr) noexcept { return {scale, 0, scale}; }
 
         friend constexpr bool operator==(Colour a, Colour b) noexcept { return a.vec_ == b.vec_; }
         friend constexpr bool operator!=(Colour a, Colour b) noexcept { return ! (a == b); }

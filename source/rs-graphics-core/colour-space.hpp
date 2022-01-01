@@ -59,6 +59,7 @@ namespace RS::Graphics::Core {
         using base = CIEXYZ;
         static constexpr std::array<char, 3> channels = {{ 'X', 'Y', 'Z' }};
         static constexpr bool is_linear = true;
+        static constexpr bool is_rgb = false;
         static constexpr ColourSpace shape = ColourSpace::unit;
         template <typename T> static constexpr Vector<T, 3> from_base(Vector<T, 3> colour) noexcept { return colour; }
         template <typename T> static constexpr Vector<T, 3> to_base(Vector<T, 3> colour) noexcept { return colour; }
@@ -69,6 +70,7 @@ namespace RS::Graphics::Core {
         using base = CIEXYZ;
         static constexpr std::array<char, 3> channels = {{ 'x', 'y', 'Y' }};
         static constexpr bool is_linear = false;
+        static constexpr bool is_rgb = false;
         static constexpr ColourSpace shape = ColourSpace::unit;
         template <typename T> static constexpr Vector<T, 3> from_base(Vector<T, 3> colour) noexcept {
             Vector<T, 3> out;
@@ -95,6 +97,7 @@ namespace RS::Graphics::Core {
         using base = CIEXYZ;
         static constexpr std::array<char, 3> channels = {{ 'L', 'a', 'b' }};
         static constexpr bool is_linear = false;
+        static constexpr bool is_rgb = false;
         static constexpr ColourSpace shape = ColourSpace::any;
         template <typename T> static Vector<T, 3> from_base(Vector<T, 3> colour) noexcept {
             Vector<T, 3> out;
@@ -137,6 +140,7 @@ namespace RS::Graphics::Core {
         using base = CIEXYZ;
         static constexpr std::array<char, 3> channels = {{ 'L', 'u', 'v' }};
         static constexpr bool is_linear = false;
+        static constexpr bool is_rgb = false;
         static constexpr ColourSpace shape = ColourSpace::any;
         template <typename T> static Vector<T, 3> from_base(Vector<T, 3> colour) noexcept {
             Vector<T, 3> out;
@@ -188,6 +192,7 @@ namespace RS::Graphics::Core {
         using base = CIEXYZ;
         static constexpr std::array<char, 3> channels = {{ 'R', 'G', 'B' }};
         static constexpr bool is_linear = true;
+        static constexpr bool is_rgb = true;
         static constexpr ColourSpace shape = ColourSpace::unit;
         template <typename T> static constexpr Vector<T, 3> from_base(Vector<T, 3> colour) noexcept {
             return xyz_to_rgb_matrix<T> * colour;
@@ -207,6 +212,7 @@ namespace RS::Graphics::Core {
         using base = WorkingSpace;
         static constexpr std::array<char, 3> channels = {{ 'R', 'G', 'B' }};
         static constexpr bool is_linear = false;
+        static constexpr bool is_rgb = true;
         static constexpr ColourSpace shape = ColourSpace::unit;
         template <typename T> static Vector<T, 3> from_base(Vector<T, 3> colour) noexcept {
             static constexpr T inverse_gamma = T(GammaDenominator) / T(GammaNumerator);
@@ -252,6 +258,7 @@ namespace RS::Graphics::Core {
         using base = LinearRGB;
         static constexpr std::array<char, 3> channels = {{ 'R', 'G', 'B' }};
         static constexpr bool is_linear = false;
+        static constexpr bool is_rgb = true;
         static constexpr ColourSpace shape = ColourSpace::unit;
         template <typename T> static Vector<T, 3> from_base(Vector<T, 3> colour) noexcept {
             static constexpr T a = T(0.003'130'8);
@@ -295,6 +302,7 @@ namespace RS::Graphics::Core {
         using base = LinearProPhoto;
         static constexpr std::array<char, 3> channels = {{ 'R', 'G', 'B' }};
         static constexpr bool is_linear = false;
+        static constexpr bool is_rgb = true;
         static constexpr ColourSpace shape = ColourSpace::unit;
         template <typename T> static Vector<T, 3> from_base(Vector<T, 3> colour) noexcept {
             static constexpr T et = 1 / T(512);
@@ -359,6 +367,7 @@ namespace RS::Graphics::Core {
         using base = LinearRGB;
         static constexpr std::array<char, 3> channels = {{ 'H', 'S', 'L' }};
         static constexpr bool is_linear = false;
+        static constexpr bool is_rgb = false;
         static constexpr ColourSpace shape = ColourSpace::polar;
         template <typename T> static constexpr Vector<T, 3> from_base(Vector<T, 3> colour) noexcept {
             Vector<T, 3> out;
@@ -383,6 +392,7 @@ namespace RS::Graphics::Core {
         using base = LinearRGB;
         static constexpr std::array<char, 3> channels = {{ 'H', 'S', 'V' }};
         static constexpr bool is_linear = false;
+        static constexpr bool is_rgb = false;
         static constexpr ColourSpace shape = ColourSpace::polar;
         template <typename T> static constexpr Vector<T, 3> from_base(Vector<T, 3> colour) noexcept {
             Vector<T, 3> out;

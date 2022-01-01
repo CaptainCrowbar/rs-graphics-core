@@ -109,6 +109,7 @@ colour space violates any of them:
 3. The channel list must be the correct length for the colour space's number of channels.
 4. The channel list must contain only ASCII upper and lower case letters.
 5. The channel list must not contain any duplicates.
+6. If `is_rgb` is true, the channel list must contain exactly three entries.
 
 ## Supporting types
 

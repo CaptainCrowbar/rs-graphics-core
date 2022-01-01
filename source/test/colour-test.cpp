@@ -42,6 +42,15 @@ void test_rs_graphics_core_colour_floating_point_elements() {
     TRY((c = {0.2,0.4,0.6}));      TEST_EQUAL(c.str(), "[0.2,0.4,0.6,1]");
     TRY((c = {0.2,0.4,0.6,0.8}));  TEST_EQUAL(c.str(), "[0.2,0.4,0.6,0.8]");
 
+    TEST_EQUAL(Rgbad::black().str(),    "[0,0,0,1]");
+    TEST_EQUAL(Rgbad::white().str(),    "[1,1,1,1]");
+    TEST_EQUAL(Rgbad::red().str(),      "[1,0,0,1]");
+    TEST_EQUAL(Rgbad::yellow().str(),   "[1,1,0,1]");
+    TEST_EQUAL(Rgbad::green().str(),    "[0,1,0,1]");
+    TEST_EQUAL(Rgbad::cyan().str(),     "[0,1,1,1]");
+    TEST_EQUAL(Rgbad::blue().str(),     "[0,0,1,1]");
+    TEST_EQUAL(Rgbad::magenta().str(),  "[1,0,1,1]");
+
 }
 
 void test_rs_graphics_core_colour_integer_elements() {
@@ -67,5 +76,14 @@ void test_rs_graphics_core_colour_integer_elements() {
 
     TRY((c = {0x20,0x40,0x60}));       TEST_EQUAL(c.str(), "[32,64,96,255]");
     TRY((c = {0x20,0x40,0x60,0x80}));  TEST_EQUAL(c.str(), "[32,64,96,128]");
+
+    TEST_EQUAL(Rgba8::black().str(),    "[0,0,0,255]");
+    TEST_EQUAL(Rgba8::white().str(),    "[255,255,255,255]");
+    TEST_EQUAL(Rgba8::red().str(),      "[255,0,0,255]");
+    TEST_EQUAL(Rgba8::yellow().str(),   "[255,255,0,255]");
+    TEST_EQUAL(Rgba8::green().str(),    "[0,255,0,255]");
+    TEST_EQUAL(Rgba8::cyan().str(),     "[0,255,255,255]");
+    TEST_EQUAL(Rgba8::blue().str(),     "[0,0,255,255]");
+    TEST_EQUAL(Rgba8::magenta().str(),  "[255,0,255,255]");
 
 }
