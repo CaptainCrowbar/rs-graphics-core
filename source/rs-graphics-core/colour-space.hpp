@@ -11,19 +11,27 @@
 
 namespace RS::Graphics::Core {
 
+    // Supporting types
+
+    RS_DEFINE_ENUM_CLASS(ColourSpace, int, 0,
+        any,   // No restrictions
+        unit,  // Space is a unit cube
+        polar  // First channel is modulo 1 (implies unit cube)
+    )
+
     // Utility functions
 
     template <typename CS, typename T, int N>
     constexpr bool is_colour_in_gamut(Vector<T, N> colour) noexcept {
         static_assert(std::is_floating_point_v<T>);
         static_assert(N == int(CS::channels.size()));
-        if constexpr (CS::is_unit) {
+        if constexpr (CS::shape == ColourSpace::polar) {
+            if (colour[0] < 0 || colour[0] > 1)
+                return false;
+        } else if constexpr (CS::shape == ColourSpace::unit) {
             for (auto t: colour)
                 if (t < 0 || t > 1)
                     return false;
-        } else if constexpr (CS::is_polar) {
-            if (colour[0] < 0 || colour[0] > 1)
-                return false;
         }
         return true;
     }
@@ -32,10 +40,10 @@ namespace RS::Graphics::Core {
     constexpr void clamp_colour(Vector<T, N>& colour) noexcept {
         static_assert(std::is_floating_point_v<T>);
         static_assert(N == int(CS::channels.size()));
-        if constexpr (CS::is_polar)
+        if constexpr (CS::shape == ColourSpace::polar)
             colour[0] = fraction(colour[0]);
-        if constexpr (CS::is_unit) {
-            for (int i = int(CS::is_polar); i < N; ++i) {
+        if constexpr (CS::shape != ColourSpace::any) {
+            for (int i = int(CS::shape == ColourSpace::polar); i < N; ++i) {
                 if (colour[i] < 0)
                     colour[i] = 0;
                 else if (colour[i] > 1)
@@ -49,9 +57,9 @@ namespace RS::Graphics::Core {
     class CIEXYZ {
     public:
         using base = CIEXYZ;
-        static constexpr bool is_polar = false;
-        static constexpr bool is_unit = true;
         static constexpr std::array<char, 3> channels = {{ 'X', 'Y', 'Z' }};
+        static constexpr bool is_linear = true;
+        static constexpr ColourSpace shape = ColourSpace::unit;
         template <typename T> static constexpr Vector<T, 3> from_base(Vector<T, 3> colour) noexcept { return colour; }
         template <typename T> static constexpr Vector<T, 3> to_base(Vector<T, 3> colour) noexcept { return colour; }
     };
@@ -59,9 +67,9 @@ namespace RS::Graphics::Core {
     class CIExyY {
     public:
         using base = CIEXYZ;
-        static constexpr bool is_polar = false;
-        static constexpr bool is_unit = true;
         static constexpr std::array<char, 3> channels = {{ 'x', 'y', 'Y' }};
+        static constexpr bool is_linear = false;
+        static constexpr ColourSpace shape = ColourSpace::unit;
         template <typename T> static constexpr Vector<T, 3> from_base(Vector<T, 3> colour) noexcept {
             Vector<T, 3> out;
             T sum = colour.x() + colour.y() + colour.z();
@@ -85,9 +93,9 @@ namespace RS::Graphics::Core {
     class CIELab {
     public:
         using base = CIEXYZ;
-        static constexpr bool is_polar = false;
-        static constexpr bool is_unit = false;
         static constexpr std::array<char, 3> channels = {{ 'L', 'a', 'b' }};
+        static constexpr bool is_linear = false;
+        static constexpr ColourSpace shape = ColourSpace::any;
         template <typename T> static Vector<T, 3> from_base(Vector<T, 3> colour) noexcept {
             Vector<T, 3> out;
             colour /= illuminant<T>;
@@ -127,9 +135,9 @@ namespace RS::Graphics::Core {
     class CIELuv {
     public:
         using base = CIEXYZ;
-        static constexpr bool is_polar = false;
-        static constexpr bool is_unit = false;
         static constexpr std::array<char, 3> channels = {{ 'L', 'u', 'v' }};
+        static constexpr bool is_linear = false;
+        static constexpr ColourSpace shape = ColourSpace::any;
         template <typename T> static Vector<T, 3> from_base(Vector<T, 3> colour) noexcept {
             Vector<T, 3> out;
             T y = colour.y() / illuminant<T>.y();
@@ -178,9 +186,9 @@ namespace RS::Graphics::Core {
     class WorkingSpace {
     public:
         using base = CIEXYZ;
-        static constexpr bool is_polar = false;
-        static constexpr bool is_unit = true;
         static constexpr std::array<char, 3> channels = {{ 'R', 'G', 'B' }};
+        static constexpr bool is_linear = true;
+        static constexpr ColourSpace shape = ColourSpace::unit;
         template <typename T> static constexpr Vector<T, 3> from_base(Vector<T, 3> colour) noexcept {
             return xyz_to_rgb_matrix<T> * colour;
         }
@@ -197,9 +205,9 @@ namespace RS::Graphics::Core {
     class NonlinearSpace {
     public:
         using base = WorkingSpace;
-        static constexpr bool is_polar = false;
-        static constexpr bool is_unit = true;
         static constexpr std::array<char, 3> channels = {{ 'R', 'G', 'B' }};
+        static constexpr bool is_linear = false;
+        static constexpr ColourSpace shape = ColourSpace::unit;
         template <typename T> static Vector<T, 3> from_base(Vector<T, 3> colour) noexcept {
             static constexpr T inverse_gamma = T(GammaDenominator) / T(GammaNumerator);
             for (auto& c: colour)
@@ -242,9 +250,9 @@ namespace RS::Graphics::Core {
     class sRGB {
     public:
         using base = LinearRGB;
-        static constexpr bool is_polar = false;
-        static constexpr bool is_unit = true;
         static constexpr std::array<char, 3> channels = {{ 'R', 'G', 'B' }};
+        static constexpr bool is_linear = false;
+        static constexpr ColourSpace shape = ColourSpace::unit;
         template <typename T> static Vector<T, 3> from_base(Vector<T, 3> colour) noexcept {
             static constexpr T a = T(0.003'130'8);
             static constexpr T b = T(12.92);
@@ -285,9 +293,9 @@ namespace RS::Graphics::Core {
     class ProPhoto {
     public:
         using base = LinearProPhoto;
-        static constexpr bool is_polar = false;
-        static constexpr bool is_unit = true;
         static constexpr std::array<char, 3> channels = {{ 'R', 'G', 'B' }};
+        static constexpr bool is_linear = false;
+        static constexpr ColourSpace shape = ColourSpace::unit;
         template <typename T> static Vector<T, 3> from_base(Vector<T, 3> colour) noexcept {
             static constexpr T et = 1 / T(512);
             static constexpr T ig = 1 / T(1.8);
@@ -349,9 +357,9 @@ namespace RS::Graphics::Core {
     class HSL {
     public:
         using base = LinearRGB;
-        static constexpr bool is_polar = true;
-        static constexpr bool is_unit = true;
         static constexpr std::array<char, 3> channels = {{ 'H', 'S', 'L' }};
+        static constexpr bool is_linear = false;
+        static constexpr ColourSpace shape = ColourSpace::polar;
         template <typename T> static constexpr Vector<T, 3> from_base(Vector<T, 3> colour) noexcept {
             Vector<T, 3> out;
             T c, v;
@@ -373,9 +381,9 @@ namespace RS::Graphics::Core {
     class HSV {
     public:
         using base = LinearRGB;
-        static constexpr bool is_polar = true;
-        static constexpr bool is_unit = true;
         static constexpr std::array<char, 3> channels = {{ 'H', 'S', 'V' }};
+        static constexpr bool is_linear = false;
+        static constexpr ColourSpace shape = ColourSpace::polar;
         template <typename T> static constexpr Vector<T, 3> from_base(Vector<T, 3> colour) noexcept {
             Vector<T, 3> out;
             T c;
