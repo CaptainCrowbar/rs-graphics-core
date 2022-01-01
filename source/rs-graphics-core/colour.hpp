@@ -186,6 +186,9 @@ namespace RS::Graphics::Core {
         VT& operator[](int i) noexcept { return vec_[i]; }
         const VT& operator[](int i) const noexcept { return vec_[i]; }
 
+        constexpr VT& cs(int i) noexcept { return vec_[space_to_layout_index(i)]; }
+        constexpr const VT& cs(int i) const noexcept { return vec_[space_to_layout_index(i)]; }
+
         constexpr vector_type as_vector() const noexcept { return vec_; }
         constexpr partial_vector_type partial_vector() const noexcept { return partial_vector_type(vec_.begin()); }
 
@@ -246,7 +249,35 @@ namespace RS::Graphics::Core {
 
         vector_type vec_;
 
+        static constexpr int space_to_layout_index(int cs) noexcept {
+            if constexpr (CL <= ColourLayout::forward_alpha)
+                return cs;
+            else if constexpr (CL == ColourLayout::alpha_forward)
+                return (cs + 1) % channels;
+            else if constexpr (CL == ColourLayout::reverse_alpha)
+                return (2 * colour_space_channels - cs) % channels;
+            else
+                return channels - cs - 1;
+        }
+
     };
+
+    template <typename VT1, typename CS1, ColourLayout CL1,
+        typename VT2, typename CS2, ColourLayout CL2>
+    void convert_colour(Colour<VT1, CS1, CL1> in, Colour<VT2, CS2, CL2>& out) noexcept {
+
+        // template <typename CS1, typename CS2, typename T>
+        // Vector<T, CS2::channels.size()> convert_colour_space(Vector<T, int(CS1::channels.size())> colour)
+
+        if constexpr (std::is_same_v<VT1, VT2> && std::is_same_v<CS1, CS2> && CL1 == CL2) {
+
+            out = in;
+
+        }
+
+        // TODO
+
+    }
 
     using Rgb8 = Colour<uint8_t, LinearRGB, ColourLayout::forward>;
     using Rgb16 = Colour<uint16_t, LinearRGB, ColourLayout::forward>;

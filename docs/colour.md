@@ -217,6 +217,15 @@ not colour space order. Behaviour is undefined if the index is out of
 bounds.
 
 ```c++
+constexpr VT& Colour::cs(int i) noexcept;
+constexpr const VT& Colour::cs(int i) const noexcept;
+```
+
+Channel accessors in colour space order, regardless of layout order. The alpha
+channel, if present, is always last. Behaviour is undefined if the index is
+out of bounds.
+
+```c++
 constexpr T* Colour::begin() noexcept;
 constexpr const T* Colour::begin() const noexcept;
 constexpr T* Colour::end() noexcept;

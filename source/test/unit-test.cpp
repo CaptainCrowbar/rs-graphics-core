@@ -70,6 +70,7 @@ int main(int argc, char** argv) {
     UNIT_TEST(rs_graphics_core_colour_integral_elements)
     UNIT_TEST(rs_graphics_core_colour_integral_standard_colours)
     UNIT_TEST(rs_graphics_core_colour_integral_arithmetic)
+    UNIT_TEST(rs_graphics_core_colour_channel_order)
 
     // noise-test.cpp
     UNIT_TEST(rs_graphics_core_noise_result_stability)

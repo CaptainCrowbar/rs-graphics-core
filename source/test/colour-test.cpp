@@ -134,3 +134,42 @@ void test_rs_graphics_core_colour_integral_arithmetic() {
     TRY(c = b / d);  TEST_VECTORS(c, Int4(40,20,10,4), 0);
 
 }
+
+void test_rs_graphics_core_colour_channel_order() {
+
+    Colour<double, LinearRGB, ColourLayout::forward> a;
+    Colour<double, LinearRGB, ColourLayout::forward_alpha> b;
+    Colour<double, LinearRGB, ColourLayout::alpha_forward> c;
+    Colour<double, LinearRGB, ColourLayout::reverse> d;
+    Colour<double, LinearRGB, ColourLayout::reverse_alpha> e;
+    Colour<double, LinearRGB, ColourLayout::alpha_reverse> f;
+
+    a.R() = 0.1;  a.G() = 0.2;  a.B() = 0.3;
+    b.R() = 0.1;  b.G() = 0.2;  b.B() = 0.3;  b.alpha() = 0.4;
+    c.R() = 0.1;  c.G() = 0.2;  c.B() = 0.3;  c.alpha() = 0.4;
+    d.R() = 0.1;  d.G() = 0.2;  d.B() = 0.3;
+    e.R() = 0.1;  e.G() = 0.2;  e.B() = 0.3;  e.alpha() = 0.4;
+    f.R() = 0.1;  f.G() = 0.2;  f.B() = 0.3;  f.alpha() = 0.4;
+
+    TEST_VECTORS(a, Double3(0.1,0.2,0.3), 1e-10);
+    TEST_VECTORS(b, Double4(0.1,0.2,0.3,0.4), 1e-10);
+    TEST_VECTORS(c, Double4(0.4,0.1,0.2,0.3), 1e-10);
+    TEST_VECTORS(d, Double3(0.3,0.2,0.1), 1e-10);
+    TEST_VECTORS(e, Double4(0.3,0.2,0.1,0.4), 1e-10);
+    TEST_VECTORS(f, Double4(0.4,0.3,0.2,0.1), 1e-10);
+
+    a.cs(0) = 0.01;  a.cs(1) = 0.02;  a.cs(2) = 0.03;
+    b.cs(0) = 0.01;  b.cs(1) = 0.02;  b.cs(2) = 0.03;  b.cs(3) = 0.04;
+    c.cs(0) = 0.01;  c.cs(1) = 0.02;  c.cs(2) = 0.03;  c.cs(3) = 0.04;
+    d.cs(0) = 0.01;  d.cs(1) = 0.02;  d.cs(2) = 0.03;
+    e.cs(0) = 0.01;  e.cs(1) = 0.02;  e.cs(2) = 0.03;  e.cs(3) = 0.04;
+    f.cs(0) = 0.01;  f.cs(1) = 0.02;  f.cs(2) = 0.03;  f.cs(3) = 0.04;
+
+    TEST_VECTORS(a, Double3(0.01,0.02,0.03), 1e-10);
+    TEST_VECTORS(b, Double4(0.01,0.02,0.03,0.04), 1e-10);
+    TEST_VECTORS(c, Double4(0.04,0.01,0.02,0.03), 1e-10);
+    TEST_VECTORS(d, Double3(0.03,0.02,0.01), 1e-10);
+    TEST_VECTORS(e, Double4(0.03,0.02,0.01,0.04), 1e-10);
+    TEST_VECTORS(f, Double4(0.04,0.03,0.02,0.01), 1e-10);
+
+}
