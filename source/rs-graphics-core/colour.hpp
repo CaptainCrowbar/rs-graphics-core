@@ -107,7 +107,11 @@ namespace RS::Graphics::Core {
 
         template <typename T2, typename WT>
         constexpr T2 working_type_to_channel(WT w, T2 scale) noexcept {
-            return const_round<T2>(w * WT(scale));
+            w *= WT(scale);
+            if constexpr (std::is_integral_v<T2>)
+                return const_round<T2>(w);
+            else
+                return T2(w);
         }
 
     }
@@ -138,7 +142,7 @@ namespace RS::Graphics::Core {
 
         constexpr Colour() noexcept {}
         explicit constexpr Colour(VT x) noexcept: vec_(x) { if constexpr (has_alpha) alpha() = scale; }
-        template <typename VT2 = VT> constexpr Colour(VT2 x, std::enable_if_t<has_alpha, VT2> a) noexcept: vec_(x) { alpha() = a; }
+        template <typename V2 = VT> constexpr Colour(V2 x, std::enable_if_t<has_alpha, V2> a) noexcept: vec_(x) { alpha() = a; }
         explicit constexpr Colour(vector_type v) noexcept: vec_(v) {}
 
         template <typename... Args>
@@ -153,7 +157,8 @@ namespace RS::Graphics::Core {
             Args... args) noexcept:
             vec_(VT(x), VT(y), VT(args)..., scale) {}
 
-        constexpr VT& alpha(std::enable_if<has_alpha>* = nullptr) noexcept {
+        template <typename V2 = VT>
+        constexpr VT& alpha(std::enable_if<Detail::SfinaeBoolean<V2, has_alpha>::value>* = nullptr) noexcept {
             if constexpr (CL == ColourLayout::alpha_forward || CL == ColourLayout::alpha_reverse)
                 return vec_[0];
             else
@@ -170,10 +175,14 @@ namespace RS::Graphics::Core {
         }
 
         #define RS_GRAPHICS_COLOUR_CHANNEL(Ch, Lit) \
-            constexpr VT& Ch(std::enable_if<Detail::colour_channel_index<CS, Lit, CL> != -1>* = nullptr) noexcept { \
+            template <typename V2 = VT> \
+            constexpr VT& Ch(std::enable_if<Detail::SfinaeBoolean<V2, \
+                    Detail::colour_channel_index<CS, Lit, CL> != -1>::value>* = nullptr) noexcept { \
                 return vec_[Detail::colour_channel_index<CS, Lit, CL>]; \
             } \
-            constexpr const VT& Ch(std::enable_if<Detail::colour_channel_index<CS, Lit, CL> != -1>* = nullptr) const noexcept { \
+            template <typename V2 = VT> \
+            constexpr const VT& Ch(std::enable_if<Detail::SfinaeBoolean<V2, \
+                    Detail::colour_channel_index<CS, Lit, CL> != -1>::value>* = nullptr) const noexcept { \
                 return vec_[Detail::colour_channel_index<CS, Lit, CL>]; \
             }
 
@@ -252,14 +261,30 @@ namespace RS::Graphics::Core {
         std::string str(RS::Format::FormatSpec spec = {}) const { return vec_.str(spec); }
         friend std::ostream& operator<<(std::ostream& out, const Colour& c) { return out << c.str(); }
 
-        static Colour black(std::enable_if<CS::is_rgb>* = nullptr) noexcept { return Colour(0); }
-        static Colour white(std::enable_if<CS::is_rgb>* = nullptr) noexcept { return Colour(scale); }
-        static Colour red(std::enable_if<CS::is_rgb>* = nullptr) noexcept { return {scale, 0, 0}; }
-        static Colour yellow(std::enable_if<CS::is_rgb>* = nullptr) noexcept { return {scale, scale, 0}; }
-        static Colour green(std::enable_if<CS::is_rgb>* = nullptr) noexcept { return {0, scale, 0}; }
-        static Colour cyan(std::enable_if<CS::is_rgb>* = nullptr) noexcept { return {0, scale, scale}; }
-        static Colour blue(std::enable_if<CS::is_rgb>* = nullptr) noexcept { return {0, 0, scale}; }
-        static Colour magenta(std::enable_if<CS::is_rgb>* = nullptr) noexcept { return {scale, 0, scale}; }
+        template <typename V2 = VT>
+            static Colour black(std::enable_if<Detail::SfinaeBoolean<V2, CS::is_rgb>::value>* = nullptr) noexcept
+            { return Colour(0); }
+        template <typename V2 = VT>
+            static Colour white(std::enable_if<Detail::SfinaeBoolean<V2, CS::is_rgb>::value>* = nullptr) noexcept
+            { return Colour(scale); }
+        template <typename V2 = VT>
+            static Colour red(std::enable_if<Detail::SfinaeBoolean<V2, CS::is_rgb>::value>* = nullptr) noexcept
+            { return {scale, 0, 0}; }
+        template <typename V2 = VT>
+            static Colour yellow(std::enable_if<Detail::SfinaeBoolean<V2, CS::is_rgb>::value>* = nullptr) noexcept
+            { return {scale, scale, 0}; }
+        template <typename V2 = VT>
+            static Colour green(std::enable_if<Detail::SfinaeBoolean<V2, CS::is_rgb>::value>* = nullptr) noexcept
+            { return {0, scale, 0}; }
+        template <typename V2 = VT>
+            static Colour cyan(std::enable_if<Detail::SfinaeBoolean<V2, CS::is_rgb>::value>* = nullptr) noexcept
+            { return {0, scale, scale}; }
+        template <typename V2 = VT>
+            static Colour blue(std::enable_if<Detail::SfinaeBoolean<V2, CS::is_rgb>::value>* = nullptr) noexcept
+            { return {0, 0, scale}; }
+        template <typename V2 = VT>
+            static Colour magenta(std::enable_if<Detail::SfinaeBoolean<V2, CS::is_rgb>::value>* = nullptr) noexcept
+            { return {scale, 0, scale}; }
 
         friend constexpr bool operator==(Colour a, Colour b) noexcept { return a.vec_ == b.vec_; }
         friend constexpr bool operator!=(Colour a, Colour b) noexcept { return ! (a == b); }
@@ -284,17 +309,17 @@ namespace RS::Graphics::Core {
     };
 
     template <typename VT1, typename CS1, ColourLayout CL1,
-        typename VT2, typename CS2, ColourLayout CL2>
-    void convert_colour(Colour<VT1, CS1, CL1> in, Colour<VT2, CS2, CL2>& out) noexcept {
+        typename V2, typename CS2, ColourLayout CL2>
+    void convert_colour(Colour<VT1, CS1, CL1> in, Colour<V2, CS2, CL2>& out) noexcept {
 
         using C1 = Colour<VT1, CS1, CL1>;
-        using C2 = Colour<VT2, CS2, CL2>;
+        using C2 = Colour<V2, CS2, CL2>;
 
-        if constexpr (std::is_same_v<VT1, VT2> && std::is_same_v<CS1, CS2> && CL1 == CL2) {
+        if constexpr (std::is_same_v<VT1, V2> && std::is_same_v<CS1, CS2> && CL1 == CL2) {
 
             out = in;
 
-        } else if constexpr (std::is_same_v<VT1, VT2> && std::is_same_v<CS1, CS2>) {
+        } else if constexpr (std::is_same_v<VT1, V2> && std::is_same_v<CS1, CS2>) {
 
             for (int i = 0; i < C1::colour_space_channels; ++i)
                 out.cs(i) = in.cs(i);
@@ -303,7 +328,7 @@ namespace RS::Graphics::Core {
 
         } else {
 
-            using WT = Detail::WorkingChannelType<VT1, VT2>;
+            using WT = Detail::WorkingChannelType<VT1, V2>;
             using WC1 = Colour<WT, CS1, ColourLayout::forward_alpha>;
             using WC2 = Colour<WT, CS2, ColourLayout::forward_alpha>;
 
@@ -311,11 +336,15 @@ namespace RS::Graphics::Core {
 
             WC1 wc1;
             for (int i = 0; i < C1::colour_space_channels; ++i)
-                wc1.cs(i) = Detail::channel_to_working_type(in.cs(i), C1::scale);
-            wc1.alpha() = Detail::channel_to_working_type(in.alpha(), C1::scale);
+                wc1.cs(i) = Detail::channel_to_working_type<WT>(in.cs(i), C1::scale);
+            wc1.alpha() = Detail::channel_to_working_type<WT>(in.alpha(), C1::scale);
 
             auto pvec2 = convert_colour_space<CS1, CS2>(wc1.partial_vector());
-            WC2 wc2 = WC2(pvec2, wc1.alpha());
+
+            WC2 wc2;
+            for (int i = 0; i < C2::colour_space_channels; ++i)
+                wc2[i] = pvec2[i];
+            wc2.alpha() = wc1.alpha();
 
             for (int i = 0; i < C2::channels; ++i)
                 out.cs(i) = Detail::working_type_to_channel(wc2.cs(i), C2::scale);
