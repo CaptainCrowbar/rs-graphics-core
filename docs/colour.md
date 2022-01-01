@@ -22,6 +22,7 @@ enum class ColourLayout: int {
     reverse,        // e.g. BGR
     reverse_alpha,  // e.g. BGRA
     alpha_reverse   // e.g. ABGR
+};
 ```
 
 Indicates the internal layout of a colour object.
@@ -181,8 +182,6 @@ Other life cycle functions.
 ```c++
 constexpr T& Colour::alpha() noexcept;
 constexpr const T& Colour::alpha() const noexcept;
-constexpr T& Colour::α() noexcept;
-constexpr const T& Colour::α() const noexcept;
 ```
 
 Accessors for the alpha channel. If no alpha channel is present, the non-const

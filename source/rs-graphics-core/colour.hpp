@@ -148,9 +148,6 @@ namespace RS::Graphics::Core {
                 return scale;
         }
 
-        constexpr VT& α(std::enable_if<has_alpha>* = nullptr) noexcept { return alpha(); }
-        constexpr const VT& α() const noexcept { return alpha(); }
-
         #define RS_GRAPHICS_COLOUR_CHANNEL(Ch, Lit) \
             constexpr VT& Ch(std::enable_if<Detail::colour_channel_index<CS, Lit, CL> != -1>* = nullptr) noexcept { \
                 return vec_[Detail::colour_channel_index<CS, Lit, CL>]; \
