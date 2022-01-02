@@ -141,6 +141,7 @@ namespace RS::Graphics::Core {
         using partial_vector_type = Vector<VT, colour_space_channels>;
 
         constexpr Colour() noexcept {}
+        explicit constexpr Colour(UninitType) noexcept: vec_(uninit) {}
         explicit constexpr Colour(VT x) noexcept: vec_(x) { if constexpr (has_alpha) alpha() = scale; }
         template <typename V2 = VT> constexpr Colour(V2 x, std::enable_if_t<has_alpha, V2> a) noexcept: vec_(x) { alpha() = a; }
         explicit constexpr Colour(vector_type v) noexcept: vec_(v) {}

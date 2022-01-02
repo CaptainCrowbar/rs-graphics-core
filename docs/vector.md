@@ -10,6 +10,13 @@ namespace RS::Graphics::Core;
 ## Vector class
 
 ```c++
+class UninitType {};
+constexpr UninitType uninit;
+```
+
+Tag type used to request an uninitialized vector.
+
+```c++
 template <typename T, int N> class Vector;
 ```
 
@@ -52,6 +59,12 @@ constexpr Vector::Vector() noexcept;
 ```
 
 The default constructor sets all elements to zero.
+
+```c++
+constexpr explicit Vector::Vector(UninitType) noexcept;
+```
+
+Leaves the vector's contents uninitialized.
 
 ```c++
 constexpr explicit Vector::Vector(T x) noexcept;

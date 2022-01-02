@@ -91,6 +91,7 @@ namespace RS::Graphics::Core {
         static constexpr MatrixLayout layout = L;
 
         constexpr Matrix() noexcept: array_{} { for (auto& x: array_) x = T(0); }
+        constexpr explicit Matrix(UninitType) noexcept {}
         constexpr explicit Matrix(T x) noexcept: array_{} { for (auto& y: array_) y = x; }
         constexpr Matrix(T lead, T other) noexcept: Matrix(other) { for (int i = 0; i < cells; i += N + 1) array_[i] = lead; }
         constexpr Matrix(const alt_matrix& m) noexcept: array_{}

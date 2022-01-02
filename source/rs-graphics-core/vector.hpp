@@ -33,6 +33,9 @@ namespace RS::Graphics::Core {
 
     }
 
+    class UninitType {};
+    constexpr UninitType uninit = {};
+
     template <typename T, int N>
     class Vector {
 
@@ -48,6 +51,7 @@ namespace RS::Graphics::Core {
         static constexpr int dim = N;
 
         constexpr Vector() noexcept: array_{} { for (auto& x: *this) x = T(0); }
+        constexpr explicit Vector(UninitType) noexcept {}
         constexpr explicit Vector(T x) noexcept: array_{} { for (auto& y: *this) y = x; }
         template <typename... Args>
             constexpr Vector(T x, std::enable_if_t<sizeof...(Args) + 2 == N && (std::is_convertible_v<Args, T> && ...), T> y,

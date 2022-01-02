@@ -21,6 +21,7 @@ namespace RS::Graphics::Core {
         using scalar_type = T;
 
         constexpr Quaternion() noexcept: array_{{T(0), T(0), T(0), T(0)}} {}
+        constexpr explicit Quaternion(UninitType) noexcept {}
         constexpr Quaternion(T a) noexcept: array_{{a, T(0), T(0), T(0)}} {}
         constexpr Quaternion(T a, T b, T c, T d) noexcept: array_{{a, b, c, d}} {}
         constexpr Quaternion(T a, const Vector<T, 3>& v) noexcept: array_{{a, v.x(), v.y(), v.z()}} {}

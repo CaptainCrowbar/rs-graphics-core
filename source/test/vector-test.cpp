@@ -11,7 +11,7 @@ using namespace RS::Format::Literals;
 
 void test_rs_graphics_core_integer_vector_construction() {
 
-    Int3 v1, v2, v3;
+    Int3 v1(uninit), v2(uninit), v3(uninit);
     const Int3& cv1 = v1;
     const Int3& cv2 = v2;
     const Int3& cv3 = v3;
@@ -130,7 +130,7 @@ void test_rs_graphics_core_integer_vector_hash() {
 
 void test_rs_graphics_core_floating_vector_construction() {
 
-    Double3 v1, v2, v3;
+    Double3 v1(uninit), v2(uninit), v3(uninit);
     const Double3& cv1(v1);
     const Double3& cv2(v2);
     const Double3& cv3(v3);

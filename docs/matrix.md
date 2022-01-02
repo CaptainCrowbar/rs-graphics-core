@@ -78,19 +78,41 @@ Member constants.
 
 ```c++
 constexpr Matrix::Matrix() noexcept;
+```
+
+The default constructor sets all elements to zero.
+
+```c++
+constexpr explicit Matrix::Matrix(UninitType) noexcept;
+```
+
+Leaves the elements uninitialized.
+
+```c++
 constexpr explicit Matrix::Matrix(T x) noexcept;
+```
+
+Sets all elements to the same value.
+
+```c++
 constexpr Matrix::Matrix(T lead, T other) noexcept;
+```
+
+Sets the leading diagonal to one value, and all other elements to another.
+
+```c++
 constexpr Matrix::Matrix(const alt_matrix& m) noexcept;
+```
+
+Copies a matrix with the opposite layout.
+
+```c++
 template <typename... Args> constexpr Matrix::Matrix(Args... args) noexcept;
 ```
 
-The default constructor sets all elements to zero. The second constructor sets
-all elements to the same value. The third constructor sets the leading
-diagonal to one value, and all other elements to another. The fourth
-constructor copies a matrix with the opposite layout. The fifth constructor
-takes an explicit list of elements, which are copied in the order of the
-matrix's internal layout (column by column or row by row); this is defined
-only for the appropriate number of arguments.
+This constructor takes an explicit list of elements, which are copied in the
+order of the matrix's internal layout (column by column or row by row); this
+is defined only for the appropriate number of arguments.
 
 ```c++
 constexpr Matrix::Matrix(const Matrix& m) noexcept;

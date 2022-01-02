@@ -32,16 +32,28 @@ Member types.
 
 ```c++
 constexpr Quaternion::Quaternion() noexcept;
+```
+
+The default constructor sets all components to zero.
+
+```c++
+constexpr explicit Quaternion::Quaternion(UninitType) noexcept;
+```
+
+Leaves the components uninitialized.
+
+```c++
 constexpr Quaternion::Quaternion(T a) noexcept;
+```
+
+Sets the real component to the given value, and all other components to zero.
+
+```c++
 constexpr Quaternion::Quaternion(T a, T b, T c, T d) noexcept;
 constexpr Quaternion::Quaternion(T a, const Vector<T, 3>& v) noexcept;
 ```
 
-The default constructor sets all components to zero. The second constructor
-sets the real component to the given value, and all other components to zero.
-The third constructor takes all four components explicitly. The fourth
-constructor takes the real component by value and the other components as a
-vector.
+These set all four components explicitly.
 
 ```c++
 constexpr Quaternion::Quaternion(const Quaternion& q) noexcept;
