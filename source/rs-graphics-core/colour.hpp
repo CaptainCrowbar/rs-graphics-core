@@ -114,6 +114,14 @@ namespace RS::Graphics::Core {
                 return T2(w);
         }
 
+        template <typename T2, typename T1>
+        constexpr T2 round_channel(T1 t) noexcept {
+            if constexpr (std::is_integral_v<T2>)
+                return const_round<T2>(t);
+            else
+                return T2(t);
+        }
+
     }
 
     // Don't use single letter template parameters here
@@ -127,7 +135,9 @@ namespace RS::Graphics::Core {
         static_assert(std::is_arithmetic_v<VT>);
 
         static constexpr int colour_space_channels = int(CS::channels.size());
-        static constexpr bool has_alpha = CL != ColourLayout::forward && CL != ColourLayout::reverse;
+        static constexpr int alpha_index = CL == ColourLayout::alpha_forward || CL == ColourLayout::alpha_reverse ? 0 :
+            CL == ColourLayout::forward_alpha || CL == ColourLayout::reverse_alpha ? colour_space_channels : -1;
+        static constexpr bool has_alpha = alpha_index != -1;
         static constexpr int channels = colour_space_channels + int(has_alpha);
         static constexpr bool is_hdr = std::is_floating_point_v<VT>;
         static constexpr ColourLayout layout = CL;
@@ -159,17 +169,12 @@ namespace RS::Graphics::Core {
 
         template <typename V2 = VT>
         constexpr VT& alpha(std::enable_if<Detail::SfinaeBoolean<V2, has_alpha>::value>* = nullptr) noexcept {
-            if constexpr (CL == ColourLayout::alpha_forward || CL == ColourLayout::alpha_reverse)
-                return vec_[0];
-            else
-                return vec_[colour_space_channels];
+            return vec_[alpha_index];
         }
 
         constexpr const VT& alpha() const noexcept {
-            if constexpr (CL == ColourLayout::alpha_forward || CL == ColourLayout::alpha_reverse)
-                return vec_[0];
-            else if constexpr (CL == ColourLayout::forward_alpha || CL == ColourLayout::reverse_alpha)
-                return vec_[colour_space_channels];
+            if constexpr (has_alpha)
+                return vec_[alpha_index];
             else
                 return scale;
         }
@@ -258,6 +263,33 @@ namespace RS::Graphics::Core {
         constexpr size_t size() const noexcept { return size_t(channels); }
 
         size_t hash() const noexcept { return vec_.hash(); }
+
+        template <typename V2 = VT>
+        constexpr Colour multiply_alpha(std::enable_if<Detail::SfinaeBoolean<V2,
+                has_alpha && CS::is_linear && CS::is_rgb
+                && CS::shape == ColourSpace::unit>::value>* = nullptr) const noexcept {
+            using FT = Detail::FloatingChannelType<VT>;
+            auto result = *this;
+            FT factor = FT(alpha()) / FT(scale);
+            for (auto& x: result.vec_)
+                x = Detail::round_channel<VT>(factor * x);
+            result.alpha() = alpha();
+            return result;
+        }
+
+        template <typename V2 = VT>
+        constexpr Colour unmultiply_alpha(std::enable_if<Detail::SfinaeBoolean<V2,
+                has_alpha && CS::is_linear && CS::is_rgb
+                && CS::shape == ColourSpace::unit>::value>* = nullptr) const noexcept {
+            using FT = Detail::FloatingChannelType<VT>;
+            auto result = *this;
+            FT factor = FT(scale) / FT(alpha());
+            for (auto& x: result.vec_)
+                x = Detail::round_channel<VT>(factor * x);
+            result.alpha() = alpha();
+            return result;
+        }
+
         std::string str(RS::Format::FormatSpec spec = {}) const { return vec_.str(spec); }
         friend std::ostream& operator<<(std::ostream& out, const Colour& c) { return out << c.str(); }
 

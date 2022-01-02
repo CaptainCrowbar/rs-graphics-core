@@ -72,6 +72,7 @@ int main(int argc, char** argv) {
     UNIT_TEST(rs_graphics_core_colour_integral_standard_colours)
     UNIT_TEST(rs_graphics_core_colour_integral_arithmetic)
     UNIT_TEST(rs_graphics_core_colour_channel_order)
+    UNIT_TEST(rs_graphics_core_colour_premultiplied_alpha)
     UNIT_TEST(rs_graphics_core_colour_conversion_between_colour_spaces)
     UNIT_TEST(rs_graphics_core_colour_conversion_between_representations)
 

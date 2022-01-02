@@ -162,6 +162,28 @@ void test_rs_graphics_core_colour_channel_order() {
 
 }
 
+void test_rs_graphics_core_colour_premultiplied_alpha() {
+
+    Rgba8 bc1, bc2, bc3;
+    Rgbad fc1, fc2, fc3;
+
+    TRY((bc1 = {50,100,150,200}));
+    TRY((fc1 = {0.2,0.4,0.6,0.8}));
+
+    TRY(bc2 = bc1.multiply_alpha());
+    TRY(fc2 = fc1.multiply_alpha());
+
+    TEST_VECTORS(bc2, Double4(39,78,118,200), 0);
+    TEST_VECTORS(fc2, Double4(0.16,0.32,0.48,0.8), 1e-10);
+
+    TRY(bc3 = bc2.unmultiply_alpha());
+    TRY(fc3 = fc2.unmultiply_alpha());
+
+    TEST_VECTORS(bc3, bc1, 1);
+    TEST_VECTORS(fc3, fc1, 1e-10);
+
+}
+
 void test_rs_graphics_core_colour_conversion_between_colour_spaces() {
 
     using C_sRGB = Colour<double, sRGB, ColourLayout::forward>;

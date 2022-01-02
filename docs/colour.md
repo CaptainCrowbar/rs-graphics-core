@@ -73,6 +73,13 @@ Convenience aliases for some commonly used colour types.
 ### Member constants
 
 ```c++
+static constexpr int Colour::alpha_index;
+```
+
+The index of the alpha channel, or -1 if the colour does not have an alpha
+channel.
+
+```c++
 static constexpr int Colour::channels;
 ```
 
@@ -91,7 +98,7 @@ equal to `CS::channels.size()`.
 static constexpr bool Colour::has_alpha;
 ```
 
-True if the colour has an alpha channel.
+True if the colour has an alpha channel. Equivalent to `alpha_index==-1`.
 
 ```c++
 static constexpr bool Colour::is_hdr;
@@ -278,6 +285,15 @@ constexpr bool Colour::is_clamped() const noexcept;
 True if all of the colour's channels are within the range implied by the
 colour space. If the colour space is not unit-cube or polar, this only checks
 the alpha channel.
+
+```c++
+constexpr Colour multiply_alpha() const noexcept;
+constexpr Colour unmultiply_alpha() const noexcept;
+```
+
+Convert the colour from unmultiplied alpha to premultiplied alpha, or vice
+versa. Defined only if the colour space is a linear RGB unit cube, and the
+colour has an alpha channel.
 
 ```c++
 constexpr size_t Colour::size() const noexcept;
