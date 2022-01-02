@@ -320,17 +320,19 @@ same as for the corresponding vector type.
 ### Standard colours
 
 ```c++
-static Colour Colour::black() noexcept;    // rgb = (0,0,0)
-static Colour Colour::white() noexcept;    // rgb = (1,1,1)
-static Colour Colour::red() noexcept;      // rgb = (1,0,0)
-static Colour Colour::yellow() noexcept;   // rgb = (1,1,0)
-static Colour Colour::green() noexcept;    // rgb = (0,1,0)
-static Colour Colour::cyan() noexcept;     // rgb = (0,1,1)
-static Colour Colour::blue() noexcept;     // rgb = (0,0,1)
-static Colour Colour::magenta() noexcept;  // rgb = (1,0,1)
+static Colour Colour::clear() noexcept;    // rgba = (0,0,0,0)
+static Colour Colour::black() noexcept;    // rgba = (0,0,0,1)
+static Colour Colour::white() noexcept;    // rgba = (1,1,1,1)
+static Colour Colour::red() noexcept;      // rgba = (1,0,0,1)
+static Colour Colour::yellow() noexcept;   // rgba = (1,1,0,1)
+static Colour Colour::green() noexcept;    // rgba = (0,1,0,1)
+static Colour Colour::cyan() noexcept;     // rgba = (0,1,1,1)
+static Colour Colour::blue() noexcept;     // rgba = (0,0,1,1)
+static Colour Colour::magenta() noexcept;  // rgba = (1,0,1,1)
 ```
 
-Some conventional colours. These are only defined for RGB colour spaces.
+Some conventional colours. These are only defined for RGB colour spaces. The
+`clear()` function is only defined if the colour has an alpha channel.
 
 ### Arithmetic operators
 

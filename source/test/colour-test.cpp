@@ -54,6 +54,7 @@ void test_rs_graphics_core_colour_floating_point_arithmetic() {
 
 void test_rs_graphics_core_colour_floating_point_standard_colours() {
 
+    TEST_EQUAL(Rgbad::clear().str(),    "[0,0,0,0]");
     TEST_EQUAL(Rgbad::black().str(),    "[0,0,0,1]");
     TEST_EQUAL(Rgbad::white().str(),    "[1,1,1,1]");
     TEST_EQUAL(Rgbad::red().str(),      "[1,0,0,1]");

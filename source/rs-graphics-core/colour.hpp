@@ -293,6 +293,9 @@ namespace RS::Graphics::Core {
         friend std::ostream& operator<<(std::ostream& out, const Colour& c) { return out << c.str(); }
 
         template <typename V2 = VT>
+            static Colour clear(std::enable_if<Detail::SfinaeBoolean<V2, CS::is_rgb && has_alpha>::value>* = nullptr) noexcept
+            { return Colour(0, 0); }
+        template <typename V2 = VT>
             static Colour black(std::enable_if<Detail::SfinaeBoolean<V2, CS::is_rgb>::value>* = nullptr) noexcept
             { return Colour(0); }
         template <typename V2 = VT>
