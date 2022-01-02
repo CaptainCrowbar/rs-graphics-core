@@ -138,6 +138,7 @@ namespace RS::Graphics::Core {
         static constexpr int alpha_index = CL == ColourLayout::alpha_forward || CL == ColourLayout::alpha_reverse ? 0 :
             CL == ColourLayout::forward_alpha || CL == ColourLayout::reverse_alpha ? colour_space_channels : -1;
         static constexpr bool has_alpha = alpha_index != -1;
+        static constexpr bool can_premultiply = has_alpha && CS::is_linear && CS::is_rgb && CS::shape == ColourSpace::unit;
         static constexpr int channels = colour_space_channels + int(has_alpha);
         static constexpr bool is_hdr = std::is_floating_point_v<VT>;
         static constexpr ColourLayout layout = CL;
@@ -266,8 +267,7 @@ namespace RS::Graphics::Core {
 
         template <typename V2 = VT>
         constexpr Colour multiply_alpha(std::enable_if<Detail::SfinaeBoolean<V2,
-                has_alpha && CS::is_linear && CS::is_rgb
-                && CS::shape == ColourSpace::unit>::value>* = nullptr) const noexcept {
+                can_premultiply>::value>* = nullptr) const noexcept {
             using FT = Detail::FloatingChannelType<VT>;
             auto result = *this;
             FT factor = FT(alpha()) / FT(scale);
@@ -279,8 +279,7 @@ namespace RS::Graphics::Core {
 
         template <typename V2 = VT>
         constexpr Colour unmultiply_alpha(std::enable_if<Detail::SfinaeBoolean<V2,
-                has_alpha && CS::is_linear && CS::is_rgb
-                && CS::shape == ColourSpace::unit>::value>* = nullptr) const noexcept {
+                can_premultiply>::value>* = nullptr) const noexcept {
             using FT = Detail::FloatingChannelType<VT>;
             auto result = *this;
             FT factor = FT(scale) / FT(alpha());

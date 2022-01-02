@@ -80,6 +80,14 @@ The index of the alpha channel, or -1 if the colour does not have an alpha
 channel.
 
 ```c++
+static constexpr bool Colour::can_premultiply;
+```
+
+True if the concept of premultiplied alpha is applicable to this colour type.
+This is true if the colour space is a linear RGB unit cube, and the colour
+has an alpha channel.
+
+```c++
 static constexpr int Colour::channels;
 ```
 
