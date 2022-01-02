@@ -33,9 +33,6 @@ namespace RS::Graphics::Core {
 
     }
 
-    class UninitType {};
-    constexpr UninitType uninit = {};
-
     template <typename T, int N>
     class Vector {
 
@@ -50,11 +47,11 @@ namespace RS::Graphics::Core {
 
         static constexpr int dim = N;
 
-        constexpr Vector() noexcept: array_{} { for (auto& x: *this) x = T(0); }
-        constexpr explicit Vector(UninitType) noexcept {}
+        constexpr Vector() noexcept: array_{} {}
         constexpr explicit Vector(T x) noexcept: array_{} { for (auto& y: *this) y = x; }
-        template <typename... Args>
-            constexpr Vector(T x, std::enable_if_t<sizeof...(Args) + 2 == N && (std::is_convertible_v<Args, T> && ...), T> y,
+        template <typename... Args, typename U = T>
+            constexpr Vector(T x, std::enable_if_t<Detail::SfinaeBoolean<U, sizeof...(Args) + 2 == N
+                && (std::is_convertible_v<Args, T> && ...)>::value, T> y,
                 Args... args) noexcept:
             array_{{T(x), T(y), T(args)...}} {}
         constexpr explicit Vector(const T* ptr) noexcept: array_{} { for (int i = 0; i < N; ++i) array_[i] = ptr[i]; }
@@ -70,12 +67,18 @@ namespace RS::Graphics::Core {
         constexpr const T& operator[](int i) const noexcept { return array_[i]; }
         constexpr T& x() noexcept { return (*this)[0]; }
         constexpr T x() const noexcept { return (*this)[0]; }
-        template <int M = N> constexpr std::enable_if_t<(M >= 2), T&> y() noexcept { return (*this)[1]; }
-        template <int M = N> constexpr std::enable_if_t<(M >= 2), T> y() const noexcept { return (*this)[1]; }
-        template <int M = N> constexpr std::enable_if_t<(M >= 3), T&> z() noexcept { return (*this)[2]; }
-        template <int M = N> constexpr std::enable_if_t<(M >= 3), T> z() const noexcept { return (*this)[2]; }
-        template <int M = N> constexpr std::enable_if_t<(M >= 4), T&> w() noexcept { return (*this)[3]; }
-        template <int M = N> constexpr std::enable_if_t<(M >= 4), T> w() const noexcept { return (*this)[3]; }
+        template <typename U = T>
+            constexpr std::enable_if_t<Detail::SfinaeBoolean<U, (N >= 2)>::value, T&> y() noexcept { return (*this)[1]; }
+        template <typename U = T>
+            constexpr std::enable_if_t<Detail::SfinaeBoolean<U, (N >= 2)>::value, T> y() const noexcept { return (*this)[1]; }
+        template <typename U = T>
+            constexpr std::enable_if_t<Detail::SfinaeBoolean<U, (N >= 3)>::value, T&> z() noexcept { return (*this)[2]; }
+        template <typename U = T>
+            constexpr std::enable_if_t<Detail::SfinaeBoolean<U, (N >= 3)>::value, T> z() const noexcept { return (*this)[2]; }
+        template <typename U = T>
+            constexpr std::enable_if_t<Detail::SfinaeBoolean<U, (N >= 4)>::value, T&> w() noexcept { return (*this)[3]; }
+        template <typename U = T>
+            constexpr std::enable_if_t<Detail::SfinaeBoolean<U, (N >= 4)>::value, T> w() const noexcept { return (*this)[3]; }
 
         constexpr T* begin() noexcept { return array_.data(); }
         constexpr const T* begin() const noexcept { return array_.data(); }
@@ -100,17 +103,23 @@ namespace RS::Graphics::Core {
 
         constexpr T dot(const Vector& v) const noexcept { return std::inner_product(begin(), end(), v.begin(), T(0)); }
         constexpr friend T operator%(const Vector& a, const Vector& b) noexcept { return a.dot(b); }
-        template <int M = N> constexpr std::enable_if_t<M == 3, Vector> cross(const Vector& v) const noexcept;
+
+        template <typename U = T>
+            constexpr std::enable_if_t<Detail::SfinaeBoolean<U, N == 3>::value, Vector> cross(const Vector& v) const noexcept {
+                auto& u = *this;
+                return {u[1] * v[2] - u[2] * v[1], u[2] * v[0] - u[0] * v[2], u[0] * v[1] - u[1] * v[0]};
+            }
 
         constexpr friend bool operator==(const Vector& a, const Vector& b) noexcept
             { for (int i = 0; i < N; ++i) if (a[i] != b[i]) return false; return true; }
         constexpr friend bool operator!=(const Vector& a, const Vector& b) noexcept { return ! (a == b); }
 
-        constexpr T angle(const Vector& v) const noexcept { return is_null() || v.is_null() ? T(0) : std::acos(*this % v / std::sqrt(r2() * v.r2())); }
-        constexpr Vector dir() const noexcept { return is_null() ? Vector() : *this / r(); }
+        constexpr T angle(const Vector& v) const noexcept
+            { return is_null() || v.is_null() ? T(0) : std::acos(*this % v / std::sqrt(r2() * v.r2())); }
+        constexpr Vector dir() const noexcept { return is_null() ? null() : *this / r(); }
         constexpr bool empty() noexcept { return false; }
-        constexpr bool is_null() const noexcept { return *this == Vector(T{0}); }
-        constexpr Vector project(const Vector& v) const noexcept { return v.is_null() ? Vector(T{0}) : v * ((*this % v) / (v % v)); }
+        constexpr bool is_null() const noexcept { return *this == null(); }
+        constexpr Vector project(const Vector& v) const noexcept { return v.is_null() ? null() : v * ((*this % v) / (v % v)); }
         constexpr Vector reject(const Vector& v) const noexcept { return *this - project(v); }
         T r() const noexcept { return std::sqrt(r2()); }
         constexpr T r2() const noexcept { T sum = 0; for (auto x: *this) sum += x * x; return sum; }
@@ -120,8 +129,8 @@ namespace RS::Graphics::Core {
         std::string str(const RS::Format::FormatSpec& spec = {}) const;
         friend std::ostream& operator<<(std::ostream& out, const Vector& v) { return out << v.str(); }
 
-        constexpr static Vector unit(int i) noexcept { Vector v(T{0}); v[i] = T(1); return v; }
         constexpr static Vector null() noexcept { return Vector(T{0}); }
+        constexpr static Vector unit(int i) noexcept { Vector v(T{0}); v[i] = T(1); return v; }
 
     private:
 
@@ -141,13 +150,6 @@ namespace RS::Graphics::Core {
     using Ldouble2 = Vector<long double, 2>;
     using Ldouble3 = Vector<long double, 3>;
     using Ldouble4 = Vector<long double, 4>;
-
-    template <typename T, int N>
-    template <int M>
-    constexpr std::enable_if_t<M == 3, Vector<T, N>> Vector<T, N>::cross(const Vector<T, N>& v) const noexcept {
-        auto& u = *this;
-        return {u[1] * v[2] - u[2] * v[1], u[2] * v[0] - u[0] * v[2], u[0] * v[1] - u[1] * v[0]};
-    }
 
     template <typename T>
     constexpr Vector<T, 3>& operator^=(Vector<T, 3>& a, const Vector<T, 3>& b) noexcept {

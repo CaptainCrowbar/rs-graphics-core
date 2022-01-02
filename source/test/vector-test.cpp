@@ -11,7 +11,7 @@ using namespace RS::Format::Literals;
 
 void test_rs_graphics_core_integer_vector_construction() {
 
-    Int3 v1(uninit), v2(uninit), v3(uninit);
+    Int3 v1, v2, v3;
     const Int3& cv1 = v1;
     const Int3& cv2 = v2;
     const Int3& cv3 = v3;
@@ -130,7 +130,7 @@ void test_rs_graphics_core_integer_vector_hash() {
 
 void test_rs_graphics_core_floating_vector_construction() {
 
-    Double3 v1(uninit), v2(uninit), v3(uninit);
+    Double3 v1, v2, v3;
     const Double3& cv1(v1);
     const Double3& cv2(v2);
     const Double3& cv3(v3);
@@ -221,13 +221,13 @@ void test_rs_graphics_core_floating_vector_arithmetic() {
     TRY(v3 = Double3::unit(1));  TEST_EQUAL(v3.str(), "[0,1,0]");
     TRY(v3 = Double3::unit(2));  TEST_EQUAL(v3.str(), "[0,0,1]");
 
-    TRY(v3 = Double3().dir());  TEST_EQUAL(v3.str(), "[0,0,0]");
-    TRY(v3 = v1.dir());         TEST_EQUAL(v3.str(), "[0.324443,0.486664,0.811107]");
-    TRY(v3 = v2.dir());         TEST_EQUAL(v3.str(), "[0.380188,0.597438,0.706063]");
+    TRY(v3 = Double3::null().dir());  TEST_EQUAL(v3.str(), "[0,0,0]");
+    TRY(v3 = v1.dir());               TEST_EQUAL(v3.str(), "[0.324443,0.486664,0.811107]");
+    TRY(v3 = v2.dir());               TEST_EQUAL(v3.str(), "[0.380188,0.597438,0.706063]");
 
     TRY((v1 = {1,2,3}));
 
-    TRY((v2 = {}));          TRY(x = v1.angle(v2));  TEST_EQUAL(x, 0);
+    TRY((v2 = {0,0,0}));     TRY(x = v1.angle(v2));  TEST_EQUAL(x, 0);
     TRY((v2 = {2,4,6}));     TRY(x = v1.angle(v2));  TEST_EQUAL(x, 0);
     TRY((v2 = {-2,-4,-6}));  TRY(x = v1.angle(v2));  TEST_NEAR(x, pi_d, 1e-6);
     TRY((v2 = {3,2,1}));     TRY(x = v1.angle(v2));  TEST_NEAR(x, 0.775193, 1e-6);
@@ -240,7 +240,7 @@ void test_rs_graphics_core_floating_vector_arithmetic() {
     TRY(v5 = v3 + v4);
     TEST_VECTORS(v5, v1, 1e-10);
     TRY(v5 = v2 ^ v3);
-    TEST_VECTORS(v5, Double3(), 1e-10);
+    TEST_VECTORS(v5, Double3::null(), 1e-10);
     TEST_NEAR(v2 % v4, 0, 1e-6);
     TEST_NEAR(v3 % v4, 0, 1e-6);
 

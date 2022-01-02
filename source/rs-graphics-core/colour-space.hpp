@@ -73,7 +73,7 @@ namespace RS::Graphics::Core {
         static constexpr bool is_rgb = false;
         static constexpr ColourSpace shape = ColourSpace::unit;
         template <typename T> static constexpr Vector<T, 3> from_base(Vector<T, 3> colour) noexcept {
-            Vector<T, 3> out;
+            auto out = Vector<T, 3>::null();
             T sum = colour.x() + colour.y() + colour.z();
             if (sum != 0) {
                 out.x() = colour.x() / sum;

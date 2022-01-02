@@ -34,13 +34,7 @@ Member types.
 constexpr Quaternion::Quaternion() noexcept;
 ```
 
-The default constructor sets all components to zero.
-
-```c++
-constexpr explicit Quaternion::Quaternion(UninitType) noexcept;
-```
-
-Leaves the components uninitialized.
+The default constructor leaves the components uninitialized.
 
 ```c++
 constexpr Quaternion::Quaternion(T a) noexcept;

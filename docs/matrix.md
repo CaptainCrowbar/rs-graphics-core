@@ -80,13 +80,7 @@ Member constants.
 constexpr Matrix::Matrix() noexcept;
 ```
 
-The default constructor sets all elements to zero.
-
-```c++
-constexpr explicit Matrix::Matrix(UninitType) noexcept;
-```
-
-Leaves the elements uninitialized.
+The default constructor leaves the elements uninitialized.
 
 ```c++
 constexpr explicit Matrix::Matrix(T x) noexcept;

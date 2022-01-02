@@ -213,7 +213,7 @@ namespace RS::Graphics::Core {
     template <typename T>
     Quaternion<T> q_rotate(T angle, const Vector<T, 3>& axis) noexcept {
         static_assert(std::is_floating_point_v<T>);
-        if (axis == Vector<T, 3>())
+        if (axis.is_null())
             return T(1);
         angle /= T(2);
         return {std::cos(angle), std::sin(angle) * axis.dir()};

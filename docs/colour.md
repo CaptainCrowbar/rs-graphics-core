@@ -133,13 +133,7 @@ Member types.
 constexpr Colour::Colour() noexcept;
 ```
 
-Sets all channels to zero (including the alpha channel, if present).
-
-```c++
-explicit constexpr Colour::Colour(UninitType) noexcept;
-```
-
-Leaves the channel values uninitialized.
+The default constructor leaves the channel values uninitialized.
 
 ```c++
 explicit constexpr Colour::Colour(T x) noexcept;

@@ -24,7 +24,7 @@ namespace RS::Graphics::Core {
 
         static constexpr int dim = N;
 
-        constexpr Box() noexcept {}
+        constexpr Box() noexcept: corner_(T{0}), extent_(T{0}) {}
         constexpr Box(const vector_type& p, const vector_type& v) noexcept;
 
         constexpr vector_type base() const noexcept { return corner_; }
@@ -115,7 +115,7 @@ namespace RS::Graphics::Core {
 
         static constexpr int dim = N;
 
-        constexpr Sphere() noexcept {}
+        constexpr Sphere() noexcept: centre_(T{0}), radius_(T{0}) {}
         constexpr Sphere(const vector_type& c, T r) noexcept;
 
         constexpr vector_type centre() const noexcept { return centre_; }
@@ -148,7 +148,7 @@ namespace RS::Graphics::Core {
     private:
 
         vector_type centre_;
-        T radius_ = T(0);
+        T radius_;
 
     };
 

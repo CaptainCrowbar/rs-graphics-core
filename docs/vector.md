@@ -10,13 +10,6 @@ namespace RS::Graphics::Core;
 ## Vector class
 
 ```c++
-class UninitType {};
-constexpr UninitType uninit;
-```
-
-Tag type used to request an uninitialized vector.
-
-```c++
 template <typename T, int N> class Vector;
 ```
 
@@ -58,13 +51,7 @@ Member constants.
 constexpr Vector::Vector() noexcept;
 ```
 
-The default constructor sets all elements to zero.
-
-```c++
-constexpr explicit Vector::Vector(UninitType) noexcept;
-```
-
-Leaves the vector's contents uninitialized.
+The default constructor leaves the vector's contents uninitialized.
 
 ```c++
 constexpr explicit Vector::Vector(T x) noexcept;
@@ -247,17 +234,17 @@ with the format spec interpreted in the usual way for `T`. The output operator
 calls `v.str()`.
 
 ```c++
+constexpr static Vector Vector::null() noexcept;
+```
+
+Returns a null vector (equivalent to `Vector(0)`).
+
+```c++
 constexpr static Vector Vector::unit(int i) noexcept;
 ```
 
 Returns a unit vector along the specified axis. Behaviour is undefined if the
 index is out of range (zero to `N-1`).
-
-```c++
-constexpr static Vector Vector::null() noexcept;
-```
-
-Returns a null vector (equivalent to `Vector(0)`).
 
 ```c++
 constexpr Vector clampv(const Vector& x,

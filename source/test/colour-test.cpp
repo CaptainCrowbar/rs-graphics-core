@@ -36,7 +36,7 @@ void test_rs_graphics_core_colour_floating_point_arithmetic() {
 
     Rgbad a = {0.1,0.2,0.3,0.4};
     Rgbad b = {0.8,0.6,0.4,0.2};
-    Rgbad c(uninit);
+    Rgbad c;
     Double4 d = {2,3,4,5};
 
     TRY(c = + a);    TEST_VECTORS(c, Double4(0.1,0.2,0.3,0.4), 1e-10);
@@ -107,7 +107,7 @@ void test_rs_graphics_core_colour_integral_arithmetic() {
 
     Rgba8 a = {10,20,30,40};
     Rgba8 b = {80,60,40,20};
-    Rgba8 c(uninit);
+    Rgba8 c;
     Vector<uint8_t, 4> d = {2,3,4,5};
 
     TRY(c = + a);    TEST_VECTORS(c, Int4(10,20,30,40), 0);

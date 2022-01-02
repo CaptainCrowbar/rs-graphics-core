@@ -90,14 +90,14 @@ namespace RS::Graphics::Core {
         static constexpr int cells = N * N;
         static constexpr MatrixLayout layout = L;
 
-        constexpr Matrix() noexcept: array_{} { for (auto& x: array_) x = T(0); }
-        constexpr explicit Matrix(UninitType) noexcept {}
+        constexpr Matrix() noexcept: array_{} {}
         constexpr explicit Matrix(T x) noexcept: array_{} { for (auto& y: array_) y = x; }
         constexpr Matrix(T lead, T other) noexcept: Matrix(other) { for (int i = 0; i < cells; i += N + 1) array_[i] = lead; }
         constexpr Matrix(const alt_matrix& m) noexcept: array_{}
             { for (int r = 0; r < N; ++r) for (int c = 0; c < N; ++c) (*this)(r, c) = m(r, c); }
-        template <typename... Args> constexpr
-            Matrix(T x, std::enable_if_t<sizeof...(Args) + 2 == cells && (std::is_convertible_v<Args, T> && ...), T> y, Args... args):
+        template <typename... Args, typename U = T>
+            constexpr Matrix(T x, std::enable_if_t<Detail::SfinaeBoolean<U, sizeof...(Args) + 2 == cells
+                && (std::is_convertible_v<Args, T> && ...)>::value, T> y, Args... args):
             array_{{T(x), T(y), T(args)...}} {}
 
         constexpr Matrix operator+() const noexcept { return *this; }
