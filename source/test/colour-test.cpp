@@ -338,3 +338,32 @@ void test_rs_graphics_core_colour_conversion_between_representations() {
     TRY(convert_colour(cdar, cuar));  TEST_VECTORS(cuar, Int4(0xcccc,0x9999,0x6666,0x3333),  0);
 
 }
+
+void test_rs_graphics_core_colour_alpha_blending() {
+
+    Rgbaf a, b, c, pa, pb, pc;
+    Rgba8 d, e, f, pd, pe, pf;
+
+    TRY((a = {0.2,0.4,0.6,0.8}));
+    TRY((b = {0.9,0.8,0.7,0.6}));
+    TRY(c = alpha_blend(a, b));
+    TEST_VECTORS(c, Double4(0.291304,0.452174,0.613043,0.92), 1e-6);
+
+    TRY(pa = a.multiply_alpha());
+    TRY(pb = b.multiply_alpha());
+    TRY(pc = alpha_blend(pa, pb, Pma::all));
+    TRY(c = pc.unmultiply_alpha());
+    TEST_VECTORS(c, Double4(0.291304,0.452174,0.613043,0.92), 1e-6);
+
+    TRY((d = {50,100,150,200}));
+    TRY((e = {250,225,200,175}));
+    TRY(f = alpha_blend(d, e));
+    TEST_VECTORS(f, Double4(82,120,158,238), 0);
+
+    TRY(pd = d.multiply_alpha());
+    TRY(pe = e.multiply_alpha());
+    TRY(pf = alpha_blend(pd, pe, Pma::all));
+    TRY(f = pf.unmultiply_alpha());
+    TEST_VECTORS(f, Double4(82,120,158,238), 1);
+
+}

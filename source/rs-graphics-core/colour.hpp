@@ -22,6 +22,15 @@ namespace RS::Graphics::Core {
         alpha_reverse
     )
 
+    namespace Pma {
+
+        constexpr int first   = 1;
+        constexpr int second  = 2;
+        constexpr int result  = 4;
+        constexpr int all     = first | second | result;
+
+    }
+
     template <typename VT, typename CS, ColourLayout CL> class Colour;
 
     namespace Detail {
@@ -385,6 +394,28 @@ namespace RS::Graphics::Core {
 
         }
 
+    }
+
+    template <typename VT, typename CS, ColourLayout CL>
+    constexpr Colour<VT, CS, CL> alpha_blend(Colour<VT, CS, CL> a, Colour<VT, CS, CL> b, int flags = 0,
+            std::enable_if<Detail::SfinaeBoolean<VT, Colour<VT, CS, CL>::can_premultiply>::value>* = nullptr) noexcept {
+        using C = Colour<VT, CS, CL>;
+        using FT = Detail::FloatingChannelType<VT>;
+        using FC = Colour<FT, CS, CL>;
+        FC fa, fb, fc;
+        convert_colour(a, fa);
+        convert_colour(b, fb);
+        if ((flags & Pma::first) == 0)
+            fa = fa.multiply_alpha();
+        if ((flags & Pma::second) == 0)
+            fb = fb.multiply_alpha();
+        for (int i = 0; i < C::channels; ++i)
+            fc[i] = fa[i] + fb[i] * (1 - fa.alpha());
+        if ((flags & Pma::result) == 0)
+            fc = fc.unmultiply_alpha();
+        C c;
+        convert_colour(fc, c);
+        return c;
     }
 
     using Rgb8 = Colour<uint8_t, LinearRGB, ColourLayout::forward>;

@@ -27,6 +27,18 @@ enum class ColourLayout: int {
 
 Indicates the internal layout of a colour object.
 
+```c++
+namespace Pma {
+    constexpr int first;
+    constexpr int second;
+    constexpr int result;
+    constexpr int all = first | second | result;
+}
+```
+
+Bitmask flags used in the `alpha_blend()` function to indicate which of the
+colours involved have premultiplied alpha.
+
 ## Colour class
 
 ```c++
@@ -358,6 +370,14 @@ constexpr Colour& operator/=(Colour& a, vector_type b) noexcept;
 Colour arithmetic operators. All of these perform component-wise operations.
 These are only defined for linear RGB colour spaces. Division by zero is
 undefined behaviour.
+
+```c++
+constexpr Colour alpha_blend(Colour a, Colour b, int flags = 0) noexcept;
+```
+
+Performs alpha blending (`a` over `b`). The flags indicate which of the
+arguments is alpha premultiplied, and whether the result should be alpha
+premultiplied.
 
 ### Comparison operators
 
