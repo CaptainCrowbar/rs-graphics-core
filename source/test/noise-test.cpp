@@ -1,12 +1,39 @@
 #include "rs-graphics-core/noise.hpp"
+#include "rs-graphics-core/colour.hpp"
 #include "rs-graphics-core/vector.hpp"
+#include "rs-format/format.hpp"
 #include "rs-unit-test.hpp"
 #include <algorithm>
 #include <cmath>
 #include <iostream>
 #include <random>
 #include <string>
+#include <thread>
 #include <vector>
+
+#define STB_IMAGE_WRITE_IMPLEMENTATION
+#define STB_IMAGE_WRITE_STATIC
+#define STBIW_WINDOWS_UTF8
+
+#ifdef _MSC_VER
+    #pragma warning(push, 1)
+#else
+    #pragma GCC diagnostic push
+    #pragma GCC diagnostic ignored "-Wmissing-field-initializers"
+    #pragma GCC diagnostic ignored "-Wsign-compare"
+    #pragma GCC diagnostic ignored "-Wunused-function"
+    #ifndef __clang__
+        #pragma GCC diagnostic ignored "-Wunused-but-set-variable"
+    #endif
+#endif
+
+#include "rs-graphics-2d/stb/stb_image_write.h"
+
+#ifdef _MSC_VER
+    #pragma warning(pop)
+#else
+    #pragma GCC diagnostic pop
+#endif
 
 using namespace RS::Graphics::Core;
 
@@ -242,59 +269,58 @@ void test_rs_graphics_core_noise_statistics() {
 
 }
 
-// void test_rs_graphics_core_noise_sample_renders() {
+void test_rs_graphics_core_noise_sample_renders() {
 
-//     using colour_type = Rgb8;
-//     using image_type = Image<colour_type>;
+    static constexpr int width_cells = 4;
+    static constexpr int width_pixels = 200;
+    static constexpr int max_octaves = 8;
+    static constexpr uint64_t seed = 42;
 
-//     static constexpr int image_cells = 4;
-//     static constexpr int image_size = 200;
-//     static constexpr int n_octaves = 8;
-//     static constexpr uint64_t seed = 42;
+    static const std::string prefix = "../docs/images/";
 
-//     static const std::string doc = "../doc";
+    static const auto image_to_noise_coord = [] (int x) {
+        return ((double(x) + 0.5) / double(width_pixels) - 0.5) * width_cells;
+    };
 
-//     static const auto image_to_noise_coord = [] (int x) {
-//         return ((double(x) + 0.5) / double(image_size) - 0.5) * image_cells;
-//     };
+    static const auto make_sample = [] (const std::string& name, auto noise) {
 
-//     static const auto noise_to_colour = [] (double x) {
-//         return int(std::round((x + 1.0) * 127.5));
-//     };
+        std::vector<Rgba8> pixels(width_pixels * width_pixels);
+        std::string sample_file = prefix + name + ".png";
+        auto p = pixels.begin();
 
-//     static const auto make_sample = [] (const std::string& name, auto noise) {
-//         std::string sample_file = doc + "/" + name + ".png";
-//         image_type sample_image({image_size, image_size});
-//         auto it = sample_image.begin();
-//         for (int iy = 0; iy < image_size; ++iy) {
-//             double y = - image_to_noise_coord(iy);
-//             for (int ix = 0; ix < image_size; ++ix, ++it) {
-//                 double x = image_to_noise_coord(ix);
-//                 double z = noise(Double2(x, y));
-//                 *it = colour_type(noise_to_colour(z), 255);
-//             }
-//         }
-//         sample_image.save(sample_file);
-//         std::string message = "... " + name + "\n";
-//         std::cout << message;
-//     };
+        for (int j = 0; j < width_pixels; ++j) {
+            double y = image_to_noise_coord(j);
+            for (int i = 0; i < width_pixels; ++i) {
+                double x = image_to_noise_coord(i);
+                double z = noise(Double2(x, y));
+                z = std::clamp(z, -1.0, 1.0);
+                int z8 = int(std::round((z + 1) * 127.5));
+                *p++ = Rgba8(z8, 255);
+            }
+        }
 
-//     NoiseSource<double, 2, 1> source2a(1, 1, 1, seed);
-//     NoiseSource<double, 2, 1> source2b(1, 0.5, n_octaves, seed);
-//     NoiseSource<double, 3, 1> source3a(1, 1, 1, seed);
-//     NoiseSource<double, 3, 1> source3b(1, 0.5, n_octaves, seed);
+        stbi_write_png(sample_file.data(), width_pixels, width_pixels, 4, pixels.data(), 0);
+        RS::Format::printp("...", sample_file);
 
-//     ThreadPool pool;
+    };
 
-//     pool.add([&] { make_sample("supersimplex-2d-1oct", source2a); });
-//     pool.add([&] { make_sample("supersimplex-3d-xy-1oct", [&] (auto p) { return source3a(Double3(p.x(), p.y(), 0.0)); }); });
-//     pool.add([&] { make_sample("supersimplex-3d-xz-1oct", [&] (auto p) { return source3a(Double3(p.x(), 0.0, p.y())); }); });
-//     pool.add([&] { make_sample("supersimplex-3d-yz-1oct", [&] (auto p) { return source3a(Double3(0.0, p.x(), p.y())); }); });
-//     pool.add([&] { make_sample("supersimplex-2d-8oct", source2b); });
-//     pool.add([&] { make_sample("supersimplex-3d-xy-8oct", [&] (auto p) { return source3b(Double3(p.x(), p.y(), 0.0)); }); });
-//     pool.add([&] { make_sample("supersimplex-3d-xz-8oct", [&] (auto p) { return source3b(Double3(p.x(), 0.0, p.y())); }); });
-//     pool.add([&] { make_sample("supersimplex-3d-yz-8oct", [&] (auto p) { return source3b(Double3(0.0, p.x(), p.y())); }); });
+    NoiseSource<double, 2, 1> source2a(1, 1, 1, seed);
+    NoiseSource<double, 2, 1> source2b(1, 0.5, max_octaves, seed);
+    NoiseSource<double, 3, 1> source3a(1, 1, 1, seed);
+    NoiseSource<double, 3, 1> source3b(1, 0.5, max_octaves, seed);
 
-//     pool.wait();
+    std::vector<std::thread> threads;
 
-// }
+    threads.emplace_back([&] { make_sample("supersimplex-2d-1oct", source2a); });
+    threads.emplace_back([&] { make_sample("supersimplex-3d-xy-1oct", [&] (auto p) { return source3a(Double3(p.x(), p.y(), 0.0)); }); });
+    threads.emplace_back([&] { make_sample("supersimplex-3d-xz-1oct", [&] (auto p) { return source3a(Double3(p.x(), 0.0, p.y())); }); });
+    threads.emplace_back([&] { make_sample("supersimplex-3d-yz-1oct", [&] (auto p) { return source3a(Double3(0.0, p.x(), p.y())); }); });
+    threads.emplace_back([&] { make_sample("supersimplex-2d-8oct", source2b); });
+    threads.emplace_back([&] { make_sample("supersimplex-3d-xy-8oct", [&] (auto p) { return source3b(Double3(p.x(), p.y(), 0.0)); }); });
+    threads.emplace_back([&] { make_sample("supersimplex-3d-xz-8oct", [&] (auto p) { return source3b(Double3(p.x(), 0.0, p.y())); }); });
+    threads.emplace_back([&] { make_sample("supersimplex-3d-yz-8oct", [&] (auto p) { return source3b(Double3(0.0, p.x(), p.y())); }); });
+
+    for (auto& t: threads)
+        t.join();
+
+}

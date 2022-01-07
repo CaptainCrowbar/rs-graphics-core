@@ -81,6 +81,7 @@ int main(int argc, char** argv) {
     UNIT_TEST(rs_graphics_core_noise_result_stability)
     UNIT_TEST(rs_graphics_core_noise_multiple_sources)
     UNIT_TEST(rs_graphics_core_noise_statistics)
+    UNIT_TEST(rs_graphics_core_noise_sample_renders)
 
     // unit-test.cpp
 
