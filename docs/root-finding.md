@@ -18,7 +18,7 @@ namespace RS::Graphics::Core;
 template <typename T> class RootFinder {
 public:
     virtual ~RootFinder() noexcept;
-    T solve(T y, T x);
+    T solve(T y = 0, T x = 0);
     T solve(T y, T x1, T x2);
     T epsilon() const noexcept;
     void set_epsilon(T e) noexcept;

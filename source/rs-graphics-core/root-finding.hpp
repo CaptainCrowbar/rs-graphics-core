@@ -13,7 +13,7 @@ namespace RS::Graphics::Core {
     public:
         static_assert(std::is_floating_point_v<T>);
         virtual ~RootFinder() noexcept {}
-        T solve(T y, T x) { return do_solve(y, x, x + T(1)); }
+        T solve(T y = 0, T x = 0) { return do_solve(y, x, x + T(1)); }
         T solve(T y, T x1, T x2) { return do_solve(y, x1, x2); }
         T epsilon() const noexcept { return epsilon_; }
         void set_epsilon(T e) noexcept { epsilon_ = e; }
