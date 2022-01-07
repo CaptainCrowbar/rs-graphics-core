@@ -61,8 +61,8 @@ call to `solve()`. Initially they will both return 0.
 ## Newton-Raphson algorithm
 
 ```c++
-template <typename T, typename F, typename DF> class NewtonRaphson: public RootFinder<T> {
-public:
+template <typename T, typename F, typename DF>
+class NewtonRaphson: public RootFinder<T> {
     NewtonRaphson(F f, DF df);
 };
 ```
@@ -72,7 +72,8 @@ This implements the
 find a root of a function. The arguments are the function and its derivative.
 
 ```c++
-template <typename T, typename F, typename DF> std::unique_ptr<RootFinder<T>> newton_raphson(F f, DF df);
+template <typename T, typename F, typename DF>
+    std::unique_ptr<RootFinder<T>> newton_raphson(F f, DF df);
 ```
 
 This function can be used to construct a root finder more simply (note that
