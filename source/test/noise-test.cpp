@@ -2,13 +2,13 @@
 #include "rs-graphics-core/colour.hpp"
 #include "rs-graphics-core/vector.hpp"
 #include "rs-format/format.hpp"
+#include "rs-tl/thread.hpp"
 #include "rs-unit-test.hpp"
 #include <algorithm>
 #include <cmath>
 #include <iostream>
 #include <random>
 #include <string>
-#include <thread>
 #include <vector>
 
 #define STB_IMAGE_WRITE_IMPLEMENTATION
@@ -36,6 +36,7 @@
 #endif
 
 using namespace RS::Graphics::Core;
+using namespace RS::TL;
 
 void test_rs_graphics_core_noise_result_stability() {
 
@@ -309,7 +310,7 @@ void test_rs_graphics_core_noise_sample_renders() {
     NoiseSource<double, 3, 1> source3a(1, 1, 1, seed);
     NoiseSource<double, 3, 1> source3b(1, 0.5, max_octaves, seed);
 
-    std::vector<std::thread> threads;
+    std::vector<Thread> threads;
 
     threads.emplace_back([&] { make_sample("supersimplex-2d-1oct", source2a); });
     threads.emplace_back([&] { make_sample("supersimplex-3d-xy-1oct", [&] (auto p) { return source3a(Double3(p.x(), p.y(), 0.0)); }); });
@@ -319,8 +320,5 @@ void test_rs_graphics_core_noise_sample_renders() {
     threads.emplace_back([&] { make_sample("supersimplex-3d-xy-8oct", [&] (auto p) { return source3b(Double3(p.x(), p.y(), 0.0)); }); });
     threads.emplace_back([&] { make_sample("supersimplex-3d-xz-8oct", [&] (auto p) { return source3b(Double3(p.x(), 0.0, p.y())); }); });
     threads.emplace_back([&] { make_sample("supersimplex-3d-yz-8oct", [&] (auto p) { return source3b(Double3(0.0, p.x(), p.y())); }); });
-
-    for (auto& t: threads)
-        t.join();
 
 }
