@@ -30,6 +30,8 @@ Mathematical constants.
 ## Algorithms
 
 Unless otherwise stated, these are defined for all primitive arithmetic types.
+Most of them do not statically check this, to allow them to be used with
+non-standard integer types.
 
 ```c++
 template <typename T> constexpr T const_abs(T x) noexcept;
@@ -81,9 +83,8 @@ template <typename T> constexpr T symmetric_remainder(T x, T y) noexcept;
 ```
 
 These perform symmetric division, where the remainder is in the range
-`(-|y|/2,|y|/2]`. `T` must be a floating point type or a signed integer.
-Behaviour is undefined if `y=0`, or if the correct result is outside the range
-of `T`.
+`(-|y|/2,|y|/2]`. Behaviour is undefined if `y<=0` or if the correct result is
+outside the range of `T`.
 
 ```c++
 template <typename T> constexpr T to_degrees(T rad) noexcept;

@@ -48,7 +48,6 @@ namespace RS::Graphics::Core {
 
     template <typename T>
     constexpr std::pair<T, T> euclidean_divide(T x, T y) noexcept {
-        static_assert(std::is_arithmetic_v<T>);
         static_assert(! std::is_same_v<T, bool>);
         T q, r;
         if constexpr (std::is_floating_point_v<T>) {
@@ -84,7 +83,6 @@ namespace RS::Graphics::Core {
 
     template <typename T>
     constexpr T fraction(T x) noexcept {
-        static_assert(std::is_arithmetic_v<T>);
         if constexpr (std::is_floating_point_v<T>) {
             using limits64 = std::numeric_limits<int64_t>;
             if (x >= T(limits64::max()) || x <= T(limits64::min()))
@@ -106,8 +104,6 @@ namespace RS::Graphics::Core {
 
     template <typename T>
     constexpr std::pair<T, T> symmetric_divide(T x, T y) noexcept {
-        static_assert(std::is_arithmetic_v<T>);
-        static_assert(std::is_signed_v<T>);
         auto qr = euclidean_divide(x, y);
         T ay = y < T(0) ? - y : y;
         if (T(2) * qr.second > ay) {
