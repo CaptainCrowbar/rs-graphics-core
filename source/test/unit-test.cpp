@@ -27,6 +27,7 @@ int main(int argc, char** argv) {
     UNIT_TEST(rs_graphics_core_integer_vector_construction)
     UNIT_TEST(rs_graphics_core_integer_vector_arithmetic)
     UNIT_TEST(rs_graphics_core_integer_vector_hash)
+    UNIT_TEST(rs_graphics_core_integer_vector_total_order)
     UNIT_TEST(rs_graphics_core_floating_vector_construction)
     UNIT_TEST(rs_graphics_core_floating_vector_arithmetic)
 

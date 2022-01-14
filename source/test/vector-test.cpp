@@ -2,6 +2,7 @@
 #include "rs-format/format.hpp"
 #include "rs-unit-test.hpp"
 #include "test/vector-test.hpp"
+#include <set>
 #include <tuple>
 #include <unordered_set>
 
@@ -125,6 +126,25 @@ void test_rs_graphics_core_integer_vector_hash() {
     TEST_EQUAL(set.count(v1), 1u);
     TEST_EQUAL(set.count(v2), 1u);
     TEST_EQUAL(set.count(v3), 0u);
+
+}
+
+void test_rs_graphics_core_integer_vector_total_order() {
+
+    std::set<Int3> set;
+    Int3 v1, v2, v3;
+
+    TRY((v1 = {1,2,3}));
+    TRY((v2 = {4,5,6}));
+    TRY((v3 = {7,8,9}));
+    TRY(set.insert(v1));
+    TRY(set.insert(v2));
+    TRY(set.insert(v1));
+    TEST_EQUAL(set.size(), 2u);
+    TEST_EQUAL(set.count(v1), 1u);
+    TEST_EQUAL(set.count(v2), 1u);
+    TEST_EQUAL(set.count(v3), 0u);
+    TEST_EQUAL(format_range(set), "[[1,2,3],[4,5,6]]");
 
 }
 

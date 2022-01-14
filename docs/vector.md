@@ -257,3 +257,15 @@ constexpr std::pair<Vector, Vector>
 
 These perform element-wise `clamp()`, `min()`, and `max()` operations on
 vectors.
+
+```c++
+template <typename T, int N>
+    struct std::greater<RS::Graphics::Core::Vector<T, N>>;
+template <typename T, int N>
+    struct std::less<RS::Graphics::Core::Vector<T, N>>;
+```
+
+Ordered comparison operators are not provided for vectors, since they have no
+intrinsic order, but specializations of `std::greater` and `std::less` are
+supplied to allow vectors to be used as the keys of a map. These perform
+simple lexicographical comparison.

@@ -207,4 +207,18 @@ namespace std {
         size_t operator()(const RS::Graphics::Core::Vector<T, N>& v) const noexcept { return v.hash(); }
     };
 
+    template <typename T, int N>
+    struct greater<RS::Graphics::Core::Vector<T, N>> {
+        bool operator()(const RS::Graphics::Core::Vector<T, N>& x, const RS::Graphics::Core::Vector<T, N>& y) const noexcept {
+            return std::lexicographical_compare(x.begin(), x.end(), y.begin(), y.end(), std::greater<T>());
+        }
+    };
+
+    template <typename T, int N>
+    struct less<RS::Graphics::Core::Vector<T, N>> {
+        bool operator()(const RS::Graphics::Core::Vector<T, N>& x, const RS::Graphics::Core::Vector<T, N>& y) const noexcept {
+            return std::lexicographical_compare(x.begin(), x.end(), y.begin(), y.end(), std::less<T>());
+        }
+    };
+
 }
