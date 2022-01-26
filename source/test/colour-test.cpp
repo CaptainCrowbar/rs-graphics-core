@@ -3,6 +3,7 @@
 #include "rs-unit-test.hpp"
 #include "test/colour-space-test.hpp"
 #include "test/vector-test.hpp"
+#include <stdexcept>
 
 using namespace RS::Graphics::Core;
 using namespace RS::Graphics::Core::Test;
@@ -336,6 +337,63 @@ void test_rs_graphics_core_colour_conversion_between_representations() {
     TRY(convert_colour(cdr, cuar));   TEST_VECTORS(cuar, Int4(0xffff,0x9999,0x6666,0x3333),  0);
     TRY(convert_colour(cdra, cuar));  TEST_VECTORS(cuar, Int4(0xcccc,0x9999,0x6666,0x3333),  0);
     TRY(convert_colour(cdar, cuar));  TEST_VECTORS(cuar, Int4(0xcccc,0x9999,0x6666,0x3333),  0);
+
+}
+
+void test_rs_graphics_core_colour_hex_representation() {
+
+    Rgb8 a;
+    Rgba8 b;
+    Rgbd c;
+    Rgbad d;
+
+    TRY(a = Rgb8("123456"));
+    TEST_EQUAL(a.R(), 0x12);
+    TEST_EQUAL(a.G(), 0x34);
+    TEST_EQUAL(a.B(), 0x56);
+    TEST_EQUAL(a.alpha(), 0xff);
+    TRY(b = Rgba8("123456"));
+    TEST_EQUAL(a.R(), 0x12);
+    TEST_EQUAL(a.G(), 0x34);
+    TEST_EQUAL(a.B(), 0x56);
+    TEST_EQUAL(a.alpha(), 0xff);
+    TRY(a = Rgb8("(789abcde)"));
+    TEST_EQUAL(a.R(), 0x78);
+    TEST_EQUAL(a.G(), 0x9a);
+    TEST_EQUAL(a.B(), 0xbc);
+    TEST_EQUAL(a.alpha(), 0xff);
+    TRY(b = Rgba8("(789abcde)"));
+    TEST_EQUAL(b.R(), 0x78);
+    TEST_EQUAL(b.G(), 0x9a);
+    TEST_EQUAL(b.B(), 0xbc);
+    TEST_EQUAL(b.alpha(), 0xde);
+
+    TRY(c = Rgbd("123456"));
+    TEST_NEAR(c.R(), 0.070588, 1e-6);
+    TEST_NEAR(c.G(), 0.203922, 1e-6);
+    TEST_NEAR(c.B(), 0.337255, 1e-6);
+    TEST_EQUAL(c.alpha(), 1);
+    TRY(d = Rgbad("123456"));
+    TEST_NEAR(d.R(), 0.070588, 1e-6);
+    TEST_NEAR(d.G(), 0.203922, 1e-6);
+    TEST_NEAR(d.B(), 0.337255, 1e-6);
+    TEST_EQUAL(d.alpha(), 1);
+    TRY(c = Rgbd("(789abcde)"));
+    TEST_NEAR(c.R(), 0.470588, 1e-6);
+    TEST_NEAR(c.G(), 0.603922, 1e-6);
+    TEST_NEAR(c.B(), 0.737255, 1e-6);
+    TEST_EQUAL(c.alpha(), 1);
+    TRY(d = Rgbad("(789abcde)"));
+    TEST_NEAR(d.R(), 0.470588, 1e-6);
+    TEST_NEAR(d.G(), 0.603922, 1e-6);
+    TEST_NEAR(d.B(), 0.737255, 1e-6);
+    TEST_NEAR(d.alpha(), 0.870588, 1e-6);
+
+    TEST_THROW(Rgba8(""), std::invalid_argument);
+    TEST_THROW(Rgba8("12345"), std::invalid_argument);
+    TEST_THROW(Rgba8("1234567"), std::invalid_argument);
+    TEST_THROW(Rgba8("123456789"), std::invalid_argument);
+    TEST_THROW(Rgba8("abcdefgh"), std::invalid_argument);
 
 }
 

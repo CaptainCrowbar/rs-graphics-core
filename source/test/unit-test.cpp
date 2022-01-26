@@ -76,6 +76,7 @@ int main(int argc, char** argv) {
     UNIT_TEST(rs_graphics_core_colour_premultiplied_alpha)
     UNIT_TEST(rs_graphics_core_colour_conversion_between_colour_spaces)
     UNIT_TEST(rs_graphics_core_colour_conversion_between_representations)
+    UNIT_TEST(rs_graphics_core_colour_hex_representation)
     UNIT_TEST(rs_graphics_core_colour_alpha_blending)
 
     // noise-test.cpp

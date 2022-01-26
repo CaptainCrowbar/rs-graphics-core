@@ -195,6 +195,17 @@ for the number of non-alpha channels, in which case the alpha channel is set
 to full opacity.
 
 ```c++
+explicit Colour::Colour(const std::string& str);
+```
+
+Constructor from a string, which is expected to hold a hexadecimal RGB or RGBA
+colour; this will be converted to the current colour representation. Leading
+and trailing punctuation or whitespace is ignored; apart from that, this
+constructor will throw `std::invalid_argument` if the argument contains
+anything other than 6 or 8 hex digits. If an alpha channel is present in the
+colour type but not in the string, it will be set to full opacity.
+
+```c++
 constexpr Colour::Colour(const Colour& c) noexcept;
 constexpr Colour::Colour(Colour&& c) noexcept;
 constexpr Colour::~Colour() noexcept;

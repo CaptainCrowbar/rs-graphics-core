@@ -5,9 +5,11 @@
 #include "rs-graphics-core/vector.hpp"
 #include "rs-format/enum.hpp"
 #include "rs-format/format.hpp"
+#include "rs-format/string.hpp"
 #include <functional>
 #include <limits>
 #include <ostream>
+#include <stdexcept>
 #include <string>
 #include <type_traits>
 
@@ -191,6 +193,7 @@ namespace RS::Graphics::Core {
         explicit constexpr Colour(vector_type v) noexcept: vec_(v) {}
         template <typename... Args> constexpr Colour(VT x, if_alpha_args_t<Args...> y, Args... args) noexcept;
         template <typename... Args> constexpr Colour(VT x, if_nonalpha_args_t<Args...> y, Args... args) noexcept;
+        explicit Colour(const std::string& str);
 
         #define RS_GRAPHICS_COLOUR_CHANNEL(Ch, Lit) \
             template <typename V2 = VT> \
@@ -506,6 +509,25 @@ namespace RS::Graphics::Core {
     static_assert(sizeof(sRgba16) == 8);
     static_assert(sizeof(sRgbaf) == 16);
     static_assert(sizeof(sRgbad) == 32);
+
+    template <typename VT, typename CS, ColourLayout CL>
+    Colour<VT, CS, CL>::Colour(const std::string& str) {
+        using namespace Format;
+        size_t i, j, k;
+        for (i = 0; i < str.size() && (ascii_ispunct(str[i]) || ascii_isspace(str[i])); ++i) {}
+        for (j = i; j < str.size() && ascii_isxdigit(str[j]); ++j) {}
+        for (k = j; k < str.size() && (ascii_ispunct(str[k]) || ascii_isspace(str[k])); ++k) {}
+        size_t len = j - i;
+        if (k < str.size() || (len != 6 && len != 8))
+            throw std::invalid_argument("Invalid colour: " + quote(str));
+        Rgba8 c = {0,0,0,255};
+        c.R() = to_uint8(str.substr(i, 2), 16);
+        c.G() = to_uint8(str.substr(i + 2, 2), 16);
+        c.B() = to_uint8(str.substr(i + 4, 2), 16);
+        if (len == 8)
+            c.alpha() = to_uint8(str.substr(i + 6, 2), 16);
+        convert_colour(c, *this);
+    }
 
 }
 
