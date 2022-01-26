@@ -248,12 +248,13 @@ namespace RS::Graphics::Core {
         constexpr Colour clamped() const noexcept;
         constexpr bool is_clamped() const noexcept;
         constexpr bool empty() const noexcept { return false; }
-        constexpr size_t size() const noexcept { return size_t(channels); }
         size_t hash() const noexcept { return vec_.hash(); }
+        std::string hex() const;
         template <typename V2 = VT> constexpr Colour
             multiply_alpha(std::enable_if<Detail::SfinaeTrue<V2, can_premultiply>::value>* = nullptr) const noexcept;
         template <typename V2 = VT> constexpr Colour
             unmultiply_alpha(std::enable_if<Detail::SfinaeTrue<V2, can_premultiply>::value>* = nullptr) const noexcept;
+        constexpr size_t size() const noexcept { return size_t(channels); }
         std::string str(RS::Format::FormatSpec spec = {}) const { return vec_.str(spec); }
         friend std::ostream& operator<<(std::ostream& out, const Colour& c) { return out << c.str(); }
 
@@ -289,6 +290,62 @@ namespace RS::Graphics::Core {
         template <typename... Args>
         constexpr Colour<VT, CS, CL>::Colour(VT x, if_nonalpha_args_t<Args...> y, Args... args) noexcept:
         vec_(VT(x), VT(y), VT(args)..., scale) {}
+
+        template <typename VT, typename CS, ColourLayout CL>
+        Colour<VT, CS, CL>::Colour(const std::string& str) {
+
+            static_assert(CS::is_rgb);
+
+            using namespace Format;
+
+            size_t i, j, k;
+
+            for (i = 0; i < str.size() && (ascii_ispunct(str[i]) || ascii_isspace(str[i])); ++i) {}
+            for (j = i; j < str.size() && ascii_isxdigit(str[j]); ++j) {}
+            for (k = j; k < str.size() && (ascii_ispunct(str[k]) || ascii_isspace(str[k])); ++k) {}
+
+            size_t len = j - i;
+
+            if (k < str.size() || (len != 6 && len != 8))
+                throw std::invalid_argument("Invalid colour: " + quote(str));
+
+            Vector<uint8_t, 4> u = {0,0,0,255};
+
+            u[0] = to_uint8(str.substr(i, 2), 16);
+            u[1] = to_uint8(str.substr(i + 2, 2), 16);
+            u[2] = to_uint8(str.substr(i + 4, 2), 16);
+
+            if (len == 8)
+                u[3] = to_uint8(str.substr(i + 6, 2), 16);
+
+            Vector<VT, 4> v;
+
+            if constexpr (std::is_same_v<VT, uint8_t>) {
+
+                v = u;
+
+            } else if constexpr (std::is_integral_v<VT> && std::is_signed_v<VT>) {
+
+                static constexpr double k = double(scale) / 255;
+                for (int i = 0; i < channels; ++i)
+                    v[i] = const_round<VT>(k * double(u[i]));
+
+            } else {
+
+                static constexpr VT k = scale / 255;
+                for (int i = 0; i < channels; ++i)
+                    v[i] = k * VT(u[i]);
+
+            }
+
+            R() = v[0];
+            G() = v[1];
+            B() = v[2];
+
+            if constexpr (has_alpha)
+                alpha() = v[3];
+
+        }
 
         template <typename VT, typename CS, ColourLayout CL>
         template <typename V2>
@@ -342,6 +399,23 @@ namespace RS::Graphics::Core {
                 if (alpha() < 0 || alpha() > scale)
                     return false;
             return true;
+        }
+
+        template <typename VT, typename CS, ColourLayout CL>
+        std::string Colour<VT, CS, CL>::hex() const {
+            static_assert(CS::is_rgb);
+            using namespace RS::Format::Literals;
+            static const auto format = has_alpha ? "{0:x2}{1:x2}{2:x2}{3:x2}"_fmt : "{0:x2}{1:x2}{2:x2}"_fmt;
+            Vector<VT, 4> v = {R(), G(), B(), alpha()};
+            Vector<uint8_t, 4> u;
+            if constexpr (std::is_same_v<VT, uint8_t>) {
+                u = v;
+            } else {
+                static constexpr double k = 255 / double(scale);
+                for (int i = 0; i < channels; ++i)
+                    u[i] = const_round<uint8_t>(k * double(v[i]));
+            }
+            return format(u[0], u[1], u[2], u[3]);
         }
 
         template <typename VT, typename CS, ColourLayout CL>
@@ -509,25 +583,6 @@ namespace RS::Graphics::Core {
     static_assert(sizeof(sRgba16) == 8);
     static_assert(sizeof(sRgbaf) == 16);
     static_assert(sizeof(sRgbad) == 32);
-
-    template <typename VT, typename CS, ColourLayout CL>
-    Colour<VT, CS, CL>::Colour(const std::string& str) {
-        using namespace Format;
-        size_t i, j, k;
-        for (i = 0; i < str.size() && (ascii_ispunct(str[i]) || ascii_isspace(str[i])); ++i) {}
-        for (j = i; j < str.size() && ascii_isxdigit(str[j]); ++j) {}
-        for (k = j; k < str.size() && (ascii_ispunct(str[k]) || ascii_isspace(str[k])); ++k) {}
-        size_t len = j - i;
-        if (k < str.size() || (len != 6 && len != 8))
-            throw std::invalid_argument("Invalid colour: " + quote(str));
-        Rgba8 c = {0,0,0,255};
-        c.R() = to_uint8(str.substr(i, 2), 16);
-        c.G() = to_uint8(str.substr(i + 2, 2), 16);
-        c.B() = to_uint8(str.substr(i + 4, 2), 16);
-        if (len == 8)
-            c.alpha() = to_uint8(str.substr(i + 6, 2), 16);
-        convert_colour(c, *this);
-    }
 
 }
 

@@ -199,11 +199,14 @@ explicit Colour::Colour(const std::string& str);
 ```
 
 Constructor from a string, which is expected to hold a hexadecimal RGB or RGBA
-colour; this will be converted to the current colour representation. Leading
-and trailing punctuation or whitespace is ignored; apart from that, this
-constructor will throw `std::invalid_argument` if the argument contains
-anything other than 6 or 8 hex digits. If an alpha channel is present in the
-colour type but not in the string, it will be set to full opacity.
+colour; this will be converted to the current colour representation. This
+will only compile for RGB colour spaces. The string is always assumed to be
+in RGB or RGBA order regardless of the colour type's internal layout order.
+
+Leading and trailing punctuation or whitespace is ignored; apart from that,
+this will throw `std::invalid_argument` if the argument contains anything
+other than 6 or 8 hex digits. If an alpha channel is present in the colour
+type but not in the string, it will be set to full opacity.
 
 ```c++
 constexpr Colour::Colour(const Colour& c) noexcept;
@@ -308,6 +311,16 @@ struct std::hash<Colour>
 ```
 
 Hash function.
+
+```c++
+std::string Colour::hex() const;
+```
+
+Returns the colour as a hex string, containing 6 or 8 digits, depending on
+whether the colour type has an alpha channel. The string is always in RGB or
+RGBA order regardless of the colour type's internal order. The output will be
+nonsense if the colour is out of gamut. This will only compile for RGB colour
+spaces.
 
 ```c++
 constexpr bool Colour::is_clamped() const noexcept;
