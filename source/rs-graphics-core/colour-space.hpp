@@ -72,7 +72,12 @@ namespace RS::Graphics::Core {
         static constexpr bool is_linear = false;
         static constexpr bool is_rgb = false;
         static constexpr ColourSpace shape = ColourSpace::unit;
-        template <typename T> static constexpr Vector<T, 3> from_base(Vector<T, 3> colour) noexcept {
+        template <typename T> static constexpr Vector<T, 3> from_base(Vector<T, 3> colour) noexcept;
+        template <typename T> static constexpr Vector<T, 3> to_base(Vector<T, 3> colour) noexcept;
+    };
+
+        template <typename T>
+        constexpr Vector<T, 3> CIExyY::from_base(Vector<T, 3> colour) noexcept {
             auto out = Vector<T, 3>::null();
             T sum = colour.x() + colour.y() + colour.z();
             if (sum != 0) {
@@ -82,7 +87,9 @@ namespace RS::Graphics::Core {
             }
             return out;
         }
-        template <typename T> static constexpr Vector<T, 3> to_base(Vector<T, 3> colour) noexcept {
+
+        template <typename T>
+        constexpr Vector<T, 3> CIExyY::to_base(Vector<T, 3> colour) noexcept {
             Vector<T, 3> out;
             T scale = colour.z() / colour.y();
             out.x() = scale * colour.x();
@@ -90,7 +97,6 @@ namespace RS::Graphics::Core {
             out.z() = scale * (1 - colour.x() - colour.y());
             return out;
         }
-    };
 
     class CIELab {
     public:
@@ -99,7 +105,20 @@ namespace RS::Graphics::Core {
         static constexpr bool is_linear = false;
         static constexpr bool is_rgb = false;
         static constexpr ColourSpace shape = ColourSpace::any;
-        template <typename T> static Vector<T, 3> from_base(Vector<T, 3> colour) noexcept {
+        template <typename T> static Vector<T, 3> from_base(Vector<T, 3> colour) noexcept;
+        template <typename T> static Vector<T, 3> to_base(Vector<T, 3> colour) noexcept;
+    private:
+        template <typename T> static constexpr Vector<T, 3> illuminant = {T(0.950489),T(1),T(1.088840)}; // D65
+        template <typename T> static constexpr T delta = T(6) / T(29);
+        template <typename T> static constexpr T c1 = delta<T> * delta<T> * delta<T>;
+        template <typename T> static constexpr T c2 = 3 * delta<T> * delta<T>;
+        template <typename T> static constexpr T c3 = T(4) / T(29);
+        template <typename T> static T f(T t) noexcept;
+        template <typename T> static T inverse_f(T t) noexcept;
+    };
+
+        template <typename T>
+        Vector<T, 3> CIELab::from_base(Vector<T, 3> colour) noexcept {
             Vector<T, 3> out;
             colour /= illuminant<T>;
             out[0] = 116 * f(colour.y()) - 16;
@@ -107,7 +126,9 @@ namespace RS::Graphics::Core {
             out[2] = 200 * (f(colour.y()) - f(colour.z()));
             return out;
         }
-        template <typename T> static Vector<T, 3> to_base(Vector<T, 3> colour) noexcept {
+
+        template <typename T>
+        Vector<T, 3> CIELab::to_base(Vector<T, 3> colour) noexcept {
             Vector<T, 3> out;
             T lx = (colour[0] + 16) / 116;
             out.x() = inverse_f(lx + colour[1] / 500);
@@ -115,25 +136,22 @@ namespace RS::Graphics::Core {
             out.z() = inverse_f(lx - colour[2] / 200);
             return out * illuminant<T>;
         }
-    private:
-        template <typename T> static constexpr Vector<T, 3> illuminant = {T(0.950489),T(1),T(1.088840)}; // D65
-        template <typename T> static constexpr T delta = T(6) / T(29);
-        template <typename T> static constexpr T c1 = delta<T> * delta<T> * delta<T>;
-        template <typename T> static constexpr T c2 = 3 * delta<T> * delta<T>;
-        template <typename T> static constexpr T c3 = T(4) / T(29);
-        template <typename T> static T f(T t) noexcept {
+
+        template <typename T>
+        T CIELab::f(T t) noexcept {
             if (t <= c1<T>)
                 return t / c2<T> + c3<T>;
             else
                 return std::cbrt(t);
         }
-        template <typename T> static T inverse_f(T t) noexcept {
+
+        template <typename T>
+        T CIELab::inverse_f(T t) noexcept {
             if (t <= delta<T>)
                 return c2<T> * (t - c3<T>);
             else
                 return t * t * t;
         }
-    };
 
     class CIELuv {
     public:
@@ -142,7 +160,23 @@ namespace RS::Graphics::Core {
         static constexpr bool is_linear = false;
         static constexpr bool is_rgb = false;
         static constexpr ColourSpace shape = ColourSpace::any;
-        template <typename T> static Vector<T, 3> from_base(Vector<T, 3> colour) noexcept {
+        template <typename T> static Vector<T, 3> from_base(Vector<T, 3> colour) noexcept;
+        template <typename T> static Vector<T, 3> to_base(Vector<T, 3> colour) noexcept;
+    private:
+        template <typename T> static constexpr Vector<T, 3> illuminant = {T(0.950489),T(1),T(1.088840)}; // D65
+        template <typename T> static constexpr T delta = T(6) / T(29);
+        template <typename T> static constexpr T c1 = delta<T> * delta<T> * delta<T>;
+        template <typename T> static constexpr T c2 = T(29) / T(3);
+        template <typename T> static constexpr T c3 = c2<T> * c2<T> * c2<T>;
+        template <typename T> static constexpr T c4 = 1 / c3<T>;
+        template <typename T> static constexpr T u_prime(Vector<T, 3> xyz) noexcept;
+        template <typename T> static constexpr T v_prime(Vector<T, 3> xyz) noexcept;
+        template <typename T> static constexpr T u_prime_n = u_prime(illuminant<T>);
+        template <typename T> static constexpr T v_prime_n = v_prime(illuminant<T>);
+    };
+
+        template <typename T>
+        Vector<T, 3> CIELuv::from_base(Vector<T, 3> colour) noexcept {
             Vector<T, 3> out;
             T y = colour.y() / illuminant<T>.y();
             if (y <= c1<T>)
@@ -153,7 +187,9 @@ namespace RS::Graphics::Core {
             out[2] = 13 * out[0] * (v_prime(colour) - v_prime_n<T>);
             return out;
         }
-        template <typename T> static Vector<T, 3> to_base(Vector<T, 3> colour) noexcept {
+
+        template <typename T>
+        Vector<T, 3> CIELuv::to_base(Vector<T, 3> colour) noexcept {
             Vector<T, 3> out;
             T u = colour[1] / (13 * colour[0]) + u_prime_n<T>;
             T v = colour[2] / (13 * colour[0]) + v_prime_n<T>;
@@ -166,22 +202,16 @@ namespace RS::Graphics::Core {
             out[2] = out[1] * (12 - 3 * u - 20 * v) / (4 * v);
             return out;
         }
-    private:
-        template <typename T> static constexpr Vector<T, 3> illuminant = {T(0.950489),T(1),T(1.088840)}; // D65
-        template <typename T> static constexpr T delta = T(6) / T(29);
-        template <typename T> static constexpr T c1 = delta<T> * delta<T> * delta<T>;
-        template <typename T> static constexpr T c2 = T(29) / T(3);
-        template <typename T> static constexpr T c3 = c2<T> * c2<T> * c2<T>;
-        template <typename T> static constexpr T c4 = 1 / c3<T>;
-        template <typename T> static constexpr T u_prime(Vector<T, 3> xyz) noexcept {
+
+        template <typename T>
+        constexpr T CIELuv::u_prime(Vector<T, 3> xyz) noexcept {
             return 4 * xyz.x() / (xyz.x() + 15 * xyz.y() + 3 * xyz.z());
         }
-        template <typename T> static constexpr T v_prime(Vector<T, 3> xyz) noexcept {
+
+        template <typename T>
+        constexpr T CIELuv::v_prime(Vector<T, 3> xyz) noexcept {
             return 9 * xyz.y() / (xyz.x() + 15 * xyz.y() + 3 * xyz.z());
         }
-        template <typename T> static constexpr T u_prime_n = u_prime(illuminant<T>);
-        template <typename T> static constexpr T v_prime_n = v_prime(illuminant<T>);
-    };
 
     template <int64_t M00, int64_t M01, int64_t M02,
         int64_t M10, int64_t M11, int64_t M12,
@@ -194,12 +224,8 @@ namespace RS::Graphics::Core {
         static constexpr bool is_linear = true;
         static constexpr bool is_rgb = true;
         static constexpr ColourSpace shape = ColourSpace::unit;
-        template <typename T> static constexpr Vector<T, 3> from_base(Vector<T, 3> colour) noexcept {
-            return xyz_to_rgb_matrix<T> * colour;
-        }
-        template <typename T> static constexpr Vector<T, 3> to_base(Vector<T, 3> colour) noexcept {
-            return rgb_to_xyz_matrix<T> * colour;
-        }
+        template <typename T> static constexpr Vector<T, 3> from_base(Vector<T, 3> colour) noexcept { return xyz_to_rgb_matrix<T> * colour; }
+        template <typename T> static constexpr Vector<T, 3> to_base(Vector<T, 3> colour) noexcept { return rgb_to_xyz_matrix<T> * colour; }
     private:
         template <typename T> static constexpr auto rgb_to_xyz_matrix = Matrix<T, 3, MatrixLayout::row>
             (T(M00), T(M01), T(M02), T(M10), T(M11), T(M12), T(M20), T(M21), T(M22)) / T(Divisor);
@@ -214,19 +240,27 @@ namespace RS::Graphics::Core {
         static constexpr bool is_linear = false;
         static constexpr bool is_rgb = true;
         static constexpr ColourSpace shape = ColourSpace::unit;
-        template <typename T> static Vector<T, 3> from_base(Vector<T, 3> colour) noexcept {
-            static constexpr T inverse_gamma = T(GammaDenominator) / T(GammaNumerator);
+        template <typename T> static Vector<T, 3> from_base(Vector<T, 3> colour) noexcept;
+        template <typename T> static Vector<T, 3> to_base(Vector<T, 3> colour) noexcept;
+    };
+
+        template <typename WS, int64_t GN, int64_t GD>
+        template <typename T>
+        Vector<T, 3> NonlinearSpace<WS, GN, GD>::from_base(Vector<T, 3> colour) noexcept {
+            static constexpr T inverse_gamma = T(GD) / T(GN);
             for (auto& c: colour)
                 c = std::pow(std::max(c, T(0)), inverse_gamma);
             return colour;
         }
-        template <typename T> static Vector<T, 3> to_base(Vector<T, 3> colour) noexcept {
-            static constexpr T gamma = T(GammaNumerator) / T(GammaDenominator);
+
+        template <typename WS, int64_t GN, int64_t GD>
+        template <typename T>
+        Vector<T, 3> NonlinearSpace<WS, GN, GD>::to_base(Vector<T, 3> colour) noexcept {
+            static constexpr T gamma = T(GN) / T(GD);
             for (auto& c: colour)
                 c = std::pow(std::max(c, T(0)), gamma);
             return colour;
         }
-    };
 
     using LinearAdobeRGB = WorkingSpace<
          5'767'309,  1'855'540,  1'881'852,
@@ -260,7 +294,12 @@ namespace RS::Graphics::Core {
         static constexpr bool is_linear = false;
         static constexpr bool is_rgb = true;
         static constexpr ColourSpace shape = ColourSpace::unit;
-        template <typename T> static Vector<T, 3> from_base(Vector<T, 3> colour) noexcept {
+        template <typename T> static Vector<T, 3> from_base(Vector<T, 3> colour) noexcept;
+        template <typename T> static Vector<T, 3> to_base(Vector<T, 3> colour) noexcept;
+    };
+
+        template <typename T>
+        Vector<T, 3> sRGB::from_base(Vector<T, 3> colour) noexcept {
             static constexpr T a = T(0.003'130'8);
             static constexpr T b = T(12.92);
             static constexpr T c = T(0.055);
@@ -274,7 +313,9 @@ namespace RS::Graphics::Core {
             }
             return colour;
         }
-        template <typename T> static Vector<T, 3> to_base(Vector<T, 3> colour) noexcept {
+
+        template <typename T>
+        Vector<T, 3> sRGB::to_base(Vector<T, 3> colour) noexcept {
             static constexpr T a = T(0.040'45);
             static constexpr T b = 1 / T(12.92);
             static constexpr T c = T(0.055);
@@ -288,7 +329,6 @@ namespace RS::Graphics::Core {
             }
             return colour;
         }
-    };
 
     using LinearProPhoto = WorkingSpace<
          7'976'749,  1'351'917,    313'534,
@@ -304,7 +344,12 @@ namespace RS::Graphics::Core {
         static constexpr bool is_linear = false;
         static constexpr bool is_rgb = true;
         static constexpr ColourSpace shape = ColourSpace::unit;
-        template <typename T> static Vector<T, 3> from_base(Vector<T, 3> colour) noexcept {
+        template <typename T> static Vector<T, 3> from_base(Vector<T, 3> colour) noexcept;
+        template <typename T> static Vector<T, 3> to_base(Vector<T, 3> colour) noexcept;
+    };
+
+        template <typename T>
+        Vector<T, 3> ProPhoto::from_base(Vector<T, 3> colour) noexcept {
             static constexpr T et = 1 / T(512);
             static constexpr T ig = 1 / T(1.8);
             for (auto& x: colour) {
@@ -315,7 +360,9 @@ namespace RS::Graphics::Core {
             }
             return colour;
         }
-        template <typename T> static Vector<T, 3> to_base(Vector<T, 3> colour) noexcept {
+
+        template <typename T>
+        Vector<T, 3> ProPhoto::to_base(Vector<T, 3> colour) noexcept {
             static constexpr T etx = 1 / T(32);
             static constexpr T g = T(1.8);
             for (auto& x: colour) {
@@ -326,7 +373,6 @@ namespace RS::Graphics::Core {
             }
             return colour;
         }
-    };
 
     namespace Detail {
 
@@ -369,7 +415,12 @@ namespace RS::Graphics::Core {
         static constexpr bool is_linear = false;
         static constexpr bool is_rgb = false;
         static constexpr ColourSpace shape = ColourSpace::polar;
-        template <typename T> static constexpr Vector<T, 3> from_base(Vector<T, 3> colour) noexcept {
+        template <typename T> static constexpr Vector<T, 3> from_base(Vector<T, 3> colour) noexcept;
+        template <typename T> static constexpr Vector<T, 3> to_base(Vector<T, 3> colour) noexcept;
+    };
+
+        template <typename T>
+        constexpr Vector<T, 3> HSL::from_base(Vector<T, 3> colour) noexcept {
             Vector<T, 3> out;
             T c, v;
             Detail::rgb_to_hcv(colour[0], colour[1], colour[2], out[0], c, v);
@@ -378,14 +429,15 @@ namespace RS::Graphics::Core {
                 out[1] = c / (T(1) - const_abs(T(2) * out[2] - T(1)));
             return out;
         }
-        template <typename T> static constexpr Vector<T, 3> to_base(Vector<T, 3> colour) noexcept {
+
+        template <typename T>
+        constexpr Vector<T, 3> HSL::to_base(Vector<T, 3> colour) noexcept {
             Vector<T, 3> out;
             T c = (T(1) - const_abs(T(2) * colour[2] - T(1))) * colour[1];
             T m = colour[2] - c / T(2);
             Detail::hcm_to_rgb(colour[0], c, m, out[0], out[1], out[2]);
             return out;
         }
-    };
 
     class HSV {
     public:
@@ -394,7 +446,12 @@ namespace RS::Graphics::Core {
         static constexpr bool is_linear = false;
         static constexpr bool is_rgb = false;
         static constexpr ColourSpace shape = ColourSpace::polar;
-        template <typename T> static constexpr Vector<T, 3> from_base(Vector<T, 3> colour) noexcept {
+        template <typename T> static constexpr Vector<T, 3> from_base(Vector<T, 3> colour) noexcept;
+        template <typename T> static constexpr Vector<T, 3> to_base(Vector<T, 3> colour) noexcept;
+    };
+
+        template <typename T>
+        constexpr Vector<T, 3> HSV::from_base(Vector<T, 3> colour) noexcept {
             Vector<T, 3> out;
             T c;
             Detail::rgb_to_hcv(colour[0], colour[1], colour[2], out[0], c, out[2]);
@@ -402,14 +459,15 @@ namespace RS::Graphics::Core {
                 out[1] = c / out[2];
             return out;
         }
-        template <typename T> static constexpr Vector<T, 3> to_base(Vector<T, 3> colour) noexcept {
+
+        template <typename T>
+        constexpr Vector<T, 3> HSV::to_base(Vector<T, 3> colour) noexcept {
             Vector<T, 3> out;
             T c = colour[2] * colour[1];
             T m = colour[2] - c;
             Detail::hcm_to_rgb(colour[0], c, m, out[0], out[1], out[2]);
             return out;
         }
-    };
 
     // Conversion functions
 

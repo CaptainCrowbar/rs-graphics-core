@@ -10,8 +10,8 @@ namespace RS::Graphics::Core {
 
     namespace Detail {
 
-        template <typename T, bool B> struct SfinaeBoolean {};
-        template <typename T> struct SfinaeBoolean<T, true>: std::true_type {};
+        template <typename T, bool B> struct SfinaeTrue {};
+        template <typename T> struct SfinaeTrue<T, true>: std::true_type {};
 
     }
 
