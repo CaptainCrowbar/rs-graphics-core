@@ -161,11 +161,11 @@ namespace RS::Graphics::Core {
         static constexpr int alpha_index = CL == ColourLayout::alpha_forward || CL == ColourLayout::alpha_reverse ? 0 :
             CL == ColourLayout::forward_alpha || CL == ColourLayout::reverse_alpha ? colour_space_channels : -1;
         static constexpr bool has_alpha = alpha_index != -1;
-        static constexpr bool can_premultiply = has_alpha && CS::is_linear && CS::is_rgb && CS::shape == ColourSpace::unit;
+        static constexpr bool can_premultiply = has_alpha && CS::is_linear && CS::is_rgb && CS::shape == ColourVolume::unit_cube;
         static constexpr int channels = colour_space_channels + int(has_alpha);
         static constexpr bool is_hdr = std::is_floating_point_v<VT>;
         static constexpr ColourLayout layout = CL;
-        static constexpr VT scale = is_hdr || CS::shape == ColourSpace::any ? VT(1) : std::numeric_limits<VT>::max();
+        static constexpr VT scale = is_hdr || CS::shape == ColourVolume::unbounded ? VT(1) : std::numeric_limits<VT>::max();
 
     private:
 

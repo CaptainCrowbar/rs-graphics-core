@@ -13,10 +13,10 @@ namespace RS::Graphics::Core {
 
     // Supporting types
 
-    RS_DEFINE_ENUM_CLASS(ColourSpace, int, 0,
-        any,   // No restrictions
-        unit,  // Space is a unit cube
-        polar  // First channel is modulo 1 (implies unit cube)
+    RS_DEFINE_ENUM_CLASS(ColourVolume, int, 0,
+        unbounded,  // No restrictions
+        unit_cube,  // Space is a unit cube
+        polar       // First channel is modulo 1 (implies unit cube)
     )
 
     // Utility functions
@@ -25,10 +25,10 @@ namespace RS::Graphics::Core {
     constexpr bool is_colour_in_gamut(Vector<T, N> colour, T scale = 1) noexcept {
         static_assert(std::is_arithmetic_v<T>);
         static_assert(N == int(CS::channels.size()));
-        if constexpr (CS::shape == ColourSpace::polar) {
+        if constexpr (CS::shape == ColourVolume::polar) {
             if (colour[0] < 0 || colour[0] > scale)
                 return false;
-        } else if constexpr (CS::shape == ColourSpace::unit) {
+        } else if constexpr (CS::shape == ColourVolume::unit_cube) {
             for (auto t: colour)
                 if (t < 0 || t > scale)
                     return false;
@@ -40,10 +40,10 @@ namespace RS::Graphics::Core {
     constexpr void clamp_colour(Vector<T, N>& colour, T scale = 1) noexcept {
         static_assert(std::is_arithmetic_v<T>);
         static_assert(N == int(CS::channels.size()));
-        if constexpr (CS::shape == ColourSpace::polar)
+        if constexpr (CS::shape == ColourVolume::polar)
             colour[0] = euclidean_remainder(colour[0], scale);
-        if constexpr (CS::shape != ColourSpace::any) {
-            for (int i = int(CS::shape == ColourSpace::polar); i < N; ++i) {
+        if constexpr (CS::shape != ColourVolume::unbounded) {
+            for (int i = int(CS::shape == ColourVolume::polar); i < N; ++i) {
                 if (colour[i] < 0)
                     colour[i] = 0;
                 else if (colour[i] > scale)
@@ -60,7 +60,7 @@ namespace RS::Graphics::Core {
         static constexpr std::array<char, 3> channels = {{ 'X', 'Y', 'Z' }};
         static constexpr bool is_linear = true;
         static constexpr bool is_rgb = false;
-        static constexpr ColourSpace shape = ColourSpace::unit;
+        static constexpr ColourVolume shape = ColourVolume::unit_cube;
         template <typename T> static constexpr Vector<T, 3> from_base(Vector<T, 3> colour) noexcept { return colour; }
         template <typename T> static constexpr Vector<T, 3> to_base(Vector<T, 3> colour) noexcept { return colour; }
     };
@@ -71,7 +71,7 @@ namespace RS::Graphics::Core {
         static constexpr std::array<char, 3> channels = {{ 'x', 'y', 'Y' }};
         static constexpr bool is_linear = false;
         static constexpr bool is_rgb = false;
-        static constexpr ColourSpace shape = ColourSpace::unit;
+        static constexpr ColourVolume shape = ColourVolume::unit_cube;
         template <typename T> static constexpr Vector<T, 3> from_base(Vector<T, 3> colour) noexcept;
         template <typename T> static constexpr Vector<T, 3> to_base(Vector<T, 3> colour) noexcept;
     };
@@ -104,7 +104,7 @@ namespace RS::Graphics::Core {
         static constexpr std::array<char, 3> channels = {{ 'L', 'a', 'b' }};
         static constexpr bool is_linear = false;
         static constexpr bool is_rgb = false;
-        static constexpr ColourSpace shape = ColourSpace::any;
+        static constexpr ColourVolume shape = ColourVolume::unbounded;
         template <typename T> static Vector<T, 3> from_base(Vector<T, 3> colour) noexcept;
         template <typename T> static Vector<T, 3> to_base(Vector<T, 3> colour) noexcept;
     private:
@@ -159,7 +159,7 @@ namespace RS::Graphics::Core {
         static constexpr std::array<char, 3> channels = {{ 'L', 'u', 'v' }};
         static constexpr bool is_linear = false;
         static constexpr bool is_rgb = false;
-        static constexpr ColourSpace shape = ColourSpace::any;
+        static constexpr ColourVolume shape = ColourVolume::unbounded;
         template <typename T> static Vector<T, 3> from_base(Vector<T, 3> colour) noexcept;
         template <typename T> static Vector<T, 3> to_base(Vector<T, 3> colour) noexcept;
     private:
@@ -223,7 +223,7 @@ namespace RS::Graphics::Core {
         static constexpr std::array<char, 3> channels = {{ 'R', 'G', 'B' }};
         static constexpr bool is_linear = true;
         static constexpr bool is_rgb = true;
-        static constexpr ColourSpace shape = ColourSpace::unit;
+        static constexpr ColourVolume shape = ColourVolume::unit_cube;
         template <typename T> static constexpr Vector<T, 3> from_base(Vector<T, 3> colour) noexcept { return xyz_to_rgb_matrix<T> * colour; }
         template <typename T> static constexpr Vector<T, 3> to_base(Vector<T, 3> colour) noexcept { return rgb_to_xyz_matrix<T> * colour; }
     private:
@@ -239,7 +239,7 @@ namespace RS::Graphics::Core {
         static constexpr std::array<char, 3> channels = {{ 'R', 'G', 'B' }};
         static constexpr bool is_linear = false;
         static constexpr bool is_rgb = true;
-        static constexpr ColourSpace shape = ColourSpace::unit;
+        static constexpr ColourVolume shape = ColourVolume::unit_cube;
         template <typename T> static Vector<T, 3> from_base(Vector<T, 3> colour) noexcept;
         template <typename T> static Vector<T, 3> to_base(Vector<T, 3> colour) noexcept;
     };
@@ -293,7 +293,7 @@ namespace RS::Graphics::Core {
         static constexpr std::array<char, 3> channels = {{ 'R', 'G', 'B' }};
         static constexpr bool is_linear = false;
         static constexpr bool is_rgb = true;
-        static constexpr ColourSpace shape = ColourSpace::unit;
+        static constexpr ColourVolume shape = ColourVolume::unit_cube;
         template <typename T> static Vector<T, 3> from_base(Vector<T, 3> colour) noexcept;
         template <typename T> static Vector<T, 3> to_base(Vector<T, 3> colour) noexcept;
     };
@@ -343,7 +343,7 @@ namespace RS::Graphics::Core {
         static constexpr std::array<char, 3> channels = {{ 'R', 'G', 'B' }};
         static constexpr bool is_linear = false;
         static constexpr bool is_rgb = true;
-        static constexpr ColourSpace shape = ColourSpace::unit;
+        static constexpr ColourVolume shape = ColourVolume::unit_cube;
         template <typename T> static Vector<T, 3> from_base(Vector<T, 3> colour) noexcept;
         template <typename T> static Vector<T, 3> to_base(Vector<T, 3> colour) noexcept;
     };
@@ -414,7 +414,7 @@ namespace RS::Graphics::Core {
         static constexpr std::array<char, 3> channels = {{ 'H', 'S', 'L' }};
         static constexpr bool is_linear = false;
         static constexpr bool is_rgb = false;
-        static constexpr ColourSpace shape = ColourSpace::polar;
+        static constexpr ColourVolume shape = ColourVolume::polar;
         template <typename T> static constexpr Vector<T, 3> from_base(Vector<T, 3> colour) noexcept;
         template <typename T> static constexpr Vector<T, 3> to_base(Vector<T, 3> colour) noexcept;
     };
@@ -445,7 +445,7 @@ namespace RS::Graphics::Core {
         static constexpr std::array<char, 3> channels = {{ 'H', 'S', 'V' }};
         static constexpr bool is_linear = false;
         static constexpr bool is_rgb = false;
-        static constexpr ColourSpace shape = ColourSpace::polar;
+        static constexpr ColourVolume shape = ColourVolume::polar;
         template <typename T> static constexpr Vector<T, 3> from_base(Vector<T, 3> colour) noexcept;
         template <typename T> static constexpr Vector<T, 3> to_base(Vector<T, 3> colour) noexcept;
     };

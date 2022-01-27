@@ -51,11 +51,11 @@ static constexpr bool CS::is_rgb;
 True if this is a Cartesian RGB-based colour space.
 
 ```c++
-static constexpr ColourSpace CS::shape;
+static constexpr ColourVolume CS::shape;
 ```
 
 A constant indicating the geometric properties of the colour space. The
-possible values of the `ColourSpace` enumeration are listed below.
+possible values of the `ColourVolume` enumeration are listed below.
 
 ```c++
 static Vector<T,N> CS::from_base(Vector<T,NB> colour);
@@ -114,10 +114,10 @@ colour space violates any of them:
 ## Supporting types
 
 ```c++
-enum class ColourSpace: int {
-    any,   // Channel values are unrestricted
-    unit,  // Valid colours are restricted to the unit cube
-    polar  // The first channel is circular (also implies unit cube)
+enum class ColourVolume: int {
+    unbounded,  // Channel values are unrestricted
+    unit_cube,  // Valid colours are restricted to the unit cube
+    polar       // The first channel is circular (also implies unit cube)
 };
 ```
 
@@ -160,7 +160,7 @@ class CIEXYZ {
     static constexpr std::array<char, 3> channels = { 'X', 'Y', 'Z' };
     static constexpr bool is_linear = true;
     static constexpr bool is_rgb = false;
-    static constexpr ColourSpace shape = ColourSpace::unit;
+    static constexpr ColourVolume shape = ColourVolume::unit_cube;
     template <typename T> static constexpr Vector<T, 3>
         from_base(Vector<T, 3> colour) noexcept { return colour; }
     template <typename T> static constexpr Vector<T, 3>
@@ -178,7 +178,7 @@ class CIExyY {
     static constexpr std::array<char, 3> channels = { 'x', 'y', 'Y' };
     static constexpr bool is_linear = false;
     static constexpr bool is_rgb = false;
-    static constexpr ColourSpace shape = ColourSpace::unit;
+    static constexpr ColourVolume shape = ColourVolume::unit_cube;
     template <typename T> static constexpr Vector<T, 3>
         from_base(Vector<T, 3> colour) noexcept;
     template <typename T> static constexpr Vector<T, 3>
@@ -196,7 +196,7 @@ class CIELab {
     static constexpr std::array<char, 3> channels = { 'L', 'a', 'b' };
     static constexpr bool is_linear = false;
     static constexpr bool is_rgb = false;
-    static constexpr ColourSpace shape = ColourSpace::any;
+    static constexpr ColourVolume shape = ColourVolume::unbounded;
     template <typename T> static Vector<T, 3>
         from_base(Vector<T, 3> colour) noexcept;
     template <typename T> static Vector<T, 3>
@@ -207,7 +207,7 @@ class CIELuv {
     static constexpr std::array<char, 3> channels = { 'L', 'u', 'v' };
     static constexpr bool is_linear = false;
     static constexpr bool is_rgb = false;
-    static constexpr ColourSpace shape = ColourSpace::any;
+    static constexpr ColourVolume shape = ColourVolume::unbounded;
     template <typename T> static Vector<T, 3>
         from_base(Vector<T, 3> colour) noexcept;
     template <typename T> static Vector<T, 3>
@@ -231,7 +231,7 @@ class WorkingSpace {
     static constexpr std::array<char, 3> channels = { 'R', 'G', 'B' };
     static constexpr bool is_linear = true;
     static constexpr bool is_rgb = true;
-    static constexpr ColourSpace shape = ColourSpace::unit;
+    static constexpr ColourVolume shape = ColourVolume::unit_cube;
     template <typename T> static constexpr Vector<T, 3>
         from_base(Vector<T, 3> colour) noexcept;
     template <typename T> static constexpr Vector<T, 3>
@@ -251,7 +251,7 @@ class NonlinearSpace {
     static constexpr std::array<char, 3> channels = { 'R', 'G', 'B' };
     static constexpr bool is_linear = false;
     static constexpr bool is_rgb = true;
-    static constexpr ColourSpace shape = ColourSpace::unit;
+    static constexpr ColourVolume shape = ColourVolume::unit_cube;
     template <typename T> static Vector<T, 3>
         from_base(Vector<T, 3> colour) noexcept;
     template <typename T> static Vector<T, 3>
@@ -279,7 +279,7 @@ class sRGB {
     static constexpr std::array<char, 3> channels = { 'R', 'G', 'B' };
     static constexpr bool is_linear = false;
     static constexpr bool is_rgb = true;
-    static constexpr ColourSpace shape = ColourSpace::unit;
+    static constexpr ColourVolume shape = ColourVolume::unit_cube;
     template <typename T> static Vector<T, 3>
         from_base(Vector<T, 3> colour) noexcept;
     template <typename T> static Vector<T, 3>
@@ -317,7 +317,7 @@ class ProPhoto {
     static constexpr std::array<char, 3> channels = { 'R', 'G', 'B' };
     static constexpr bool is_linear = false;
     static constexpr bool is_rgb = true;
-    static constexpr ColourSpace shape = ColourSpace::unit;
+    static constexpr ColourVolume shape = ColourVolume::unit_cube;
     template <typename T> static Vector<T, 3>
         from_base(Vector<T, 3> colour) noexcept;
     template <typename T> static Vector<T, 3>
@@ -351,7 +351,7 @@ class HSL {
     static constexpr std::array<char, 3> channels = { 'H', 'S', 'L' };
     static constexpr bool is_linear = false;
     static constexpr bool is_rgb = false;
-    static constexpr ColourSpace shape = ColourSpace::polar;
+    static constexpr ColourVolume shape = ColourVolume::polar;
     template <typename T> static constexpr Vector<T, 3>
         from_base(Vector<T, 3> colour) noexcept;
     template <typename T> static constexpr Vector<T, 3>
@@ -362,7 +362,7 @@ class HSV {
     static constexpr std::array<char, 3> channels = { 'H', 'S', 'V' };
     static constexpr bool is_linear = false;
     static constexpr bool is_rgb = false;
-    static constexpr ColourSpace shape = ColourSpace::polar;
+    static constexpr ColourVolume shape = ColourVolume::polar;
     template <typename T> static constexpr Vector<T, 3>
         from_base(Vector<T, 3> colour) noexcept;
     template <typename T> static constexpr Vector<T, 3>
