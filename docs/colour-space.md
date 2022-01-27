@@ -93,6 +93,10 @@ polar spaces such as HSL and HSV, I use a unit scale (i.e. a fraction of a
 circle) for the angular coordinate, instead of expressing it in radians or
 degrees.
 
+For polar spaces, the polar coordinate is always first, and follows the usual
+convention in which the zero angle corresponds to red, and the angle increases
+in the red-to-yellow direction.
+
 The term "working space" refers to the linear form of a nonlinear RGB space
 such as sRGB, before the transfer function ("gamma") has been applied. The
 base space of a nonlinear space should be the corresponding working space,
@@ -127,22 +131,22 @@ This is used to indicate the geometry of a colour space.
 
 ### List of classes
 
-| Colour space       | Base space         | Linear  | RGB  | Shape  | Description                                   |
-| ------------       | ----------         | ------  | ---  | -----  | -----------                                   |
-| `CIEXYZ`           | `CIEXYZ`           | Yes     | No   | Unit   | CIE 1931 XYZ colour space                     |
-| `CIExyY`           | `CIEXYZ`           | No      | No   | Unit   | CIE 1931 xyY colour space                     |
-| `CIELab`           | `CIEXYZ`           | No      | No   | Any    | CIE 1976 L\*a\*b\* colour space               |
-| `CIELuv`           | `CIEXYZ`           | No      | No   | Any    | CIE 1976 L\*u\*v\* colour space               |
-| `sRGB`             | `LinearRGB`        | No      | Yes  | Unit   | Widely used sRGB standard colour space        |
-| `LinearRGB`        | `CIEXYZ`           | Yes     | Yes  | Unit   | Linear RGB working space for sRGB             |
-| `AdobeRGB`         | `LinearAdobeRGB`   | No      | Yes  | Unit   | Adobe RGB (1998) colour space                 |
-| `LinearAdobeRGB`   | `CIEXYZ`           | Yes     | Yes  | Unit   | Working space for Adobe RGB                   |
-| `ProPhoto`         | `LinearProPhoto`   | No      | Yes  | Unit   | ProPhoto colour space (a.k.a. ROMM RGB)       |
-| `LinearProPhoto`   | `CIEXYZ`           | Yes     | Yes  | Unit   | Working space for ProPhoto                    |
-| `WideGamut`        | `LinearWideGamut`  | No      | Yes  | Unit   | Adobe Wide Gamut colour space (a.k.a. opRGB)  |
-| `LinearWideGamut`  | `CIEXYZ`           | Yes     | Yes  | Unit   | Working space for Wide Gamut                  |
-| `HSL`              | `LinearRGB`        | No      | No   | Polar  | Polar transformation of linear RGB            |
-| `HSV`              | `LinearRGB`        | No      | No   | Polar  | Polar transformation of linear RGB            |
+| Colour space       | Base space         | Linear  | RGB  | Shape      | Description                                   |
+| ------------       | ----------         | ------  | ---  | -----      | -----------                                   |
+| `CIEXYZ`           | `CIEXYZ`           | yes     | no   | unit cube  | CIE 1931 XYZ colour space                     |
+| `CIExyY`           | `CIEXYZ`           | no      | no   | unit cube  | CIE 1931 xyY colour space                     |
+| `CIELab`           | `CIEXYZ`           | no      | no   | unbounded  | CIE 1976 L\*a\*b\* colour space               |
+| `CIELuv`           | `CIEXYZ`           | no      | no   | unbounded  | CIE 1976 L\*u\*v\* colour space               |
+| `sRGB`             | `LinearRGB`        | no      | yes  | unit cube  | Widely used sRGB standard colour space        |
+| `LinearRGB`        | `CIEXYZ`           | yes     | yes  | unit cube  | Linear RGB working space for sRGB             |
+| `AdobeRGB`         | `LinearAdobeRGB`   | no      | yes  | unit cube  | Adobe RGB (1998) colour space                 |
+| `LinearAdobeRGB`   | `CIEXYZ`           | yes     | yes  | unit cube  | Working space for Adobe RGB                   |
+| `ProPhoto`         | `LinearProPhoto`   | no      | yes  | unit cube  | ProPhoto colour space (a.k.a. ROMM RGB)       |
+| `LinearProPhoto`   | `CIEXYZ`           | yes     | yes  | unit cube  | Working space for ProPhoto                    |
+| `WideGamut`        | `LinearWideGamut`  | no      | yes  | unit cube  | Adobe Wide Gamut colour space (a.k.a. opRGB)  |
+| `LinearWideGamut`  | `CIEXYZ`           | yes     | yes  | unit cube  | Working space for Wide Gamut                  |
+| `HSL`              | `LinearRGB`        | no      | no   | polar      | Polar transformation of linear RGB            |
+| `HSV`              | `LinearRGB`        | no      | no   | polar      | Polar transformation of linear RGB            |
 
 ### Relationship diagram
 
@@ -215,7 +219,7 @@ class CIELuv {
 };
 ```
 
-CIE 1976 L\*a\*b\*  and L\*u\*v\* colour spaces.
+CIE 1976 L\*a\*b\* and L\*u\*v\* colour spaces.
 
 ### RGB colour spaces
 
