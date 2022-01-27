@@ -14,9 +14,10 @@ namespace RS::Graphics::Core {
     // Supporting types
 
     RS_DEFINE_ENUM_CLASS(ColourVolume, int, 0,
-        unbounded,  // No restrictions
-        unit_cube,  // Space is a unit cube
-        polar       // First channel is modulo 1 (implies unit cube)
+        unbounded,  // Channel values are unrestricted
+        unit_cube,  // Valid colours are restricted to the unit cube
+        polar,      // First channel is circular
+        unit_polar  // First channel is circular; others are unit intervals
     )
 
     // Utility functions
@@ -25,13 +26,13 @@ namespace RS::Graphics::Core {
     constexpr bool is_colour_in_gamut(Vector<T, N> colour, T scale = 1) noexcept {
         static_assert(std::is_arithmetic_v<T>);
         static_assert(N == int(CS::channels.size()));
-        if constexpr (CS::shape == ColourVolume::polar) {
-            if (colour[0] < 0 || colour[0] > scale)
-                return false;
-        } else if constexpr (CS::shape == ColourVolume::unit_cube) {
+        if constexpr (CS::shape == ColourVolume::unit_cube) {
             for (auto t: colour)
                 if (t < 0 || t > scale)
                     return false;
+        } else if constexpr (CS::shape == ColourVolume::polar || CS::shape == ColourVolume::unit_polar) {
+            if (colour[0] < 0 || colour[0] > scale)
+                return false;
         }
         return true;
     }
@@ -40,10 +41,10 @@ namespace RS::Graphics::Core {
     constexpr void clamp_colour(Vector<T, N>& colour, T scale = 1) noexcept {
         static_assert(std::is_arithmetic_v<T>);
         static_assert(N == int(CS::channels.size()));
-        if constexpr (CS::shape == ColourVolume::polar)
+        if constexpr (CS::shape == ColourVolume::polar || CS::shape == ColourVolume::unit_polar)
             colour[0] = euclidean_remainder(colour[0], scale);
-        if constexpr (CS::shape != ColourVolume::unbounded) {
-            for (int i = int(CS::shape == ColourVolume::polar); i < N; ++i) {
+        if constexpr (CS::shape == ColourVolume::unit_cube || CS::shape == ColourVolume::unit_polar) {
+            for (int i = int(CS::shape == ColourVolume::unit_polar); i < N; ++i) {
                 if (colour[i] < 0)
                     colour[i] = 0;
                 else if (colour[i] > scale)
@@ -414,7 +415,7 @@ namespace RS::Graphics::Core {
         static constexpr std::array<char, 3> channels = {{ 'H', 'S', 'L' }};
         static constexpr bool is_linear = false;
         static constexpr bool is_rgb = false;
-        static constexpr ColourVolume shape = ColourVolume::polar;
+        static constexpr ColourVolume shape = ColourVolume::unit_polar;
         template <typename T> static constexpr Vector<T, 3> from_base(Vector<T, 3> colour) noexcept;
         template <typename T> static constexpr Vector<T, 3> to_base(Vector<T, 3> colour) noexcept;
     };
@@ -445,7 +446,7 @@ namespace RS::Graphics::Core {
         static constexpr std::array<char, 3> channels = {{ 'H', 'S', 'V' }};
         static constexpr bool is_linear = false;
         static constexpr bool is_rgb = false;
-        static constexpr ColourVolume shape = ColourVolume::polar;
+        static constexpr ColourVolume shape = ColourVolume::unit_polar;
         template <typename T> static constexpr Vector<T, 3> from_base(Vector<T, 3> colour) noexcept;
         template <typename T> static constexpr Vector<T, 3> to_base(Vector<T, 3> colour) noexcept;
     };

@@ -121,7 +121,8 @@ colour space violates any of them:
 enum class ColourVolume: int {
     unbounded,  // Channel values are unrestricted
     unit_cube,  // Valid colours are restricted to the unit cube
-    polar       // The first channel is circular (also implies unit cube)
+    polar,      // First channel is circular
+    unit_polar  // First channel is circular; others are unit intervals
 };
 ```
 
@@ -131,22 +132,22 @@ This is used to indicate the geometry of a colour space.
 
 ### List of classes
 
-| Colour space       | Base space         | Linear  | RGB  | Shape      | Description                                   |
-| ------------       | ----------         | ------  | ---  | -----      | -----------                                   |
-| `CIEXYZ`           | `CIEXYZ`           | yes     | no   | unit cube  | CIE 1931 XYZ colour space                     |
-| `CIExyY`           | `CIEXYZ`           | no      | no   | unit cube  | CIE 1931 xyY colour space                     |
-| `CIELab`           | `CIEXYZ`           | no      | no   | unbounded  | CIE 1976 L\*a\*b\* colour space               |
-| `CIELuv`           | `CIEXYZ`           | no      | no   | unbounded  | CIE 1976 L\*u\*v\* colour space               |
-| `sRGB`             | `LinearRGB`        | no      | yes  | unit cube  | Widely used sRGB standard colour space        |
-| `LinearRGB`        | `CIEXYZ`           | yes     | yes  | unit cube  | Linear RGB working space for sRGB             |
-| `AdobeRGB`         | `LinearAdobeRGB`   | no      | yes  | unit cube  | Adobe RGB (1998) colour space                 |
-| `LinearAdobeRGB`   | `CIEXYZ`           | yes     | yes  | unit cube  | Working space for Adobe RGB                   |
-| `ProPhoto`         | `LinearProPhoto`   | no      | yes  | unit cube  | ProPhoto colour space (a.k.a. ROMM RGB)       |
-| `LinearProPhoto`   | `CIEXYZ`           | yes     | yes  | unit cube  | Working space for ProPhoto                    |
-| `WideGamut`        | `LinearWideGamut`  | no      | yes  | unit cube  | Adobe Wide Gamut colour space (a.k.a. opRGB)  |
-| `LinearWideGamut`  | `CIEXYZ`           | yes     | yes  | unit cube  | Working space for Wide Gamut                  |
-| `HSL`              | `LinearRGB`        | no      | no   | polar      | Polar transformation of linear RGB            |
-| `HSV`              | `LinearRGB`        | no      | no   | polar      | Polar transformation of linear RGB            |
+| Colour space       | Base space         | Linear  | RGB  | Shape       | Description                                   |
+| ------------       | ----------         | ------  | ---  | -----       | -----------                                   |
+| `CIEXYZ`           | `CIEXYZ`           | yes     | no   | unit cube   | CIE 1931 XYZ colour space                     |
+| `CIExyY`           | `CIEXYZ`           | no      | no   | unit cube   | CIE 1931 xyY colour space                     |
+| `CIELab`           | `CIEXYZ`           | no      | no   | unbounded   | CIE 1976 L\*a\*b\* colour space               |
+| `CIELuv`           | `CIEXYZ`           | no      | no   | unbounded   | CIE 1976 L\*u\*v\* colour space               |
+| `sRGB`             | `LinearRGB`        | no      | yes  | unit cube   | Widely used sRGB standard colour space        |
+| `LinearRGB`        | `CIEXYZ`           | yes     | yes  | unit cube   | Linear RGB working space for sRGB             |
+| `AdobeRGB`         | `LinearAdobeRGB`   | no      | yes  | unit cube   | Adobe RGB (1998) colour space                 |
+| `LinearAdobeRGB`   | `CIEXYZ`           | yes     | yes  | unit cube   | Working space for Adobe RGB                   |
+| `ProPhoto`         | `LinearProPhoto`   | no      | yes  | unit cube   | ProPhoto colour space (a.k.a. ROMM RGB)       |
+| `LinearProPhoto`   | `CIEXYZ`           | yes     | yes  | unit cube   | Working space for ProPhoto                    |
+| `WideGamut`        | `LinearWideGamut`  | no      | yes  | unit cube   | Adobe Wide Gamut colour space (a.k.a. opRGB)  |
+| `LinearWideGamut`  | `CIEXYZ`           | yes     | yes  | unit cube   | Working space for Wide Gamut                  |
+| `HSL`              | `LinearRGB`        | no      | no   | unit polar  | Polar transformation of linear RGB            |
+| `HSV`              | `LinearRGB`        | no      | no   | unit polar  | Polar transformation of linear RGB            |
 
 ### Relationship diagram
 
@@ -355,7 +356,7 @@ class HSL {
     static constexpr std::array<char, 3> channels = { 'H', 'S', 'L' };
     static constexpr bool is_linear = false;
     static constexpr bool is_rgb = false;
-    static constexpr ColourVolume shape = ColourVolume::polar;
+    static constexpr ColourVolume shape = ColourVolume::unit_polar;
     template <typename T> static constexpr Vector<T, 3>
         from_base(Vector<T, 3> colour) noexcept;
     template <typename T> static constexpr Vector<T, 3>
@@ -366,7 +367,7 @@ class HSV {
     static constexpr std::array<char, 3> channels = { 'H', 'S', 'V' };
     static constexpr bool is_linear = false;
     static constexpr bool is_rgb = false;
-    static constexpr ColourVolume shape = ColourVolume::polar;
+    static constexpr ColourVolume shape = ColourVolume::unit_polar;
     template <typename T> static constexpr Vector<T, 3>
         from_base(Vector<T, 3> colour) noexcept;
     template <typename T> static constexpr Vector<T, 3>
@@ -398,11 +399,11 @@ template <typename CS, typename T, int N>
         T scale = 1) noexcept;
 ```
 
-True if the colour is in gamut for the colour space. For unit-cube or polar
-spaces, this checks that all channels are in the range `[0,scale]`(or
-`[0,scale)` for the polar channel). Behaviour is undefined if `scale<=0`.
-
-For other spaces, this has nothing to check and always returns true.
+True if the colour is in gamut for the colour space. For unit-cube or
+unit-polar spaces, this checks that all channels are in the range `[0,scale]`
+(or `[0,scale)` for the polar channel); for non-unit polar spaces, it just
+checks that the polar channel is in range. For other spaces, this has nothing
+to check and always returns true. Behaviour is undefined if `scale<=0`.
 
 ```c++
 template <typename CS, typename T, int N>
@@ -411,9 +412,10 @@ template <typename CS, typename T, int N>
 ```
 
 Clamps the channel values where necessary to ensure that the colour is in
-gamut. For polar spaces, the first channel is reduced modulo `scale`, yielding
-a value in the range `[0,scale)`. All other channels for polar spaces, and all
-channels for unit spaces, are clamped to the range `[0,scale]`. Behaviour is
+gamut. For polar spaces, the first channel is reduced modulo `scale`,
+yielding a value in the range `[0,scale)`. Unit channels (all channels for
+unit-cube spaces, and all but the first channel for unit-polar spaces) are
+clamped to the range `[0,scale]`. For unbounded spaces, and for all but the
+first channel in non-unit polar spaces, this does nothing. Behaviour is
 undefined if `scale<=0`.
 
-For spaces that are neither polar nor unit-cube, this does nothing.
