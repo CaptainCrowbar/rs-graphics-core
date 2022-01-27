@@ -2,6 +2,7 @@
 
 #include "rs-graphics-core/maths.hpp"
 #include "rs-graphics-core/matrix.hpp"
+#include "rs-graphics-core/transform.hpp"
 #include "rs-graphics-core/vector.hpp"
 #include "rs-format/enum.hpp"
 #include <algorithm>
@@ -213,6 +214,38 @@ namespace RS::Graphics::Core {
         constexpr T CIELuv::v_prime(Vector<T, 3> xyz) noexcept {
             return 9 * xyz.y() / (xyz.x() + 15 * xyz.y() + 3 * xyz.z());
         }
+
+    template <typename Base>
+    class HCLSpace {
+    public:
+        using base = Base;
+        static constexpr std::array<char, 3> channels = {{ 'H', 'C', 'L' }};
+        static constexpr bool is_linear = false;
+        static constexpr bool is_rgb = false;
+        static constexpr ColourVolume shape = ColourVolume::polar;
+        template <typename T> static Vector<T, 3> from_base(Vector<T, 3> colour) noexcept;
+        template <typename T> static Vector<T, 3> to_base(Vector<T, 3> colour) noexcept;
+    };
+
+        template <typename Base>
+        template <typename T>
+        Vector<T, 3> HCLSpace<Base>::from_base(Vector<T, 3> colour) noexcept {
+            Vector<T, 3> abl = {colour[1], colour[2], colour[0]};
+            auto chl = cartesian_to_cylindrical(abl);
+            auto h = fraction(chl[1] / (2 * pi<T>));
+            return {h, chl[0], chl[2]};
+        }
+
+        template <typename Base>
+        template <typename T>
+        Vector<T, 3> HCLSpace<Base>::to_base(Vector<T, 3> colour) noexcept {
+            Vector<T, 3> chl = {colour[1], 2 * pi<T> * colour[0], colour[2]};
+            auto abl = cylindrical_to_cartesian(chl);
+            return {abl[2], abl[0], abl[1]};
+        }
+
+    using HCLab = HCLSpace<CIELab>;
+    using HCLuv = HCLSpace<CIELuv>;
 
     template <int64_t M00, int64_t M01, int64_t M02,
         int64_t M10, int64_t M11, int64_t M12,

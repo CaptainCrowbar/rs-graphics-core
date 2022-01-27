@@ -138,6 +138,8 @@ This is used to indicate the geometry of a colour space.
 | `CIExyY`           | `CIEXYZ`           | no      | no   | unit cube   | CIE 1931 xyY colour space                     |
 | `CIELab`           | `CIEXYZ`           | no      | no   | unbounded   | CIE 1976 L\*a\*b\* colour space               |
 | `CIELuv`           | `CIEXYZ`           | no      | no   | unbounded   | CIE 1976 L\*u\*v\* colour space               |
+| `HCLab`            | `CIELab`           | no      | no   | polar       | CIE L\*C\*h<sub>ab</sub> colour space         |
+| `HCLuv`            | `CIELuv`           | no      | no   | polar       | CIE L\*C\*h<sub>uv</sub> colour space         |
 | `sRGB`             | `LinearRGB`        | no      | yes  | unit cube   | Widely used sRGB standard colour space        |
 | `LinearRGB`        | `CIEXYZ`           | yes     | yes  | unit cube   | Linear RGB working space for sRGB             |
 | `AdobeRGB`         | `LinearAdobeRGB`   | no      | yes  | unit cube   | Adobe RGB (1998) colour space                 |
@@ -153,7 +155,7 @@ This is used to indicate the geometry of a colour space.
 
 The arrows point from each colour space to its base space.
 
-![Colour space relationship diagram](images/colour-spaces.drawio.png)
+![Colour space relationship diagram](images/colour-spaces.png)
 
 ### CIE colour spaces
 
@@ -347,6 +349,30 @@ using WideGamut = NonlinearSpace<LinearWideGamut, 563, 256>;
 Adobe Wide Gamut (a.k.a. opRGB) colour space, and its linear working space.
 
 ### Polar colour spaces
+
+#### CIE L\*C\*h colour spaces
+
+```c++
+template <typename Base> class HCLSpace {
+    using base = Base;
+    static constexpr std::array<char, 3> channels = { 'H', 'C', 'L' };
+    static constexpr bool is_linear = false;
+    static constexpr bool is_rgb = false;
+    static constexpr ColourVolume shape = ColourVolume::polar;
+    template <typename T> static Vector<T, 3>
+        from_base(Vector<T, 3> colour) noexcept;
+    template <typename T> static Vector<T, 3>
+        to_base(Vector<T, 3> colour) noexcept;
+};
+using HCLab = HCLSpace<CIELab>;
+using HCLuv = HCLSpace<CIELuv>;
+```
+
+CIE L\*C\*h<sub>ab</sub> and L\*C\*h<sub>uv</sub> colour spaces. These are
+simply the L\*a\*b\* and L\*u\*v\* colour spaces expressed in polar
+coordinates (as usual, the polar channel is expressed on a 0-1 scale). These
+follow the usual rule that the polar channel comes first; both orders (LCH or
+HCL) can be observed in the wild.
 
 #### HSL and HSV
 

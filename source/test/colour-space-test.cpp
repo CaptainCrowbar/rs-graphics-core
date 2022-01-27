@@ -1,8 +1,10 @@
 #include "rs-graphics-core/colour-space.hpp"
+#include "rs-graphics-core/maths.hpp"
 #include "rs-graphics-core/vector.hpp"
 #include "rs-unit-test.hpp"
 #include "test/colour-space-test.hpp"
 #include "test/vector-test.hpp"
+#include <cmath>
 #include <vector>
 
 using namespace RS::Graphics::Core;
@@ -46,6 +48,40 @@ void test_rs_graphics_core_colour_space_cieluv() {
         TEST_VECTORS(colour, sample.CIELuv, 0.01);
         TRY(xyz = CIELuv::to_base(sample.CIELuv));
         TEST_VECTORS(xyz, sample.CIEXYZ, 0.01);
+    }
+
+}
+
+void test_rs_graphics_core_colour_space_hclab() {
+
+    Double3 cie1, cie2, colour;
+
+    for (auto& sample: samples()) {
+        cie1 = sample.CIELab;
+        TRY(colour = HCLab::from_base(cie1));
+        TEST(is_colour_in_gamut<HCLab>(colour));
+        TEST_NEAR(colour[0], fraction(std::atan2(cie1[2], cie1[1]) / (2 * pi_d)), 1e-6);
+        TEST_NEAR(colour[1], std::hypot(cie1[1], cie1[2]), 1e-6);
+        TEST_NEAR(colour[2], cie1[0], 1e-6);
+        TRY(cie2 = HCLab::to_base(colour));
+        TEST_VECTORS(cie2, cie1, 1e-6);
+    }
+
+}
+
+void test_rs_graphics_core_colour_space_hcluv() {
+
+    Double3 cie1, cie2, colour;
+
+    for (auto& sample: samples()) {
+        cie1 = sample.CIELuv;
+        TRY(colour = HCLuv::from_base(cie1));
+        TEST(is_colour_in_gamut<HCLuv>(colour));
+        TEST_NEAR(colour[0], fraction(std::atan2(cie1[2], cie1[1]) / (2 * pi_d)), 1e-6);
+        TEST_NEAR(colour[1], std::hypot(cie1[1], cie1[2]), 1e-6);
+        TEST_NEAR(colour[2], cie1[0], 1e-6);
+        TRY(cie2 = HCLuv::to_base(colour));
+        TEST_VECTORS(cie2, cie1, 1e-6);
     }
 
 }
