@@ -67,19 +67,27 @@ int main(int argc, char** argv) {
     UNIT_TEST(rs_graphics_core_colour_space_hsv)
     UNIT_TEST(rs_graphics_core_colour_space_conversion)
 
-    // colour-test.cpp
+    // colour-floating-channel-test.cpp
     UNIT_TEST(rs_graphics_core_colour_floating_point_elements)
     UNIT_TEST(rs_graphics_core_colour_floating_point_arithmetic)
     UNIT_TEST(rs_graphics_core_colour_floating_point_standard_colours)
+
+    // colour-integer-channel-test.cpp
     UNIT_TEST(rs_graphics_core_colour_integral_elements)
     UNIT_TEST(rs_graphics_core_colour_integral_standard_colours)
     UNIT_TEST(rs_graphics_core_colour_integral_arithmetic)
+
+    // colour-misc-test.cpp
     UNIT_TEST(rs_graphics_core_colour_channel_order)
     UNIT_TEST(rs_graphics_core_colour_premultiplied_alpha)
+    UNIT_TEST(rs_graphics_core_colour_alpha_blending)
+
+    // colour-conversion-test.cpp
     UNIT_TEST(rs_graphics_core_colour_conversion_between_colour_spaces)
     UNIT_TEST(rs_graphics_core_colour_conversion_between_representations)
+
+    // colour-string-test.cpp
     UNIT_TEST(rs_graphics_core_colour_hex_representation)
-    UNIT_TEST(rs_graphics_core_colour_alpha_blending)
     UNIT_TEST(rs_graphics_core_colour_css_colours)
 
     // noise-test.cpp

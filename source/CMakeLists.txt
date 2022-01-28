@@ -6,7 +6,7 @@ cmake_minimum_required(VERSION 3.16)
 # and propagate the new version to version.hpp.
 
 project(rs-graphics-core
-    VERSION 0.1.63
+    VERSION 0.1.64
     LANGUAGES CXX
 )
 
@@ -70,7 +70,11 @@ add_executable(${unittest}
     test/transform-test.cpp
     test/geometry-test.cpp
     test/colour-space-test.cpp
-    test/colour-test.cpp
+    test/colour-floating-channel-test.cpp
+    test/colour-integer-channel-test.cpp
+    test/colour-misc-test.cpp
+    test/colour-conversion-test.cpp
+    test/colour-string-test.cpp
     test/noise-test.cpp
     test/unit-test.cpp
 )
