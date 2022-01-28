@@ -412,7 +412,7 @@ constexpr bool operator!=(Colour a, Colour b) noexcept;
 
 Comparison operators.
 
-### Conversion functions
+### Colour functions
 
 ```c++
 template <typename T1, typename CS1, ColourLayout CL1,
@@ -429,3 +429,23 @@ the input does not, the alpha channel will be set to its fully opaque value.
 If the input colour contains out-of-gamut values that are not representable in
 the output channel type, the output will be garbage if `T2` is an unsigned
 integer, otherwise behaviour is undefined.
+
+```c++
+template <typename ColourType>
+    ColourType css_colour(const std::string& str);
+```
+
+This function looks up a string in the standard list of CSS colours, and
+returns the resulting colour. The return type must be explicitly specified,
+and must be an instantiation of the `Colour` template.
+
+Capitalization, punctuation, and whitespace are ignored. If the name is not
+found in the list, it will be interpreted as a hexadecimal colour if it fits
+the format. If both interpretations fail, the function will throw
+`std::invalid_argument`. This function does not attempt to interpret any of
+the other colour formats described in the CSS standard.
+
+When interpreting a hex colour, this function differs from the string-based
+constructor in that this will always interpret a hex colour using the sRGB
+colour space (as CSS requires) and then convert to the target colour, while
+the constructor uses the target colour's native colour space.

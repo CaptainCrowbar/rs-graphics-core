@@ -17,6 +17,9 @@ An `N`-dimensional vector type. `T` must be an arithmetic type; `N` must be a
 positive integer.
 
 ```c++
+using Byte2 = Vector<uint8_t, 2>;
+using Byte3 = Vector<uint8_t, 3>;
+using Byte4 = Vector<uint8_t, 4>;
 using Int2 = Vector<int, 2>;
 using Int3 = Vector<int, 3>;
 using Int4 = Vector<int, 4>;

@@ -80,6 +80,7 @@ int main(int argc, char** argv) {
     UNIT_TEST(rs_graphics_core_colour_conversion_between_representations)
     UNIT_TEST(rs_graphics_core_colour_hex_representation)
     UNIT_TEST(rs_graphics_core_colour_alpha_blending)
+    UNIT_TEST(rs_graphics_core_colour_css_colours)
 
     // noise-test.cpp
     UNIT_TEST(rs_graphics_core_noise_result_stability)

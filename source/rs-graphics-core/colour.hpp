@@ -8,6 +8,7 @@
 #include "rs-format/string.hpp"
 #include <functional>
 #include <limits>
+#include <optional>
 #include <ostream>
 #include <stdexcept>
 #include <string>
@@ -34,6 +35,23 @@ namespace RS::Graphics::Core {
     }
 
     template <typename VT, typename CS, ColourLayout CL> class Colour;
+
+    using Rgb8 = Colour<uint8_t, LinearRGB, ColourLayout::forward>;
+    using Rgb16 = Colour<uint16_t, LinearRGB, ColourLayout::forward>;
+    using Rgbf = Colour<float, LinearRGB, ColourLayout::forward>;
+    using Rgbd = Colour<double, LinearRGB, ColourLayout::forward>;
+    using sRgb8 = Colour<uint8_t, sRGB, ColourLayout::forward>;
+    using sRgb16 = Colour<uint16_t, sRGB, ColourLayout::forward>;
+    using sRgbf = Colour<float, sRGB, ColourLayout::forward>;
+    using sRgbd = Colour<double, sRGB, ColourLayout::forward>;
+    using Rgba8 = Colour<uint8_t, LinearRGB, ColourLayout::forward_alpha>;
+    using Rgba16 = Colour<uint16_t, LinearRGB, ColourLayout::forward_alpha>;
+    using Rgbaf = Colour<float, LinearRGB, ColourLayout::forward_alpha>;
+    using Rgbad = Colour<double, LinearRGB, ColourLayout::forward_alpha>;
+    using sRgba8 = Colour<uint8_t, sRGB, ColourLayout::forward_alpha>;
+    using sRgba16 = Colour<uint16_t, sRGB, ColourLayout::forward_alpha>;
+    using sRgbaf = Colour<float, sRGB, ColourLayout::forward_alpha>;
+    using sRgbad = Colour<double, sRGB, ColourLayout::forward_alpha>;
 
     namespace Detail {
 
@@ -298,52 +316,50 @@ namespace RS::Graphics::Core {
 
             using namespace Format;
 
-            size_t i, j, k;
+            Byte4 bytes = {0,0,0,255};
 
+            size_t i, j, k;
             for (i = 0; i < str.size() && (ascii_ispunct(str[i]) || ascii_isspace(str[i])); ++i) {}
             for (j = i; j < str.size() && ascii_isxdigit(str[j]); ++j) {}
             for (k = j; k < str.size() && (ascii_ispunct(str[k]) || ascii_isspace(str[k])); ++k) {}
+            size_t digits = j - i;
 
-            size_t len = j - i;
-
-            if (k < str.size() || (len != 6 && len != 8))
+            if (k != str.size() || (digits != 6 && digits != 8))
                 throw std::invalid_argument("Invalid colour: " + quote(str));
 
-            Vector<uint8_t, 4> u = {0,0,0,255};
+            bytes[0] = to_uint8(str.substr(i, 2), 16);
+            bytes[1] = to_uint8(str.substr(i + 2, 2), 16);
+            bytes[2] = to_uint8(str.substr(i + 4, 2), 16);
 
-            u[0] = to_uint8(str.substr(i, 2), 16);
-            u[1] = to_uint8(str.substr(i + 2, 2), 16);
-            u[2] = to_uint8(str.substr(i + 4, 2), 16);
+            if (digits == 8)
+                bytes[3] = to_uint8(str.substr(i + 6, 2), 16);
 
-            if (len == 8)
-                u[3] = to_uint8(str.substr(i + 6, 2), 16);
-
-            Vector<VT, 4> v;
+            Vector<VT, 4> vts;
 
             if constexpr (std::is_same_v<VT, uint8_t>) {
 
-                v = u;
+                vts = bytes;
 
             } else if constexpr (std::is_integral_v<VT> && std::is_signed_v<VT>) {
 
                 static constexpr double k = double(scale) / 255;
                 for (int i = 0; i < channels; ++i)
-                    v[i] = const_round<VT>(k * double(u[i]));
+                    vts[i] = const_round<VT>(k * double(bytes[i]));
 
             } else {
 
                 static constexpr VT k = scale / 255;
                 for (int i = 0; i < channels; ++i)
-                    v[i] = k * VT(u[i]);
+                    vts[i] = k * VT(bytes[i]);
 
             }
 
-            R() = v[0];
-            G() = v[1];
-            B() = v[2];
+            R() = vts[0];
+            G() = vts[1];
+            B() = vts[2];
 
             if constexpr (has_alpha)
-                alpha() = v[3];
+                alpha() = vts[3];
 
         }
 
@@ -406,16 +422,16 @@ namespace RS::Graphics::Core {
             static_assert(CS::is_rgb);
             using namespace RS::Format::Literals;
             static const auto format = has_alpha ? "{0:x2}{1:x2}{2:x2}{3:x2}"_fmt : "{0:x2}{1:x2}{2:x2}"_fmt;
-            Vector<VT, 4> v = {R(), G(), B(), alpha()};
-            Vector<uint8_t, 4> u;
+            Vector<VT, 4> vts = {R(), G(), B(), alpha()};
+            Byte4 bytes;
             if constexpr (std::is_same_v<VT, uint8_t>) {
-                u = v;
+                bytes = vts;
             } else {
                 static constexpr double k = 255 / double(scale);
                 for (int i = 0; i < channels; ++i)
-                    u[i] = const_round<uint8_t>(k * double(v[i]));
+                    bytes[i] = const_round<uint8_t>(k * double(vts[i]));
             }
-            return format(u[0], u[1], u[2], u[3]);
+            return format(bytes[0], bytes[1], bytes[2], bytes[3]);
         }
 
         template <typename VT, typename CS, ColourLayout CL>
@@ -533,22 +549,34 @@ namespace RS::Graphics::Core {
 
     }
 
-    using Rgb8 = Colour<uint8_t, LinearRGB, ColourLayout::forward>;
-    using Rgb16 = Colour<uint16_t, LinearRGB, ColourLayout::forward>;
-    using Rgbf = Colour<float, LinearRGB, ColourLayout::forward>;
-    using Rgbd = Colour<double, LinearRGB, ColourLayout::forward>;
-    using sRgb8 = Colour<uint8_t, sRGB, ColourLayout::forward>;
-    using sRgb16 = Colour<uint16_t, sRGB, ColourLayout::forward>;
-    using sRgbf = Colour<float, sRGB, ColourLayout::forward>;
-    using sRgbd = Colour<double, sRGB, ColourLayout::forward>;
-    using Rgba8 = Colour<uint8_t, LinearRGB, ColourLayout::forward_alpha>;
-    using Rgba16 = Colour<uint16_t, LinearRGB, ColourLayout::forward_alpha>;
-    using Rgbaf = Colour<float, LinearRGB, ColourLayout::forward_alpha>;
-    using Rgbad = Colour<double, LinearRGB, ColourLayout::forward_alpha>;
-    using sRgba8 = Colour<uint8_t, sRGB, ColourLayout::forward_alpha>;
-    using sRgba16 = Colour<uint16_t, sRGB, ColourLayout::forward_alpha>;
-    using sRgbaf = Colour<float, sRGB, ColourLayout::forward_alpha>;
-    using sRgbad = Colour<double, sRGB, ColourLayout::forward_alpha>;
+    namespace Detail {
+
+        std::optional<sRgba8> get_css_colour(const std::string& str);
+
+        template <typename ColourType>
+        struct GetCssColour;
+
+        template <typename VT, typename CS, ColourLayout CL>
+        struct GetCssColour<Colour<VT, CS, CL>> {
+            Colour<VT, CS, CL> operator()(const std::string& str) const {
+                sRgba8 srgb;
+                auto opt_srgb = get_css_colour(str);
+                if (opt_srgb)
+                    srgb = *opt_srgb;
+                else
+                    srgb = sRgba8(str);
+                Colour<VT, CS, CL> colour;
+                convert_colour(srgb, colour);
+                return colour;
+            }
+        };
+
+    }
+
+    template <typename ColourType>
+    ColourType css_colour(const std::string& str) {
+        return Detail::GetCssColour<ColourType>()(str);
+    }
 
     static_assert(std::is_standard_layout_v<Rgb8>);
     static_assert(std::is_standard_layout_v<Rgb16>);
