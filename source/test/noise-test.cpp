@@ -27,7 +27,7 @@
     #endif
 #endif
 
-#include "rs-graphics-2d/stb/stb_image_write.h"
+#include "rs-graphics-core/stb/stb_image_write.h"
 
 #ifdef _MSC_VER
     #pragma warning(pop)
