@@ -8,11 +8,11 @@
 namespace RS::Graphics::Core {
 
     inline std::array<int, 3> version() noexcept {
-        return {{ 0, 1, 65 }};
+        return {{ 0, 1, 66 }};
     }
 
     inline std::string version_string() {
-        return "0.1.65";
+        return "0.1.66";
     }
 
 }
