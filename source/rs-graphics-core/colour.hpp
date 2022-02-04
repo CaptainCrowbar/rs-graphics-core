@@ -95,7 +95,7 @@ namespace RS::Graphics::Core {
         template <typename CS, char CH, ColourLayout CL>
         constexpr int colour_channel_index = ColourChannelIndex<CS, CH, CL>::get();
 
-        template <typename VT, typename CS, ColourLayout CL, bool IsLinear = CS::is_linear>
+        template <typename VT, typename CS, ColourLayout CL, bool IsLinear = cs_is_linear<CS>>
         class ColourArithmetic {
 
         private:
@@ -179,11 +179,13 @@ namespace RS::Graphics::Core {
         static constexpr int alpha_index = CL == ColourLayout::alpha_forward || CL == ColourLayout::alpha_reverse ? 0 :
             CL == ColourLayout::forward_alpha || CL == ColourLayout::reverse_alpha ? colour_space_channels : -1;
         static constexpr bool has_alpha = alpha_index != -1;
-        static constexpr bool can_premultiply = has_alpha && CS::is_linear && CS::is_rgb && CS::shape == ColourVolume::unit;
+        static constexpr bool can_premultiply = has_alpha && cs_is_linear<CS> && cs_is_rgb<CS>
+            && cs_is_unit<CS> && ! cs_is_polar<CS>;
         static constexpr int channels = colour_space_channels + int(has_alpha);
         static constexpr bool is_hdr = std::is_floating_point_v<VT>;
         static constexpr ColourLayout layout = CL;
-        static constexpr VT scale = is_hdr || CS::shape == ColourVolume::none ? VT(1) : std::numeric_limits<VT>::max();
+        static constexpr VT scale = is_hdr || (! cs_is_polar<CS> && ! cs_is_unit<CS>) ?
+            VT(1) : std::numeric_limits<VT>::max();
 
     private:
 
@@ -193,8 +195,8 @@ namespace RS::Graphics::Core {
             std::enable_if_t<sizeof...(Args) + 2 == channels && (std::is_convertible_v<Args, VT> && ...), VT>;
         template <typename... Args> using if_nonalpha_args_t =
             std::enable_if_t<has_alpha && sizeof...(Args) + 2 == colour_space_channels && (std::is_convertible_v<Args, VT> && ...), VT>;
-        template <typename V2> using if_rgb_t = std::enable_if<Detail::SfinaeTrue<V2, CS::is_rgb>::value>;
-        template <typename V2> using if_rgba_t = std::enable_if<Detail::SfinaeTrue<V2, CS::is_rgb && has_alpha>::value>;
+        template <typename V2> using if_rgb_t = std::enable_if<Detail::SfinaeTrue<V2, cs_is_rgb<CS>>::value>;
+        template <typename V2> using if_rgba_t = std::enable_if<Detail::SfinaeTrue<V2, cs_is_rgb<CS> && has_alpha>::value>;
 
     public:
 
@@ -312,7 +314,7 @@ namespace RS::Graphics::Core {
         template <typename VT, typename CS, ColourLayout CL>
         Colour<VT, CS, CL>::Colour(const std::string& str) {
 
-            static_assert(CS::is_rgb);
+            static_assert(cs_is_rgb<CS>);
 
             using namespace Format;
 
@@ -419,7 +421,7 @@ namespace RS::Graphics::Core {
 
         template <typename VT, typename CS, ColourLayout CL>
         std::string Colour<VT, CS, CL>::hex() const {
-            static_assert(CS::is_rgb);
+            static_assert(cs_is_rgb<CS>);
             using namespace RS::Format::Literals;
             static const auto format = has_alpha ? "{0:x2}{1:x2}{2:x2}{3:x2}"_fmt : "{0:x2}{1:x2}{2:x2}"_fmt;
             Vector<VT, 4> vts = {R(), G(), B(), alpha()};

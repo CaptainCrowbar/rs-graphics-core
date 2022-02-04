@@ -38,24 +38,11 @@ be ASCII upper or lower case letters, with no duplicates. Channel IDs are
 case sensitive.
 
 ```c++
-static constexpr bool CS::is_linear;
+static constexpr int CS::properties;
 ```
 
-Indicates that the space can be treated as linear, i.e. operations like
-component-wise addition and scalar multiplication are well-defined.
-
-```c++
-static constexpr bool CS::is_rgb;
-```
-
-True if this is a Cartesian RGB-based colour space.
-
-```c++
-static constexpr int CS::shape;
-```
-
-A constant indicating the geometric properties of the colour space. The
-`ColourVolume` values are explained below.
+A bitmask constant indicating the properties of the colour space (the values
+are explained below).
 
 ```c++
 static Vector<T,N> CS::from_base(Vector<T,NB> colour);
@@ -112,42 +99,54 @@ colour space violates any of them:
 3. The channel list must be the correct length for the colour space's number of channels.
 4. The channel list must contain only ASCII upper and lower case letters.
 5. The channel list must not contain any duplicates.
-6. If `is_rgb` is true, the channel list must contain exactly three entries.
+6. If the properties include `rgb`, the channel list must contain exactly three entries.
 
-## Supporting types
+## Colour space properties
 
 ```c++
-namespace ColourVolume {
-    constexpr int none   = 0;  // No restrictions on channel values
-    constexpr int polar  = 1;  // Valid colours are restricted to the unit cube
-    constexpr int unit   = 2;  // First channel is circular
+namespace CSP {
+    constexpr int linear;  // Linear colour space
+    constexpr int polar;   // Valid colours are restricted to the unit cube
+    constexpr int rgb;     // Cartesian RGB-based colour space
+    constexpr int unit;    // First channel is circular
 }
 ```
 
-Bitmask flags used to indicate the geometry of a colour space.
+Bitmask flags used to indicate the properties of a colour space. A linear
+colour space is one where operations like component-wise addition and scalar
+multiplication are well-defined.
+
+```c++
+template <typename CS> constexpr bool cs_is_linear;
+template <typename CS> constexpr bool cs_is_polar;
+template <typename CS> constexpr bool cs_is_rgb;
+template <typename CS> constexpr bool cs_is_unit;
+```
+
+Tests provided for convenience.
 
 ## Colour space classes
 
 ### List of classes
 
-| Colour space       | Base space         | Linear  | RGB  | Shape       | Description                                   |
-| ------------       | ----------         | ------  | ---  | -----       | -----------                                   |
-| `CIEXYZ`           | `CIEXYZ`           | yes     | no   | unit        | CIE 1931 XYZ colour space                     |
-| `CIExyY`           | `CIEXYZ`           | no      | no   | unit        | CIE 1931 xyY colour space                     |
-| `CIELab`           | `CIEXYZ`           | no      | no   | none        | CIE 1976 L\*a\*b\* colour space               |
-| `CIELuv`           | `CIEXYZ`           | no      | no   | none        | CIE 1976 L\*u\*v\* colour space               |
-| `HCLab`            | `CIELab`           | no      | no   | polar       | CIE L\*C\*h<sub>ab</sub> colour space         |
-| `HCLuv`            | `CIELuv`           | no      | no   | polar       | CIE L\*C\*h<sub>uv</sub> colour space         |
-| `sRGB`             | `LinearRGB`        | no      | yes  | unit        | Widely used sRGB standard colour space        |
-| `LinearRGB`        | `CIEXYZ`           | yes     | yes  | unit        | Linear RGB working space for sRGB             |
-| `AdobeRGB`         | `LinearAdobeRGB`   | no      | yes  | unit        | Adobe RGB (1998) colour space                 |
-| `LinearAdobeRGB`   | `CIEXYZ`           | yes     | yes  | unit        | Working space for Adobe RGB                   |
-| `ProPhoto`         | `LinearProPhoto`   | no      | yes  | unit        | ProPhoto colour space (a.k.a. ROMM RGB)       |
-| `LinearProPhoto`   | `CIEXYZ`           | yes     | yes  | unit        | Working space for ProPhoto                    |
-| `WideGamut`        | `LinearWideGamut`  | no      | yes  | unit        | Adobe Wide Gamut colour space (a.k.a. opRGB)  |
-| `LinearWideGamut`  | `CIEXYZ`           | yes     | yes  | unit        | Working space for Wide Gamut                  |
-| `HSL`              | `LinearRGB`        | no      | no   | polar|unit  | Polar transformation of linear RGB            |
-| `HSV`              | `LinearRGB`        | no      | no   | polar|unit  | Polar transformation of linear RGB            |
+| Colour space       | Base space         | Properties       | Description                                   |
+| ------------       | ----------         | ----------       | -----------                                   |
+| `CIEXYZ`           | `CIEXYZ`           | linear,unit      | CIE 1931 XYZ colour space                     |
+| `CIExyY`           | `CIEXYZ`           | unit             | CIE 1931 xyY colour space                     |
+| `CIELab`           | `CIEXYZ`           | 0                | CIE 1976 L\*a\*b\* colour space               |
+| `CIELuv`           | `CIEXYZ`           | 0                | CIE 1976 L\*u\*v\* colour space               |
+| `HCLab`            | `CIELab`           | polar            | CIE L\*C\*h<sub>ab</sub> colour space         |
+| `HCLuv`            | `CIELuv`           | polar            | CIE L\*C\*h<sub>uv</sub> colour space         |
+| `sRGB`             | `LinearRGB`        | rgb,unit         | Widely used sRGB standard colour space        |
+| `LinearRGB`        | `CIEXYZ`           | linear,rgb,unit  | Linear RGB working space for sRGB             |
+| `AdobeRGB`         | `LinearAdobeRGB`   | rgb,unit         | Adobe RGB (1998) colour space                 |
+| `LinearAdobeRGB`   | `CIEXYZ`           | linear,rgb,unit  | Working space for Adobe RGB                   |
+| `ProPhoto`         | `LinearProPhoto`   | rgb,unit         | ProPhoto colour space (a.k.a. ROMM RGB)       |
+| `LinearProPhoto`   | `CIEXYZ`           | linear,rgb,unit  | Working space for ProPhoto                    |
+| `WideGamut`        | `LinearWideGamut`  | rgb,unit         | Adobe Wide Gamut colour space (a.k.a. opRGB)  |
+| `LinearWideGamut`  | `CIEXYZ`           | linear,rgb,unit  | Working space for Wide Gamut                  |
+| `HSL`              | `LinearRGB`        | polar,unit       | Polar transformation of linear RGB            |
+| `HSV`              | `LinearRGB`        | polar,unit       | Polar transformation of linear RGB            |
 
 ### Relationship diagram
 
@@ -163,9 +162,7 @@ The arrows point from each colour space to its base space.
 class CIEXYZ {
     using base = CIEXYZ;
     static constexpr std::array<char, 3> channels = { 'X', 'Y', 'Z' };
-    static constexpr bool is_linear = true;
-    static constexpr bool is_rgb = false;
-    static constexpr int shape = ColourVolume::unit;
+    static constexpr int properties = CSP::linear | CSP::unit;
     template <typename T> static constexpr Vector<T, 3>
         from_base(Vector<T, 3> colour) noexcept { return colour; }
     template <typename T> static constexpr Vector<T, 3>
@@ -181,9 +178,7 @@ CIE 1931 XYZ colour space.
 class CIExyY {
     using base = CIEXYZ;
     static constexpr std::array<char, 3> channels = { 'x', 'y', 'Y' };
-    static constexpr bool is_linear = false;
-    static constexpr bool is_rgb = false;
-    static constexpr int shape = ColourVolume::unit;
+    static constexpr int properties = CSP::unit;
     template <typename T> static constexpr Vector<T, 3>
         from_base(Vector<T, 3> colour) noexcept;
     template <typename T> static constexpr Vector<T, 3>
@@ -199,9 +194,7 @@ CIE 1931 xyY chromaticity-based colour space.
 class CIELab {
     using base = CIEXYZ;
     static constexpr std::array<char, 3> channels = { 'L', 'a', 'b' };
-    static constexpr bool is_linear = false;
-    static constexpr bool is_rgb = false;
-    static constexpr int shape = ColourVolume::none;
+    static constexpr int properties = 0;
     template <typename T> static Vector<T, 3>
         from_base(Vector<T, 3> colour) noexcept;
     template <typename T> static Vector<T, 3>
@@ -210,9 +203,7 @@ class CIELab {
 class CIELuv {
     using base = CIEXYZ;
     static constexpr std::array<char, 3> channels = { 'L', 'u', 'v' };
-    static constexpr bool is_linear = false;
-    static constexpr bool is_rgb = false;
-    static constexpr int shape = ColourVolume::none;
+    static constexpr int properties = 0;
     template <typename T> static Vector<T, 3>
         from_base(Vector<T, 3> colour) noexcept;
     template <typename T> static Vector<T, 3>
@@ -234,9 +225,7 @@ template <int64_t M00, int64_t M01, int64_t M02,
 class WorkingSpace {
     using base = CIEXYZ;
     static constexpr std::array<char, 3> channels = { 'R', 'G', 'B' };
-    static constexpr bool is_linear = true;
-    static constexpr bool is_rgb = true;
-    static constexpr int shape = ColourVolume::unit;
+    static constexpr int properties = CSP::linear | CSP::rgb | CSP::unit;
     template <typename T> static constexpr Vector<T, 3>
         from_base(Vector<T, 3> colour) noexcept;
     template <typename T> static constexpr Vector<T, 3>
@@ -254,9 +243,7 @@ template <typename WorkingSpace,
 class NonlinearSpace {
     using base = WorkingSpace;
     static constexpr std::array<char, 3> channels = { 'R', 'G', 'B' };
-    static constexpr bool is_linear = false;
-    static constexpr bool is_rgb = true;
-    static constexpr int shape = ColourVolume::unit;
+    static constexpr int properties = CSP::rgb | CSP::unit;
     template <typename T> static Vector<T, 3>
         from_base(Vector<T, 3> colour) noexcept;
     template <typename T> static Vector<T, 3>
@@ -282,9 +269,7 @@ using LinearRGB = WorkingSpace<
 class sRGB {
     using base = LinearRGB;
     static constexpr std::array<char, 3> channels = { 'R', 'G', 'B' };
-    static constexpr bool is_linear = false;
-    static constexpr bool is_rgb = true;
-    static constexpr int shape = ColourVolume::unit;
+    static constexpr int properties = CSP::rgb | CSP::unit;
     template <typename T> static Vector<T, 3>
         from_base(Vector<T, 3> colour) noexcept;
     template <typename T> static Vector<T, 3>
@@ -320,9 +305,7 @@ using LinearProPhoto = WorkingSpace<
 class ProPhoto {
     using base = LinearProPhoto;
     static constexpr std::array<char, 3> channels = { 'R', 'G', 'B' };
-    static constexpr bool is_linear = false;
-    static constexpr bool is_rgb = true;
-    static constexpr int shape = ColourVolume::unit;
+    static constexpr int properties = CSP::rgb | CSP::unit;
     template <typename T> static Vector<T, 3>
         from_base(Vector<T, 3> colour) noexcept;
     template <typename T> static Vector<T, 3>
@@ -354,9 +337,7 @@ Adobe Wide Gamut (a.k.a. opRGB) colour space, and its linear working space.
 template <typename Base> class HCLSpace {
     using base = Base;
     static constexpr std::array<char, 3> channels = { 'H', 'C', 'L' };
-    static constexpr bool is_linear = false;
-    static constexpr bool is_rgb = false;
-    static constexpr int shape = ColourVolume::polar;
+    static constexpr int properties = CSP::polar;
     template <typename T> static Vector<T, 3>
         from_base(Vector<T, 3> colour) noexcept;
     template <typename T> static Vector<T, 3>
@@ -378,9 +359,7 @@ HCL) can be observed in the wild.
 class HSL {
     using base = LinearRGB;
     static constexpr std::array<char, 3> channels = { 'H', 'S', 'L' };
-    static constexpr bool is_linear = false;
-    static constexpr bool is_rgb = false;
-    static constexpr int shape = ColourVolume::polar | ColourVolume::unit;
+    static constexpr int properties = CSP::polar | CSP::unit;
     template <typename T> static constexpr Vector<T, 3>
         from_base(Vector<T, 3> colour) noexcept;
     template <typename T> static constexpr Vector<T, 3>
@@ -389,9 +368,7 @@ class HSL {
 class HSV {
     using base = LinearRGB;
     static constexpr std::array<char, 3> channels = { 'H', 'S', 'V' };
-    static constexpr bool is_linear = false;
-    static constexpr bool is_rgb = false;
-    static constexpr int shape = ColourVolume::polar | ColourVolume::unit;
+    static constexpr int properties = CSP::polar | CSP::unit;
     template <typename T> static constexpr Vector<T, 3>
         from_base(Vector<T, 3> colour) noexcept;
     template <typename T> static constexpr Vector<T, 3>
