@@ -191,6 +191,8 @@ namespace RS::Graphics::Core {
 
         template <typename T>
         Vector<T, 3> CIELuv::to_base(Vector<T, 3> colour) noexcept {
+            if (colour[0] == 0)
+                return {0,0,0};
             Vector<T, 3> out;
             T u = colour[1] / (13 * colour[0]) + u_prime_n<T>;
             T v = colour[2] / (13 * colour[0]) + v_prime_n<T>;
