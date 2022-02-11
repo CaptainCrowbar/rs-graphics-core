@@ -54,7 +54,6 @@ int main(int argc, char** argv) {
     UNIT_TEST(rs_graphics_core_geometry_sphere)
 
     // colour-space-test.cpp
-    UNIT_TEST(rs_graphics_core_colour_space_experimental)
     UNIT_TEST(rs_graphics_core_colour_space_ciexyy)
     UNIT_TEST(rs_graphics_core_colour_space_cielab)
     UNIT_TEST(rs_graphics_core_colour_space_cieluv)
@@ -66,6 +65,8 @@ int main(int argc, char** argv) {
     UNIT_TEST(rs_graphics_core_colour_space_wide_gamut)
     UNIT_TEST(rs_graphics_core_colour_space_hsl)
     UNIT_TEST(rs_graphics_core_colour_space_hsv)
+    UNIT_TEST(rs_graphics_core_colour_space_greyscale)
+    UNIT_TEST(rs_graphics_core_colour_space_sgreyscale)
     UNIT_TEST(rs_graphics_core_colour_space_conversion)
 
     // colour-floating-channel-test.cpp

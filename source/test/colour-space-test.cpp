@@ -5,10 +5,13 @@
 #include "test/colour-space-test.hpp"
 #include "test/vector-test.hpp"
 #include <cmath>
+#include <map>
 #include <vector>
 
 using namespace RS::Graphics::Core;
 using namespace RS::Graphics::Core::Test;
+
+using Grey = Vector<double, 1>;
 
 void test_rs_graphics_core_colour_space_ciexyy() {
 
@@ -176,6 +179,65 @@ void test_rs_graphics_core_colour_space_hsv() {
         TRY(rgb = HSV::to_base(sample.HSV));
         TRY(xyz = LinearRGB::to_base(rgb));
         TEST_VECTORS(xyz, sample.CIEXYZ, 1e-5);
+    }
+
+}
+
+void test_rs_graphics_core_colour_space_greyscale() {
+
+    std::map<double, Double3> expect = {
+        { 0.0,  { 0.000000, 0.0, 0.000000 } },
+        { 0.1,  { 0.095049, 0.1, 0.108884 } },
+        { 0.2,  { 0.190098, 0.2, 0.217768 } },
+        { 0.3,  { 0.285147, 0.3, 0.326652 } },
+        { 0.4,  { 0.380196, 0.4, 0.435536 } },
+        { 0.5,  { 0.475245, 0.5, 0.544420 } },
+        { 0.6,  { 0.570293, 0.6, 0.653304 } },
+        { 0.7,  { 0.665342, 0.7, 0.762188 } },
+        { 0.8,  { 0.760391, 0.8, 0.871072 } },
+        { 0.9,  { 0.855440, 0.9, 0.979956 } },
+        { 1.0,  { 0.950489, 1.0, 1.088840 } },
+    };
+
+    Grey g;
+    Double3 xyz1, xyz2;
+
+    for (auto [y,xyz]: expect) {
+        xyz1 = {0,y,0};
+        TRY(g = Greyscale::from_base(xyz1));
+        TEST(is_colour_in_gamut<Greyscale>(g));
+        TEST_NEAR(g[0], y, 1e-6);
+        TRY(xyz2 = Greyscale::to_base(g));
+        TEST_VECTORS(xyz2, xyz, 1e-6);
+    }
+
+}
+
+void test_rs_graphics_core_colour_space_sgreyscale() {
+
+    std::map<double, double> expect = {
+        { 0.0, 0.000000 },
+        { 0.1, 0.349190 },
+        { 0.2, 0.484529 },
+        { 0.3, 0.583831 },
+        { 0.4, 0.665185 },
+        { 0.5, 0.735357 },
+        { 0.6, 0.797738 },
+        { 0.7, 0.854306 },
+        { 0.8, 0.906332 },
+        { 0.9, 0.954687 },
+        { 1.0, 1.000000 },
+    };
+
+    Grey g1, g2, sg;
+
+    for (auto [y,sy]: expect) {
+        g1 = Grey(y);
+        TRY(sg = sGreyscale::from_base(g1));
+        TEST(is_colour_in_gamut<sGreyscale>(sg));
+        TEST_NEAR(sg[0], sy, 1e-6);
+        TRY(g2 = sGreyscale::to_base(sg));
+        TEST_NEAR(g2[0], y, 1e-6);
     }
 
 }

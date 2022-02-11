@@ -12,6 +12,12 @@
 
 namespace RS::Graphics::Core {
 
+    namespace Detail {
+
+        template <typename T> constexpr Vector<T, 3> D65 = {T(0.950489), T(1), T(1.088840)};
+
+    }
+
     // Colour space properties
 
     namespace CSP {
@@ -111,7 +117,6 @@ namespace RS::Graphics::Core {
         template <typename T> static Vector<T, 3> from_base(Vector<T, 3> colour) noexcept;
         template <typename T> static Vector<T, 3> to_base(Vector<T, 3> colour) noexcept;
     private:
-        template <typename T> static constexpr Vector<T, 3> illuminant = {T(0.950489),T(1),T(1.088840)}; // D65
         template <typename T> static constexpr T delta = T(6) / T(29);
         template <typename T> static constexpr T c1 = delta<T> * delta<T> * delta<T>;
         template <typename T> static constexpr T c2 = 3 * delta<T> * delta<T>;
@@ -122,8 +127,9 @@ namespace RS::Graphics::Core {
 
         template <typename T>
         Vector<T, 3> CIELab::from_base(Vector<T, 3> colour) noexcept {
+            using namespace Detail;
             Vector<T, 3> out;
-            colour /= illuminant<T>;
+            colour /= D65<T>;
             out[0] = 116 * f(colour.y()) - 16;
             out[1] = 500 * (f(colour.x()) - f(colour.y()));
             out[2] = 200 * (f(colour.y()) - f(colour.z()));
@@ -132,12 +138,13 @@ namespace RS::Graphics::Core {
 
         template <typename T>
         Vector<T, 3> CIELab::to_base(Vector<T, 3> colour) noexcept {
+            using namespace Detail;
             Vector<T, 3> out;
             T lx = (colour[0] + 16) / 116;
             out.x() = inverse_f(lx + colour[1] / 500);
             out.y() = inverse_f(lx);
             out.z() = inverse_f(lx - colour[2] / 200);
-            return out * illuminant<T>;
+            return out * D65<T>;
         }
 
         template <typename T>
@@ -164,7 +171,6 @@ namespace RS::Graphics::Core {
         template <typename T> static Vector<T, 3> from_base(Vector<T, 3> colour) noexcept;
         template <typename T> static Vector<T, 3> to_base(Vector<T, 3> colour) noexcept;
     private:
-        template <typename T> static constexpr Vector<T, 3> illuminant = {T(0.950489),T(1),T(1.088840)}; // D65
         template <typename T> static constexpr T delta = T(6) / T(29);
         template <typename T> static constexpr T c1 = delta<T> * delta<T> * delta<T>;
         template <typename T> static constexpr T c2 = T(29) / T(3);
@@ -172,14 +178,15 @@ namespace RS::Graphics::Core {
         template <typename T> static constexpr T c4 = 1 / c3<T>;
         template <typename T> static constexpr T u_prime(Vector<T, 3> xyz) noexcept;
         template <typename T> static constexpr T v_prime(Vector<T, 3> xyz) noexcept;
-        template <typename T> static constexpr T u_prime_n = u_prime(illuminant<T>);
-        template <typename T> static constexpr T v_prime_n = v_prime(illuminant<T>);
+        template <typename T> static constexpr T u_prime_n = u_prime(Detail::D65<T>);
+        template <typename T> static constexpr T v_prime_n = v_prime(Detail::D65<T>);
     };
 
         template <typename T>
         Vector<T, 3> CIELuv::from_base(Vector<T, 3> colour) noexcept {
+            using namespace Detail;
             Vector<T, 3> out;
-            T y = colour.y() / illuminant<T>.y();
+            T y = colour.y() / D65<T>.y();
             if (y <= c1<T>)
                 out[0] = c3<T> * y;
             else
@@ -191,6 +198,7 @@ namespace RS::Graphics::Core {
 
         template <typename T>
         Vector<T, 3> CIELuv::to_base(Vector<T, 3> colour) noexcept {
+            using namespace Detail;
             if (colour[0] == 0)
                 return {0,0,0};
             Vector<T, 3> out;
@@ -200,7 +208,7 @@ namespace RS::Graphics::Core {
                 out[1] = c4<T> * colour[0];
             else
                 out[1] = std::pow((colour[0] + 16) / 116, T(3));
-            out[1] *= illuminant<T>.y();
+            out[1] *= D65<T>.y();
             out[0] = out[1] * 9 * u / (4 * v);
             out[2] = out[1] * (12 - 3 * u - 20 * v) / (4 * v);
             return out;
@@ -316,6 +324,36 @@ namespace RS::Graphics::Core {
         10'000'000
     >;
 
+    namespace Detail {
+
+        template <typename T>
+        T sRGB_function(T t) noexcept {
+            static constexpr T a = T(0.003'130'8);
+            static constexpr T b = T(12.92);
+            static constexpr T c = T(0.055);
+            static constexpr T d = c + 1;
+            static constexpr T ig = 1 / T(2.4);
+            if (t < a)
+                return t * b;
+            else
+                return d * std::pow(t, ig) - c;
+        }
+
+        template <typename T>
+        T sRGB_inverse(T t) noexcept {
+            static constexpr T a = T(0.040'45);
+            static constexpr T b = 1 / T(12.92);
+            static constexpr T c = T(0.055);
+            static constexpr T d = 1 / (c + 1);
+            static constexpr T g = T(2.4);
+            if (t < a)
+                return t * b;
+            else
+                return std::pow((t + c) * d, g);
+        }
+
+    }
+
     class sRGB {
     public:
         using base = LinearRGB;
@@ -327,33 +365,17 @@ namespace RS::Graphics::Core {
 
         template <typename T>
         Vector<T, 3> sRGB::from_base(Vector<T, 3> colour) noexcept {
-            static constexpr T a = T(0.003'130'8);
-            static constexpr T b = T(12.92);
-            static constexpr T c = T(0.055);
-            static constexpr T d = c + 1;
-            static constexpr T ig = 1 / T(2.4);
-            for (auto& x: colour) {
-                if (x < a)
-                    x *= b;
-                else
-                    x = d * std::pow(x, ig) - c;
-            }
+            using namespace Detail;
+            for (auto& x: colour)
+                x = sRGB_function(x);
             return colour;
         }
 
         template <typename T>
         Vector<T, 3> sRGB::to_base(Vector<T, 3> colour) noexcept {
-            static constexpr T a = T(0.040'45);
-            static constexpr T b = 1 / T(12.92);
-            static constexpr T c = T(0.055);
-            static constexpr T d = 1 / (c + 1);
-            static constexpr T g = T(2.4);
-            for (auto& x: colour) {
-                if (x < a)
-                    x *= b;
-                else
-                    x = std::pow((x + c) * d, g);
-            }
+            using namespace Detail;
+            for (auto& x: colour)
+                x = sRGB_inverse(x);
             return colour;
         }
 
@@ -444,9 +466,10 @@ namespace RS::Graphics::Core {
 
         template <typename T>
         constexpr Vector<T, 3> HSL::from_base(Vector<T, 3> colour) noexcept {
+            using namespace Detail;
             Vector<T, 3> out;
             T c, v;
-            Detail::rgb_to_hcv(colour[0], colour[1], colour[2], out[0], c, v);
+            rgb_to_hcv(colour[0], colour[1], colour[2], out[0], c, v);
             out[2] = (T(2) * v - c) / T(2);
             if (c != 0)
                 out[1] = c / (T(1) - const_abs(T(2) * out[2] - T(1)));
@@ -455,10 +478,11 @@ namespace RS::Graphics::Core {
 
         template <typename T>
         constexpr Vector<T, 3> HSL::to_base(Vector<T, 3> colour) noexcept {
+            using namespace Detail;
             Vector<T, 3> out;
             T c = (T(1) - const_abs(T(2) * colour[2] - T(1))) * colour[1];
             T m = colour[2] - c / T(2);
-            Detail::hcm_to_rgb(colour[0], c, m, out[0], out[1], out[2]);
+            hcm_to_rgb(colour[0], c, m, out[0], out[1], out[2]);
             return out;
         }
 
@@ -473,9 +497,10 @@ namespace RS::Graphics::Core {
 
         template <typename T>
         constexpr Vector<T, 3> HSV::from_base(Vector<T, 3> colour) noexcept {
+            using namespace Detail;
             Vector<T, 3> out;
             T c;
-            Detail::rgb_to_hcv(colour[0], colour[1], colour[2], out[0], c, out[2]);
+            rgb_to_hcv(colour[0], colour[1], colour[2], out[0], c, out[2]);
             if (c != 0)
                 out[1] = c / out[2];
             return out;
@@ -483,11 +508,55 @@ namespace RS::Graphics::Core {
 
         template <typename T>
         constexpr Vector<T, 3> HSV::to_base(Vector<T, 3> colour) noexcept {
+            using namespace Detail;
             Vector<T, 3> out;
             T c = colour[2] * colour[1];
             T m = colour[2] - c;
-            Detail::hcm_to_rgb(colour[0], c, m, out[0], out[1], out[2]);
+            hcm_to_rgb(colour[0], c, m, out[0], out[1], out[2]);
             return out;
+        }
+
+    class Greyscale {
+    public:
+        using base = CIEXYZ;
+        static constexpr std::array<char, 1> channels = {{ 'Y' }};
+        static constexpr int properties = CSP::linear | CSP::unit;
+        template <typename T> static constexpr Vector<T, 1> from_base(Vector<T, 3> colour) noexcept;
+        template <typename T> static constexpr Vector<T, 3> to_base(Vector<T, 1> colour) noexcept;
+    };
+
+        template <typename T>
+        constexpr Vector<T, 1> Greyscale::from_base(Vector<T, 3> colour) noexcept {
+            return Vector<T, 1>(colour.y());
+        }
+
+        template <typename T>
+        constexpr Vector<T, 3> Greyscale::to_base(Vector<T, 1> colour) noexcept {
+            using namespace Detail;
+            return colour[0] * D65<T>;
+        }
+
+    class sGreyscale {
+    public:
+        using base = Greyscale;
+        static constexpr std::array<char, 1> channels = {{ 'Y' }};
+        static constexpr int properties = CSP::unit;
+        template <typename T> static constexpr Vector<T, 1> from_base(Vector<T, 1> colour) noexcept;
+        template <typename T> static constexpr Vector<T, 1> to_base(Vector<T, 1> colour) noexcept;
+    };
+
+        template <typename T>
+        constexpr Vector<T, 1> sGreyscale::from_base(Vector<T, 1> colour) noexcept {
+            using namespace Detail;
+            colour[0] = sRGB_function(colour[0]);
+            return colour;
+        }
+
+        template <typename T>
+        constexpr Vector<T, 1> sGreyscale::to_base(Vector<T, 1> colour) noexcept {
+            using namespace Detail;
+            colour[0] = sRGB_inverse(colour[0]);
+            return colour;
         }
 
     // Conversion functions

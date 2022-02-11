@@ -349,9 +349,10 @@ using HCLuv = HCLSpace<CIELuv>;
 
 CIE L\*C\*h<sub>ab</sub> and L\*C\*h<sub>uv</sub> colour spaces. These are
 simply the L\*a\*b\* and L\*u\*v\* colour spaces expressed in polar
-coordinates (as usual, the polar channel is expressed on a 0-1 scale). These
-follow the usual rule that the polar channel comes first; both orders (LCH or
-HCL) can be observed in the wild.
+coordinates (as usual, the polar channel H is expressed on a 0-1 scale, but L
+is still 0-100 and C is unbounded). These follow the usual rule that the
+polar channel comes first; both orders (LCH or HCL) can be observed in the
+wild.
 
 #### HSL and HSV
 
@@ -377,6 +378,33 @@ class HSV {
 ```
 
 Polar transformations of linear RGB.
+
+### Greyscale colour spaces
+
+```c++
+class Greyscale {
+    using base = CIEXYZ;
+    static constexpr std::array<char, 1> channels = { 'Y' };
+    static constexpr int properties = CSP::linear | CSP::unit;
+    template <typename T> static constexpr Vector<T, 1>
+        from_base(Vector<T, 3> colour) noexcept;
+    template <typename T> static constexpr Vector<T, 3>
+        to_base(Vector<T, 1> colour) noexcept;
+};
+class sGreyscale {
+    using base = Greyscale;
+    static constexpr std::array<char, 1> channels = { 'Y' };
+    static constexpr int properties = CSP::unit;
+    template <typename T> static constexpr Vector<T, 1>
+        from_base(Vector<T, 1> colour) noexcept;
+    template <typename T> static constexpr Vector<T, 1>
+        to_base(Vector<T, 1> colour) noexcept;
+};
+```
+
+One-dimensional colour spaces. The single channel in the `Greyscale` space is
+simply the Y channel from CIE XYZ. The `sGreyscale` channel is the linear
+greyscale after applying the sRGB transform to make in visually uniform.
 
 ## Functions
 
