@@ -147,6 +147,8 @@ Tests provided for convenience.
 | `LinearWideGamut`  | `CIEXYZ`           | linear,rgb,unit  | Working space for Wide Gamut                  |
 | `HSL`              | `LinearRGB`        | polar,unit       | Polar transformation of linear RGB            |
 | `HSV`              | `LinearRGB`        | polar,unit       | Polar transformation of linear RGB            |
+| `Greyscale`        | `CIEXYZ`           | linear,unit      | Greyscale                                     |
+| `sGreyscale`       | `Greyscale`        | unit             | Gamma adjusted greyscale                      |
 
 ### Relationship diagram
 
