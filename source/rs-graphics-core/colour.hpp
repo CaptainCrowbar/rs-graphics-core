@@ -520,8 +520,8 @@ namespace RS::Graphics::Core {
     }
 
     template <typename VT, typename CS, ColourLayout CL>
-    constexpr Colour<VT, CS, CL> alpha_blend(Colour<VT, CS, CL> a, Colour<VT, CS, CL> b, int flags = 0,
-            std::enable_if<Detail::SfinaeTrue<VT, Colour<VT, CS, CL>::can_premultiply>::value>* = nullptr) noexcept {
+    constexpr Colour<VT, CS, CL> alpha_blend(Colour<VT, CS, CL> a, Colour<VT, CS, CL> b,
+            std::enable_if_t<Detail::SfinaeTrue<VT, Colour<VT, CS, CL>::can_premultiply>::value, int> flags = 0) noexcept {
 
         using C = Colour<VT, CS, CL>;
         using FT = Detail::FloatingChannelType<VT>;
