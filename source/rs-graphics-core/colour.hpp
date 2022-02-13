@@ -183,6 +183,7 @@ namespace RS::Graphics::Core {
             && cs_is_unit<CS> && ! cs_is_polar<CS>;
         static constexpr int channels = colour_space_channels + int(has_alpha);
         static constexpr bool is_hdr = std::is_floating_point_v<VT>;
+        static constexpr bool is_linear = cs_is_linear<CS>;
         static constexpr ColourLayout layout = CL;
         static constexpr VT scale = is_hdr || (! cs_is_polar<CS> && ! cs_is_unit<CS>) ?
             VT(1) : std::numeric_limits<VT>::max();

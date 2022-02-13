@@ -127,6 +127,12 @@ static constexpr bool Colour::is_hdr;
 True if the value type is floating point.
 
 ```c++
+static constexpr bool Colour::is_linear;
+```
+
+True if the colour space is linear.
+
+```c++
 static constexpr ColourLayout Colour::layout = CL;
 ```
 
