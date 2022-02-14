@@ -272,7 +272,8 @@ Linear interpolation functions. In the first version, `T` must be a primitive
 arithmetic type, and `U` must be a floating point type (if `T` is floating
 point, `U` must be the same type). In both versions, if `T` is an integer
 type, the results are rounded to the nearest integer (halves round toward
-positive infinity).
+positive infinity). Behaviour is undefined if the correct result would be out
+of range for `T`.
 
 ```c++
 template <typename T, int N>

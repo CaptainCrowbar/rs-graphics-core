@@ -552,16 +552,16 @@ namespace RS::Graphics::Core {
 
     }
 
-    template <typename VT, typename CS, ColourLayout CL>
-    constexpr Colour<VT, CS, CL> interpolate(Colour<VT, CS, CL> a, Colour<VT, CS, CL> b,
-            std::enable_if_t<Detail::SfinaeTrue<VT, Colour<VT, CS, CL>::is_linear>::value>* = nullptr) noexcept {
-
-        // TODO
-        (void)a;
-        (void)b;
-
-        return {};
-
+    template <typename VT, typename CS, ColourLayout CL, typename U>
+    constexpr Colour<VT, CS, CL> lerp(const Colour<VT, CS, CL>& c1,
+            const std::enable_if_t<Detail::SfinaeTrue<VT, Colour<VT, CS, CL>::is_linear>::value, Colour<VT, CS, CL>>& c2,
+            U x) noexcept {
+        static_assert(std::is_floating_point_v<U>);
+        using C = Colour<VT, CS, CL>;
+        auto v1 = c1.as_vector();
+        auto v2 = c2.as_vector();
+        auto v3 = lerp(v1, v2, x);
+        return C(v3);
     }
 
     namespace Detail {

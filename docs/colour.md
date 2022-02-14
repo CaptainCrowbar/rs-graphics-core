@@ -455,3 +455,15 @@ When interpreting a hex colour, this function differs from the string-based
 constructor in that this will always interpret a hex colour using the sRGB
 colour space (as CSS requires) and then convert to the target colour, while
 the constructor uses the target colour's native colour space.
+
+```c++
+template <typename T, typename CS, ColourLayout CL, typename U>
+    constexpr Colour<T, CS, CL> lerp(const Colour<T, CS, CL>& c1,
+        const Colour<T, CS, CL>& c2, U x) noexcept;
+```
+
+Performs linear interpolation between colours. The colour space must be
+linear, and `U` must be a floating point type; if `T` is floating point, `U`
+must be the same type. If `T` is an integer type, the results are rounded to
+the nearest integer (halves round toward positive infinity). Behaviour is
+undefined if the correct result would be out of range for `T`.
