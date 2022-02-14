@@ -129,6 +129,36 @@ void test_rs_graphics_core_integer_vector_hash() {
 
 }
 
+void test_rs_graphics_core_integer_vector_interpolation() {
+
+    int x = 0;
+
+    TRY(x = lerp(50, 100, -0.50));  TEST_EQUAL(x, 25);
+    TRY(x = lerp(50, 100, -0.25));  TEST_EQUAL(x, 38);
+    TRY(x = lerp(50, 100, 0.00));   TEST_EQUAL(x, 50);
+    TRY(x = lerp(50, 100, 0.25));   TEST_EQUAL(x, 63);
+    TRY(x = lerp(50, 100, 0.50));   TEST_EQUAL(x, 75);
+    TRY(x = lerp(50, 100, 0.75));   TEST_EQUAL(x, 88);
+    TRY(x = lerp(50, 100, 1.00));   TEST_EQUAL(x, 100);
+    TRY(x = lerp(50, 100, 1.25));   TEST_EQUAL(x, 113);
+    TRY(x = lerp(50, 100, 1.50));   TEST_EQUAL(x, 125);
+
+    Int3 u = {10,20,30};
+    Int3 v = {12,34,56};
+    Int3 w;
+
+    TRY(w = lerp(u, v, -0.50));  TEST_VECTORS(w, Int3(9,13,17), 0);
+    TRY(w = lerp(u, v, -0.25));  TEST_VECTORS(w, Int3(10,17,24), 0);
+    TRY(w = lerp(u, v, 0.00));   TEST_VECTORS(w, Int3(10,20,30), 0);
+    TRY(w = lerp(u, v, 0.25));   TEST_VECTORS(w, Int3(11,24,37), 0);
+    TRY(w = lerp(u, v, 0.50));   TEST_VECTORS(w, Int3(11,27,43), 0);
+    TRY(w = lerp(u, v, 0.75));   TEST_VECTORS(w, Int3(12,31,50), 0);
+    TRY(w = lerp(u, v, 1.00));   TEST_VECTORS(w, Int3(12,34,56), 0);
+    TRY(w = lerp(u, v, 1.25));   TEST_VECTORS(w, Int3(13,38,63), 0);
+    TRY(w = lerp(u, v, 1.50));   TEST_VECTORS(w, Int3(13,41,69), 0);
+
+}
+
 void test_rs_graphics_core_integer_vector_total_order() {
 
     std::set<Int3> set;
@@ -279,5 +309,35 @@ void test_rs_graphics_core_floating_vector_arithmetic() {
     TRY(std::tie(v3, v4) = minmaxv(v1, v2));
     TEST_EQUAL(v3.str(), "[1,3,4]");
     TEST_EQUAL(v4.str(), "[2,3,5]");
+
+}
+
+void test_rs_graphics_core_floating_vector_interpolation() {
+
+    double x = 0;
+
+    TRY(x = lerp(50.0, 100.0, -0.50));  TEST_EQUAL(x, 25.0);
+    TRY(x = lerp(50.0, 100.0, -0.25));  TEST_EQUAL(x, 37.5);
+    TRY(x = lerp(50.0, 100.0, 0.00));   TEST_EQUAL(x, 50.0);
+    TRY(x = lerp(50.0, 100.0, 0.25));   TEST_EQUAL(x, 62.5);
+    TRY(x = lerp(50.0, 100.0, 0.50));   TEST_EQUAL(x, 75.0);
+    TRY(x = lerp(50.0, 100.0, 0.75));   TEST_EQUAL(x, 87.5);
+    TRY(x = lerp(50.0, 100.0, 1.00));   TEST_EQUAL(x, 100.0);
+    TRY(x = lerp(50.0, 100.0, 1.25));   TEST_EQUAL(x, 112.5);
+    TRY(x = lerp(50.0, 100.0, 1.50));   TEST_EQUAL(x, 125.0);
+
+    Double3 u = {10,20,30};
+    Double3 v = {12,34,56};
+    Double3 w;
+
+    TRY(w = lerp(u, v, -0.50));  TEST_VECTORS(w, Double3(9.0,13.0,17.0), 0);
+    TRY(w = lerp(u, v, -0.25));  TEST_VECTORS(w, Double3(9.5,16.5,23.5), 0);
+    TRY(w = lerp(u, v, 0.00));   TEST_VECTORS(w, Double3(10.0,20.0,30.0), 0);
+    TRY(w = lerp(u, v, 0.25));   TEST_VECTORS(w, Double3(10.5,23.5,36.5), 0);
+    TRY(w = lerp(u, v, 0.50));   TEST_VECTORS(w, Double3(11.0,27.0,43.0), 0);
+    TRY(w = lerp(u, v, 0.75));   TEST_VECTORS(w, Double3(11.5,30.5,49.5), 0);
+    TRY(w = lerp(u, v, 1.00));   TEST_VECTORS(w, Double3(12.0,34.0,56.0), 0);
+    TRY(w = lerp(u, v, 1.25));   TEST_VECTORS(w, Double3(12.5,37.5,62.5), 0);
+    TRY(w = lerp(u, v, 1.50));   TEST_VECTORS(w, Double3(13.0,41.0,69.0), 0);
 
 }

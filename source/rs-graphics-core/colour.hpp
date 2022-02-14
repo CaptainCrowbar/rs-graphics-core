@@ -552,6 +552,18 @@ namespace RS::Graphics::Core {
 
     }
 
+    template <typename VT, typename CS, ColourLayout CL>
+    constexpr Colour<VT, CS, CL> interpolate(Colour<VT, CS, CL> a, Colour<VT, CS, CL> b,
+            std::enable_if_t<Detail::SfinaeTrue<VT, Colour<VT, CS, CL>::is_linear>::value>* = nullptr) noexcept {
+
+        // TODO
+        (void)a;
+        (void)b;
+
+        return {};
+
+    }
+
     namespace Detail {
 
         std::optional<sRgba8> get_css_colour(const std::string& str);

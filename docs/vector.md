@@ -262,6 +262,19 @@ These perform element-wise `clamp()`, `min()`, and `max()` operations on
 vectors.
 
 ```c++
+template <typename T, typename U> constexpr T lerp(T a, T b, U x) noexcept;
+template <typename T, int N, typename U>
+    constexpr Vector<T, N> lerp(const Vector<T, N>& a, const Vector<T, N>& b,
+        U x) noexcept;
+```
+
+Linear interpolation functions. In the first version, `T` must be a primitive
+arithmetic type, and `U` must be a floating point type (if `T` is floating
+point, `U` must be the same type). In both versions, if `T` is an integer
+type, the results are rounded to the nearest integer (halves round toward
+positive infinity).
+
+```c++
 template <typename T, int N>
     struct std::greater<RS::Graphics::Core::Vector<T, N>>;
 template <typename T, int N>

@@ -201,6 +201,31 @@ namespace RS::Graphics::Core {
         return pair;
     }
 
+    template <typename T>
+    constexpr T lerp(T a, std::enable_if_t<std::is_floating_point_v<T>, T> b, T x) noexcept {
+        return a + (b - a) * x;
+    }
+
+    template <typename T, typename U>
+    constexpr T lerp(T a, std::enable_if_t<std::is_integral_v<T>, T> b, U x) noexcept {
+        static_assert(std::is_floating_point_v<U>);
+        auto fp_a = U(a);
+        auto fp_b = U(b);
+        auto fp_result = fp_a + (fp_b - fp_a) * x;
+        auto fp_abs = fp_result < 0 ? - fp_result : fp_result;
+        auto int_abs = T(fp_abs + U(0.5));
+        auto int_result = fp_result < 0 ? T(0) - int_abs : int_abs;
+        return int_result;
+    }
+
+    template <typename T, int N, typename U>
+    constexpr Vector<T, N> lerp(const Vector<T, N>& a, const Vector<T, N>& b, U x) noexcept {
+        Vector<T, N> result;
+        for (int i = 0; i < N; ++i)
+            result[i] = lerp(a[i], b[i], x);
+        return result;
+    }
+
 }
 
 namespace std {

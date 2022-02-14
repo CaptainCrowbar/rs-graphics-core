@@ -27,9 +27,11 @@ int main(int argc, char** argv) {
     UNIT_TEST(rs_graphics_core_integer_vector_construction)
     UNIT_TEST(rs_graphics_core_integer_vector_arithmetic)
     UNIT_TEST(rs_graphics_core_integer_vector_hash)
+    UNIT_TEST(rs_graphics_core_integer_vector_interpolation)
     UNIT_TEST(rs_graphics_core_integer_vector_total_order)
     UNIT_TEST(rs_graphics_core_floating_vector_construction)
     UNIT_TEST(rs_graphics_core_floating_vector_arithmetic)
+    UNIT_TEST(rs_graphics_core_floating_vector_interpolation)
 
     // multi-array-test.cpp
     UNIT_TEST(rs_graphics_core_multi_array_2d)
@@ -79,7 +81,7 @@ int main(int argc, char** argv) {
     UNIT_TEST(rs_graphics_core_colour_integral_standard_colours)
     UNIT_TEST(rs_graphics_core_colour_integral_arithmetic)
 
-    // colour-misc-test.cpp
+    // colour-alpha-test.cpp
     UNIT_TEST(rs_graphics_core_colour_channel_order)
     UNIT_TEST(rs_graphics_core_colour_premultiplied_alpha)
     UNIT_TEST(rs_graphics_core_colour_alpha_blending)
@@ -87,6 +89,9 @@ int main(int argc, char** argv) {
     // colour-conversion-test.cpp
     UNIT_TEST(rs_graphics_core_colour_conversion_between_colour_spaces)
     UNIT_TEST(rs_graphics_core_colour_conversion_between_representations)
+
+    // colour-interpolation-test.cpp
+    UNIT_TEST(rs_graphics_core_colour_interpolation)
 
     // colour-string-test.cpp
     UNIT_TEST(rs_graphics_core_colour_hex_representation)
