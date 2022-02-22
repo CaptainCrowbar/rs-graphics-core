@@ -4,6 +4,7 @@
 #include "rs-graphics-core/vector.hpp"
 #include "rs-format/enum.hpp"
 #include "rs-format/format.hpp"
+#include "rs-tl/types.hpp"
 #include <algorithm>
 #include <array>
 #include <functional>
@@ -96,7 +97,7 @@ namespace RS::Graphics::Core {
         constexpr Matrix(const alt_matrix& m) noexcept: array_{}
             { for (int r = 0; r < N; ++r) for (int c = 0; c < N; ++c) (*this)(r, c) = m(r, c); }
         template <typename... Args, typename U = T>
-            constexpr Matrix(T x, std::enable_if_t<Detail::SfinaeTrue<U, sizeof...(Args) + 2 == cells
+            constexpr Matrix(T x, std::enable_if_t<TL::SfinaeTrue<U, sizeof...(Args) + 2 == cells
                 && (std::is_convertible_v<Args, T> && ...)>::value, T> y, Args... args):
             array_{{T(x), T(y), T(args)...}} {}
 

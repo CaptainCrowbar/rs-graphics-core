@@ -6,6 +6,7 @@
 #include "rs-format/enum.hpp"
 #include "rs-format/format.hpp"
 #include "rs-format/string.hpp"
+#include "rs-tl/types.hpp"
 #include <functional>
 #include <limits>
 #include <optional>
@@ -191,13 +192,13 @@ namespace RS::Graphics::Core {
     private:
 
         template <typename V2, char Lit> using if_channel_t =
-            std::enable_if<Detail::SfinaeTrue<V2, Detail::colour_channel_index<CS, Lit, CL> != -1>::value>;
+            std::enable_if<TL::SfinaeTrue<V2, Detail::colour_channel_index<CS, Lit, CL> != -1>::value>;
         template <typename... Args> using if_alpha_args_t =
             std::enable_if_t<sizeof...(Args) + 2 == channels && (std::is_convertible_v<Args, VT> && ...), VT>;
         template <typename... Args> using if_nonalpha_args_t =
             std::enable_if_t<has_alpha && sizeof...(Args) + 2 == colour_space_channels && (std::is_convertible_v<Args, VT> && ...), VT>;
-        template <typename V2> using if_rgb_t = std::enable_if<Detail::SfinaeTrue<V2, cs_is_rgb<CS>>::value>;
-        template <typename V2> using if_rgba_t = std::enable_if<Detail::SfinaeTrue<V2, cs_is_rgb<CS> && has_alpha>::value>;
+        template <typename V2> using if_rgb_t = std::enable_if<TL::SfinaeTrue<V2, cs_is_rgb<CS>>::value>;
+        template <typename V2> using if_rgba_t = std::enable_if<TL::SfinaeTrue<V2, cs_is_rgb<CS> && has_alpha>::value>;
 
     public:
 
@@ -255,7 +256,7 @@ namespace RS::Graphics::Core {
 
         VT& operator[](int i) noexcept { return vec_[i]; }
         const VT& operator[](int i) const noexcept { return vec_[i]; }
-        template <typename V2 = VT> constexpr VT& alpha(std::enable_if<Detail::SfinaeTrue<V2, has_alpha>::value>* = nullptr) noexcept;
+        template <typename V2 = VT> constexpr VT& alpha(std::enable_if<TL::SfinaeTrue<V2, has_alpha>::value>* = nullptr) noexcept;
         constexpr const VT& alpha() const noexcept;
         constexpr VT& cs(int i) noexcept { return vec_[space_to_layout_index(i)]; }
         constexpr const VT& cs(int i) const noexcept { return vec_[space_to_layout_index(i)]; }
@@ -272,9 +273,9 @@ namespace RS::Graphics::Core {
         size_t hash() const noexcept { return vec_.hash(); }
         std::string hex() const;
         template <typename V2 = VT> constexpr Colour
-            multiply_alpha(std::enable_if<Detail::SfinaeTrue<V2, can_premultiply>::value>* = nullptr) const noexcept;
+            multiply_alpha(std::enable_if<TL::SfinaeTrue<V2, can_premultiply>::value>* = nullptr) const noexcept;
         template <typename V2 = VT> constexpr Colour
-            unmultiply_alpha(std::enable_if<Detail::SfinaeTrue<V2, can_premultiply>::value>* = nullptr) const noexcept;
+            unmultiply_alpha(std::enable_if<TL::SfinaeTrue<V2, can_premultiply>::value>* = nullptr) const noexcept;
         constexpr size_t size() const noexcept { return size_t(channels); }
         std::string str(RS::Format::FormatSpec spec = {}) const { return vec_.str(spec); }
         friend std::ostream& operator<<(std::ostream& out, const Colour& c) { return out << c.str(); }
@@ -368,7 +369,7 @@ namespace RS::Graphics::Core {
 
         template <typename VT, typename CS, ColourLayout CL>
         template <typename V2>
-        constexpr VT& Colour<VT, CS, CL>::alpha(std::enable_if<Detail::SfinaeTrue<V2, has_alpha>::value>*) noexcept {
+        constexpr VT& Colour<VT, CS, CL>::alpha(std::enable_if<TL::SfinaeTrue<V2, has_alpha>::value>*) noexcept {
             return vec_[alpha_index];
         }
 
@@ -439,7 +440,7 @@ namespace RS::Graphics::Core {
 
         template <typename VT, typename CS, ColourLayout CL>
         template <typename V2>
-        constexpr Colour<VT, CS, CL> Colour<VT, CS, CL>::multiply_alpha(std::enable_if<Detail::SfinaeTrue<V2,
+        constexpr Colour<VT, CS, CL> Colour<VT, CS, CL>::multiply_alpha(std::enable_if<TL::SfinaeTrue<V2,
                 can_premultiply>::value>*) const noexcept {
             using FT = Detail::FloatingChannelType<VT>;
             auto result = *this;
@@ -452,7 +453,7 @@ namespace RS::Graphics::Core {
 
         template <typename VT, typename CS, ColourLayout CL>
         template <typename V2>
-        constexpr Colour<VT, CS, CL> Colour<VT, CS, CL>::unmultiply_alpha(std::enable_if<Detail::SfinaeTrue<V2,
+        constexpr Colour<VT, CS, CL> Colour<VT, CS, CL>::unmultiply_alpha(std::enable_if<TL::SfinaeTrue<V2,
                 can_premultiply>::value>*) const noexcept {
             using FT = Detail::FloatingChannelType<VT>;
             auto result = *this;
@@ -522,7 +523,7 @@ namespace RS::Graphics::Core {
 
     template <typename VT, typename CS, ColourLayout CL>
     constexpr Colour<VT, CS, CL> alpha_blend(Colour<VT, CS, CL> a, Colour<VT, CS, CL> b,
-            std::enable_if_t<Detail::SfinaeTrue<VT, Colour<VT, CS, CL>::can_premultiply>::value, int> flags = 0) noexcept {
+            std::enable_if_t<TL::SfinaeTrue<VT, Colour<VT, CS, CL>::can_premultiply>::value, int> flags = 0) noexcept {
 
         using C = Colour<VT, CS, CL>;
         using FT = Detail::FloatingChannelType<VT>;
@@ -554,7 +555,7 @@ namespace RS::Graphics::Core {
 
     template <typename VT, typename CS, ColourLayout CL, typename U>
     constexpr Colour<VT, CS, CL> lerp(const Colour<VT, CS, CL>& c1,
-            const std::enable_if_t<Detail::SfinaeTrue<VT, Colour<VT, CS, CL>::is_linear>::value, Colour<VT, CS, CL>>& c2,
+            const std::enable_if_t<TL::SfinaeTrue<VT, Colour<VT, CS, CL>::is_linear>::value, Colour<VT, CS, CL>>& c2,
             U x) noexcept {
         static_assert(std::is_floating_point_v<U>);
         using C = Colour<VT, CS, CL>;

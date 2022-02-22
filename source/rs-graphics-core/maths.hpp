@@ -6,15 +6,6 @@
 
 namespace RS::Graphics::Core {
 
-    // Internal use
-
-    namespace Detail {
-
-        template <typename T, bool B> struct SfinaeTrue {};
-        template <typename T> struct SfinaeTrue<T, true>: std::true_type {};
-
-    }
-
     // Constants
 
     template <typename T> constexpr T pi = T(3.14159'26535'89793'23846'26433'83279'50288'41972L);

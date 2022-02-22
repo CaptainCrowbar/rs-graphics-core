@@ -2,6 +2,7 @@
 
 #include "rs-graphics-core/maths.hpp"
 #include "rs-format/format.hpp"
+#include "rs-tl/types.hpp"
 #include <algorithm>
 #include <array>
 #include <cmath>
@@ -50,7 +51,7 @@ namespace RS::Graphics::Core {
         constexpr Vector() noexcept: array_{} {}
         constexpr explicit Vector(T x) noexcept: array_{} { for (auto& y: *this) y = x; }
         template <typename... Args, typename U = T>
-            constexpr Vector(T x, std::enable_if_t<Detail::SfinaeTrue<U, sizeof...(Args) + 2 == N
+            constexpr Vector(T x, std::enable_if_t<TL::SfinaeTrue<U, sizeof...(Args) + 2 == N
                 && (std::is_convertible_v<Args, T> && ...)>::value, T> y,
                 Args... args) noexcept:
             array_{{T(x), T(y), T(args)...}} {}
@@ -68,17 +69,17 @@ namespace RS::Graphics::Core {
         constexpr T& x() noexcept { return (*this)[0]; }
         constexpr T x() const noexcept { return (*this)[0]; }
         template <typename U = T>
-            constexpr std::enable_if_t<Detail::SfinaeTrue<U, (N >= 2)>::value, T&> y() noexcept { return (*this)[1]; }
+            constexpr std::enable_if_t<TL::SfinaeTrue<U, (N >= 2)>::value, T&> y() noexcept { return (*this)[1]; }
         template <typename U = T>
-            constexpr std::enable_if_t<Detail::SfinaeTrue<U, (N >= 2)>::value, T> y() const noexcept { return (*this)[1]; }
+            constexpr std::enable_if_t<TL::SfinaeTrue<U, (N >= 2)>::value, T> y() const noexcept { return (*this)[1]; }
         template <typename U = T>
-            constexpr std::enable_if_t<Detail::SfinaeTrue<U, (N >= 3)>::value, T&> z() noexcept { return (*this)[2]; }
+            constexpr std::enable_if_t<TL::SfinaeTrue<U, (N >= 3)>::value, T&> z() noexcept { return (*this)[2]; }
         template <typename U = T>
-            constexpr std::enable_if_t<Detail::SfinaeTrue<U, (N >= 3)>::value, T> z() const noexcept { return (*this)[2]; }
+            constexpr std::enable_if_t<TL::SfinaeTrue<U, (N >= 3)>::value, T> z() const noexcept { return (*this)[2]; }
         template <typename U = T>
-            constexpr std::enable_if_t<Detail::SfinaeTrue<U, (N >= 4)>::value, T&> w() noexcept { return (*this)[3]; }
+            constexpr std::enable_if_t<TL::SfinaeTrue<U, (N >= 4)>::value, T&> w() noexcept { return (*this)[3]; }
         template <typename U = T>
-            constexpr std::enable_if_t<Detail::SfinaeTrue<U, (N >= 4)>::value, T> w() const noexcept { return (*this)[3]; }
+            constexpr std::enable_if_t<TL::SfinaeTrue<U, (N >= 4)>::value, T> w() const noexcept { return (*this)[3]; }
 
         constexpr T* begin() noexcept { return array_.data(); }
         constexpr const T* begin() const noexcept { return array_.data(); }
@@ -105,7 +106,7 @@ namespace RS::Graphics::Core {
         constexpr friend T operator%(const Vector& a, const Vector& b) noexcept { return a.dot(b); }
 
         template <typename U = T>
-            constexpr std::enable_if_t<Detail::SfinaeTrue<U, N == 3>::value, Vector> cross(const Vector& v) const noexcept {
+            constexpr std::enable_if_t<TL::SfinaeTrue<U, N == 3>::value, Vector> cross(const Vector& v) const noexcept {
                 auto& u = *this;
                 return {u[1] * v[2] - u[2] * v[1], u[2] * v[0] - u[0] * v[2], u[0] * v[1] - u[1] * v[0]};
             }
