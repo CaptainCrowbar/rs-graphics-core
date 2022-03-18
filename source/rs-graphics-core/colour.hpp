@@ -26,14 +26,15 @@ namespace RS::Graphics::Core {
         alpha_reverse
     )
 
-    namespace Pma {
+    enum class Pma: int {
+        none    = 0,
+        first   = 1,
+        second  = 2,
+        result  = 4,
+        all     = first | second | result,
+    };
 
-        constexpr int first   = 1;
-        constexpr int second  = 2;
-        constexpr int result  = 4;
-        constexpr int all     = first | second | result;
-
-    }
+    RS_DEFINE_BITMASK_OPERATORS(Pma)
 
     template <typename VT, typename CS, ColourLayout CL> class Colour;
 
@@ -523,7 +524,7 @@ namespace RS::Graphics::Core {
 
     template <typename VT, typename CS, ColourLayout CL>
     constexpr Colour<VT, CS, CL> alpha_blend(Colour<VT, CS, CL> a, Colour<VT, CS, CL> b,
-            std::enable_if_t<TL::SfinaeTrue<VT, Colour<VT, CS, CL>::can_premultiply>::value, int> flags = 0) noexcept {
+            std::enable_if_t<TL::SfinaeTrue<VT, Colour<VT, CS, CL>::can_premultiply>::value, Pma> flags = {}) noexcept {
 
         using C = Colour<VT, CS, CL>;
         using FT = Detail::FloatingChannelType<VT>;
@@ -534,16 +535,16 @@ namespace RS::Graphics::Core {
         convert_colour(a, fa);
         convert_colour(b, fb);
 
-        if ((flags & Pma::first) == 0)
+        if (! (flags & Pma::first))
             fa = fa.multiply_alpha();
 
-        if ((flags & Pma::second) == 0)
+        if (! (flags & Pma::second))
             fb = fb.multiply_alpha();
 
         for (int i = 0; i < C::channels; ++i)
             fc[i] = fa[i] + fb[i] * (1 - fa.alpha());
 
-        if ((flags & Pma::result) == 0)
+        if (! (flags & Pma::result))
             fc = fc.unmultiply_alpha();
 
         C c;

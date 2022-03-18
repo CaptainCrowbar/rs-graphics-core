@@ -28,12 +28,13 @@ enum class ColourLayout: int {
 Indicates the internal layout of a colour object.
 
 ```c++
-namespace Pma {
-    constexpr int first;
-    constexpr int second;
-    constexpr int result;
-    constexpr int all = first | second | result;
-}
+enum class Pma: int {
+    none = 0,
+    first,
+    second,
+    result,
+    all = first | second | result
+};
 ```
 
 Bitmask flags used in the `alpha_blend()` function to indicate which of the
@@ -402,7 +403,7 @@ These are only defined for linear RGB colour spaces. Division by zero is
 undefined behaviour.
 
 ```c++
-constexpr Colour alpha_blend(Colour a, Colour b, int flags = 0) noexcept;
+constexpr Colour alpha_blend(Colour a, Colour b, Pma flags = Pma::none) noexcept;
 ```
 
 Performs alpha blending (`a` over `b`). The flags indicate which of the

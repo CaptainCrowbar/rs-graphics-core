@@ -38,7 +38,7 @@ be ASCII upper or lower case letters, with no duplicates. Channel IDs are
 case sensitive.
 
 ```c++
-static constexpr int CS::properties;
+static constexpr Csp CS::properties;
 ```
 
 A bitmask constant indicating the properties of the colour space (the values
@@ -104,12 +104,13 @@ colour space violates any of them:
 ## Colour space properties
 
 ```c++
-namespace CSP {
-    constexpr int linear;  // Linear colour space
-    constexpr int polar;   // Valid colours are restricted to the unit cube
-    constexpr int rgb;     // Cartesian RGB-based colour space
-    constexpr int unit;    // First channel is circular
-}
+enum class Csp: int {
+    none = 0,
+    linear,  // Linear colour space
+    polar,   // Valid colours are restricted to the unit cube
+    rgb,     // Cartesian RGB-based colour space
+    unit,    // First channel is circular
+};
 ```
 
 Bitmask flags used to indicate the properties of a colour space. A linear
@@ -164,7 +165,7 @@ The arrows point from each colour space to its base space.
 class CIEXYZ {
     using base = CIEXYZ;
     static constexpr std::array<char, 3> channels = { 'X', 'Y', 'Z' };
-    static constexpr int properties = CSP::linear | CSP::unit;
+    static constexpr Csp properties = Csp::linear | Csp::unit;
     template <typename T> static constexpr Vector<T, 3>
         from_base(Vector<T, 3> colour) noexcept { return colour; }
     template <typename T> static constexpr Vector<T, 3>
@@ -180,7 +181,7 @@ CIE 1931 XYZ colour space.
 class CIExyY {
     using base = CIEXYZ;
     static constexpr std::array<char, 3> channels = { 'x', 'y', 'Y' };
-    static constexpr int properties = CSP::unit;
+    static constexpr Csp properties = Csp::unit;
     template <typename T> static constexpr Vector<T, 3>
         from_base(Vector<T, 3> colour) noexcept;
     template <typename T> static constexpr Vector<T, 3>
@@ -196,7 +197,7 @@ CIE 1931 xyY chromaticity-based colour space.
 class CIELab {
     using base = CIEXYZ;
     static constexpr std::array<char, 3> channels = { 'L', 'a', 'b' };
-    static constexpr int properties = 0;
+    static constexpr Csp properties = Csp::none;
     template <typename T> static Vector<T, 3>
         from_base(Vector<T, 3> colour) noexcept;
     template <typename T> static Vector<T, 3>
@@ -205,7 +206,7 @@ class CIELab {
 class CIELuv {
     using base = CIEXYZ;
     static constexpr std::array<char, 3> channels = { 'L', 'u', 'v' };
-    static constexpr int properties = 0;
+    static constexpr Csp properties = Csp::none;
     template <typename T> static Vector<T, 3>
         from_base(Vector<T, 3> colour) noexcept;
     template <typename T> static Vector<T, 3>
@@ -227,7 +228,7 @@ template <int64_t M00, int64_t M01, int64_t M02,
 class WorkingSpace {
     using base = CIEXYZ;
     static constexpr std::array<char, 3> channels = { 'R', 'G', 'B' };
-    static constexpr int properties = CSP::linear | CSP::rgb | CSP::unit;
+    static constexpr Csp properties = Csp::linear | Csp::rgb | Csp::unit;
     template <typename T> static constexpr Vector<T, 3>
         from_base(Vector<T, 3> colour) noexcept;
     template <typename T> static constexpr Vector<T, 3>
@@ -245,7 +246,7 @@ template <typename WorkingSpace,
 class NonlinearSpace {
     using base = WorkingSpace;
     static constexpr std::array<char, 3> channels = { 'R', 'G', 'B' };
-    static constexpr int properties = CSP::rgb | CSP::unit;
+    static constexpr Csp properties = Csp::rgb | Csp::unit;
     template <typename T> static Vector<T, 3>
         from_base(Vector<T, 3> colour) noexcept;
     template <typename T> static Vector<T, 3>
@@ -271,7 +272,7 @@ using LinearRGB = WorkingSpace<
 class sRGB {
     using base = LinearRGB;
     static constexpr std::array<char, 3> channels = { 'R', 'G', 'B' };
-    static constexpr int properties = CSP::rgb | CSP::unit;
+    static constexpr Csp properties = Csp::rgb | Csp::unit;
     template <typename T> static Vector<T, 3>
         from_base(Vector<T, 3> colour) noexcept;
     template <typename T> static Vector<T, 3>
@@ -307,7 +308,7 @@ using LinearProPhoto = WorkingSpace<
 class ProPhoto {
     using base = LinearProPhoto;
     static constexpr std::array<char, 3> channels = { 'R', 'G', 'B' };
-    static constexpr int properties = CSP::rgb | CSP::unit;
+    static constexpr Csp properties = Csp::rgb | Csp::unit;
     template <typename T> static Vector<T, 3>
         from_base(Vector<T, 3> colour) noexcept;
     template <typename T> static Vector<T, 3>
@@ -339,7 +340,7 @@ Adobe Wide Gamut (a.k.a. opRGB) colour space, and its linear working space.
 template <typename Base> class HCLSpace {
     using base = Base;
     static constexpr std::array<char, 3> channels = { 'H', 'C', 'L' };
-    static constexpr int properties = CSP::polar;
+    static constexpr Csp properties = Csp::polar;
     template <typename T> static Vector<T, 3>
         from_base(Vector<T, 3> colour) noexcept;
     template <typename T> static Vector<T, 3>
@@ -362,7 +363,7 @@ wild.
 class HSL {
     using base = LinearRGB;
     static constexpr std::array<char, 3> channels = { 'H', 'S', 'L' };
-    static constexpr int properties = CSP::polar | CSP::unit;
+    static constexpr Csp properties = Csp::polar | Csp::unit;
     template <typename T> static constexpr Vector<T, 3>
         from_base(Vector<T, 3> colour) noexcept;
     template <typename T> static constexpr Vector<T, 3>
@@ -371,7 +372,7 @@ class HSL {
 class HSV {
     using base = LinearRGB;
     static constexpr std::array<char, 3> channels = { 'H', 'S', 'V' };
-    static constexpr int properties = CSP::polar | CSP::unit;
+    static constexpr Csp properties = Csp::polar | Csp::unit;
     template <typename T> static constexpr Vector<T, 3>
         from_base(Vector<T, 3> colour) noexcept;
     template <typename T> static constexpr Vector<T, 3>
@@ -387,7 +388,7 @@ Polar transformations of linear RGB.
 class Greyscale {
     using base = CIEXYZ;
     static constexpr std::array<char, 1> channels = { 'Y' };
-    static constexpr int properties = CSP::linear | CSP::unit;
+    static constexpr Csp properties = Csp::linear | Csp::unit;
     template <typename T> static constexpr Vector<T, 1>
         from_base(Vector<T, 3> colour) noexcept;
     template <typename T> static constexpr Vector<T, 3>
@@ -396,7 +397,7 @@ class Greyscale {
 class sGreyscale {
     using base = Greyscale;
     static constexpr std::array<char, 1> channels = { 'Y' };
-    static constexpr int properties = CSP::unit;
+    static constexpr Csp properties = Csp::unit;
     template <typename T> static constexpr Vector<T, 1>
         from_base(Vector<T, 1> colour) noexcept;
     template <typename T> static constexpr Vector<T, 1>

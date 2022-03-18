@@ -20,21 +20,22 @@ namespace RS::Graphics::Core {
 
     // Colour space properties
 
-    namespace CSP {
+    enum class Csp: int {
+        none    = 0,
+        linear  = 1,  // Linear colour space
+        polar   = 2,  // Valid colours are restricted to the unit cube
+        rgb     = 4,  // Cartesian RGB-based colour space
+        unit    = 8,  // First channel is circular
+    };
 
-        constexpr int linear  = 1 << 0;  // Linear colour space
-        constexpr int polar   = 1 << 1;  // Valid colours are restricted to the unit cube
-        constexpr int rgb     = 1 << 2;  // Cartesian RGB-based colour space
-        constexpr int unit    = 1 << 3;  // First channel is circular
-
-    }
+    RS_DEFINE_BITMASK_OPERATORS(Csp)
 
     // Utility functions
 
-    template <typename CS> constexpr bool cs_is_linear  = (CS::properties & CSP::linear) != 0;
-    template <typename CS> constexpr bool cs_is_polar   = (CS::properties & CSP::polar) != 0;
-    template <typename CS> constexpr bool cs_is_rgb     = (CS::properties & CSP::rgb) != 0;
-    template <typename CS> constexpr bool cs_is_unit    = (CS::properties & CSP::unit) != 0;
+    template <typename CS> constexpr bool cs_is_linear  = !! (CS::properties & Csp::linear);
+    template <typename CS> constexpr bool cs_is_polar   = !! (CS::properties & Csp::polar);
+    template <typename CS> constexpr bool cs_is_rgb     = !! (CS::properties & Csp::rgb);
+    template <typename CS> constexpr bool cs_is_unit    = !! (CS::properties & Csp::unit);
 
     template <typename CS, typename T, int N>
     constexpr bool is_colour_in_gamut(Vector<T, N> colour, T scale = 1) noexcept {
@@ -73,7 +74,7 @@ namespace RS::Graphics::Core {
     public:
         using base = CIEXYZ;
         static constexpr std::array<char, 3> channels = {{ 'X', 'Y', 'Z' }};
-        static constexpr int properties = CSP::linear | CSP::unit;
+        static constexpr Csp properties = Csp::linear | Csp::unit;
         template <typename T> static constexpr Vector<T, 3> from_base(Vector<T, 3> colour) noexcept { return colour; }
         template <typename T> static constexpr Vector<T, 3> to_base(Vector<T, 3> colour) noexcept { return colour; }
     };
@@ -82,7 +83,7 @@ namespace RS::Graphics::Core {
     public:
         using base = CIEXYZ;
         static constexpr std::array<char, 3> channels = {{ 'x', 'y', 'Y' }};
-        static constexpr int properties = CSP::unit;
+        static constexpr Csp properties = Csp::unit;
         template <typename T> static constexpr Vector<T, 3> from_base(Vector<T, 3> colour) noexcept;
         template <typename T> static constexpr Vector<T, 3> to_base(Vector<T, 3> colour) noexcept;
     };
@@ -113,7 +114,7 @@ namespace RS::Graphics::Core {
     public:
         using base = CIEXYZ;
         static constexpr std::array<char, 3> channels = {{ 'L', 'a', 'b' }};
-        static constexpr int properties = 0;
+        static constexpr Csp properties = {};
         template <typename T> static Vector<T, 3> from_base(Vector<T, 3> colour) noexcept;
         template <typename T> static Vector<T, 3> to_base(Vector<T, 3> colour) noexcept;
     private:
@@ -167,7 +168,7 @@ namespace RS::Graphics::Core {
     public:
         using base = CIEXYZ;
         static constexpr std::array<char, 3> channels = {{ 'L', 'u', 'v' }};
-        static constexpr int properties = 0;
+        static constexpr Csp properties = {};
         template <typename T> static Vector<T, 3> from_base(Vector<T, 3> colour) noexcept;
         template <typename T> static Vector<T, 3> to_base(Vector<T, 3> colour) noexcept;
     private:
@@ -229,7 +230,7 @@ namespace RS::Graphics::Core {
     public:
         using base = Base;
         static constexpr std::array<char, 3> channels = {{ 'H', 'C', 'L' }};
-        static constexpr int properties = CSP::polar;
+        static constexpr Csp properties = Csp::polar;
         template <typename T> static Vector<T, 3> from_base(Vector<T, 3> colour) noexcept;
         template <typename T> static Vector<T, 3> to_base(Vector<T, 3> colour) noexcept;
     };
@@ -262,7 +263,7 @@ namespace RS::Graphics::Core {
     public:
         using base = CIEXYZ;
         static constexpr std::array<char, 3> channels = {{ 'R', 'G', 'B' }};
-        static constexpr int properties = CSP::linear | CSP::rgb | CSP::unit;
+        static constexpr Csp properties = Csp::linear | Csp::rgb | Csp::unit;
         template <typename T> static constexpr Vector<T, 3> from_base(Vector<T, 3> colour) noexcept { return xyz_to_rgb_matrix<T> * colour; }
         template <typename T> static constexpr Vector<T, 3> to_base(Vector<T, 3> colour) noexcept { return rgb_to_xyz_matrix<T> * colour; }
     private:
@@ -276,7 +277,7 @@ namespace RS::Graphics::Core {
     public:
         using base = WorkingSpace;
         static constexpr std::array<char, 3> channels = {{ 'R', 'G', 'B' }};
-        static constexpr int properties = CSP::rgb | CSP::unit;
+        static constexpr Csp properties = Csp::rgb | Csp::unit;
         template <typename T> static Vector<T, 3> from_base(Vector<T, 3> colour) noexcept;
         template <typename T> static Vector<T, 3> to_base(Vector<T, 3> colour) noexcept;
     };
@@ -358,7 +359,7 @@ namespace RS::Graphics::Core {
     public:
         using base = LinearRGB;
         static constexpr std::array<char, 3> channels = {{ 'R', 'G', 'B' }};
-        static constexpr int properties = CSP::rgb | CSP::unit;
+        static constexpr Csp properties = Csp::rgb | Csp::unit;
         template <typename T> static Vector<T, 3> from_base(Vector<T, 3> colour) noexcept;
         template <typename T> static Vector<T, 3> to_base(Vector<T, 3> colour) noexcept;
     };
@@ -390,7 +391,7 @@ namespace RS::Graphics::Core {
     public:
         using base = LinearProPhoto;
         static constexpr std::array<char, 3> channels = {{ 'R', 'G', 'B' }};
-        static constexpr int properties = CSP::rgb | CSP::unit;
+        static constexpr Csp properties = Csp::rgb | Csp::unit;
         template <typename T> static Vector<T, 3> from_base(Vector<T, 3> colour) noexcept;
         template <typename T> static Vector<T, 3> to_base(Vector<T, 3> colour) noexcept;
     };
@@ -459,7 +460,7 @@ namespace RS::Graphics::Core {
     public:
         using base = LinearRGB;
         static constexpr std::array<char, 3> channels = {{ 'H', 'S', 'L' }};
-        static constexpr int properties = CSP::polar | CSP::unit;
+        static constexpr Csp properties = Csp::polar | Csp::unit;
         template <typename T> static constexpr Vector<T, 3> from_base(Vector<T, 3> colour) noexcept;
         template <typename T> static constexpr Vector<T, 3> to_base(Vector<T, 3> colour) noexcept;
     };
@@ -490,7 +491,7 @@ namespace RS::Graphics::Core {
     public:
         using base = LinearRGB;
         static constexpr std::array<char, 3> channels = {{ 'H', 'S', 'V' }};
-        static constexpr int properties = CSP::polar | CSP::unit;
+        static constexpr Csp properties = Csp::polar | Csp::unit;
         template <typename T> static constexpr Vector<T, 3> from_base(Vector<T, 3> colour) noexcept;
         template <typename T> static constexpr Vector<T, 3> to_base(Vector<T, 3> colour) noexcept;
     };
@@ -520,7 +521,7 @@ namespace RS::Graphics::Core {
     public:
         using base = CIEXYZ;
         static constexpr std::array<char, 1> channels = {{ 'Y' }};
-        static constexpr int properties = CSP::linear | CSP::unit;
+        static constexpr Csp properties = Csp::linear | Csp::unit;
         template <typename T> static constexpr Vector<T, 1> from_base(Vector<T, 3> colour) noexcept;
         template <typename T> static constexpr Vector<T, 3> to_base(Vector<T, 1> colour) noexcept;
     };
@@ -540,7 +541,7 @@ namespace RS::Graphics::Core {
     public:
         using base = Greyscale;
         static constexpr std::array<char, 1> channels = {{ 'Y' }};
-        static constexpr int properties = CSP::unit;
+        static constexpr Csp properties = Csp::unit;
         template <typename T> static constexpr Vector<T, 1> from_base(Vector<T, 1> colour) noexcept;
         template <typename T> static constexpr Vector<T, 1> to_base(Vector<T, 1> colour) noexcept;
     };
