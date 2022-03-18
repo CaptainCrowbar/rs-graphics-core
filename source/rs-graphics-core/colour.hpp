@@ -3,9 +3,9 @@
 #include "rs-graphics-core/colour-space.hpp"
 #include "rs-graphics-core/maths.hpp"
 #include "rs-graphics-core/vector.hpp"
-#include "rs-format/enum.hpp"
 #include "rs-format/format.hpp"
 #include "rs-format/string.hpp"
+#include "rs-tl/enum.hpp"
 #include "rs-tl/types.hpp"
 #include <functional>
 #include <limits>

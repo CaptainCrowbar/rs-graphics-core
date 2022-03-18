@@ -2,8 +2,8 @@
 
 #include "rs-graphics-core/maths.hpp"
 #include "rs-graphics-core/vector.hpp"
-#include "rs-format/enum.hpp"
 #include "rs-format/format.hpp"
+#include "rs-tl/enum.hpp"
 #include "rs-tl/types.hpp"
 #include <algorithm>
 #include <array>

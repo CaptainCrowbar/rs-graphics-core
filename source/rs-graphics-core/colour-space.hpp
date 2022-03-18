@@ -4,7 +4,7 @@
 #include "rs-graphics-core/matrix.hpp"
 #include "rs-graphics-core/transform.hpp"
 #include "rs-graphics-core/vector.hpp"
-#include "rs-format/enum.hpp"
+#include "rs-tl/enum.hpp"
 #include <algorithm>
 #include <array>
 #include <cmath>
