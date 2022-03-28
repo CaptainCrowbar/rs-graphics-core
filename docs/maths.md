@@ -50,9 +50,12 @@ be an integer type (and must be explicitly specified). Behaviour is undefined
 if the result is not representable in the integer type.
 
 ```c++
-template <typename T> constexpr std::pair<T, T> euclidean_divide(T x, T y) noexcept;
-template <typename T> constexpr T euclidean_quotient(T x, T y) noexcept;
-template <typename T> constexpr T euclidean_remainder(T x, T y) noexcept;
+template <typename T> constexpr
+    std::pair<T, T> euclidean_divide(T x, T y) noexcept;
+template <typename T> constexpr
+    T euclidean_quotient(T x, T y) noexcept;
+template <typename T> constexpr
+    T euclidean_remainder(T x, T y) noexcept;
 ```
 
 These perform Euclidean division, where the remainder is always in the range
@@ -68,7 +71,8 @@ Returns the fractional part of a floating point number (defined as
 this will always return zero.
 
 ```c++
-template <typename X, typename Y> constexpr Y interpolate(X x1, Y y1, X x2, Y y2, X x3) noexcept;
+template <typename X, typename Y>
+    constexpr Y interpolate(X x1, Y y1, X x2, Y y2, X x3) noexcept;
 ```
 
 Given two points, `(x1,y1)` and `(x2,y2)`, and a third input argument `x3`,
@@ -77,9 +81,12 @@ must be a floating point arithmetic type; `Y` only needs to define `Y-Y` and
 `X*Y`, and need not be an arithmetic type. Behaviour is undefined if `x1=x2`.
 
 ```c++
-template <typename T> constexpr std::pair<T, T> symmetric_divide(T x, T y) noexcept;
-template <typename T> constexpr T symmetric_quotient(T x, T y) noexcept;
-template <typename T> constexpr T symmetric_remainder(T x, T y) noexcept;
+template <typename T> constexpr
+    std::pair<T, T> symmetric_divide(T x, T y) noexcept;
+template <typename T> constexpr
+    T symmetric_quotient(T x, T y) noexcept;
+template <typename T> constexpr
+    T symmetric_remainder(T x, T y) noexcept;
 ```
 
 These perform symmetric division, where the remainder is in the range
