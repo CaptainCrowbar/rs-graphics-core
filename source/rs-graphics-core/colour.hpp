@@ -111,15 +111,15 @@ namespace RS::Graphics::Core {
         public:
 
             friend constexpr ca_colour operator+(ca_colour c) noexcept { return c; }
-            friend constexpr ca_colour operator-(ca_colour c) noexcept { return ca_colour(- c.vec_); }
-            friend constexpr ca_colour operator+(ca_colour a, ca_colour b) noexcept { return ca_colour(a.vec_ + b.vec_); }
-            friend constexpr ca_colour operator-(ca_colour a, ca_colour b) noexcept { return ca_colour(a.vec_ - b.vec_); }
-            friend constexpr ca_colour operator*(ca_colour a, VT b) noexcept { return ca_colour(a.vec_ * b); }
-            friend constexpr ca_colour operator*(VT a, ca_colour b) noexcept { return ca_colour(a * b.vec_); }
-            friend constexpr ca_colour operator/(ca_colour a, VT b) noexcept { return ca_colour(a.vec_ / b); }
-            friend constexpr ca_colour operator*(ca_colour a, ca_vector b) noexcept { return ca_colour(a.vec_ * b); }
-            friend constexpr ca_colour operator*(ca_vector a, ca_colour b) noexcept { return ca_colour(a * b.vec_); }
-            friend constexpr ca_colour operator/(ca_colour a, ca_vector b) noexcept { return ca_colour(a.vec_ / b); }
+            friend constexpr ca_colour operator-(ca_colour c) noexcept { return ca_colour(- c.as_vector()); }
+            friend constexpr ca_colour operator+(ca_colour a, ca_colour b) noexcept { return ca_colour(a.as_vector() + b.as_vector()); }
+            friend constexpr ca_colour operator-(ca_colour a, ca_colour b) noexcept { return ca_colour(a.as_vector() - b.as_vector()); }
+            friend constexpr ca_colour operator*(ca_colour a, VT b) noexcept { return ca_colour(a.as_vector() * b); }
+            friend constexpr ca_colour operator*(VT a, ca_colour b) noexcept { return ca_colour(a * b.as_vector()); }
+            friend constexpr ca_colour operator/(ca_colour a, VT b) noexcept { return ca_colour(a.as_vector() / b); }
+            friend constexpr ca_colour operator*(ca_colour a, ca_vector b) noexcept { return ca_colour(a.as_vector() * b); }
+            friend constexpr ca_colour operator*(ca_vector a, ca_colour b) noexcept { return ca_colour(a * b.as_vector()); }
+            friend constexpr ca_colour operator/(ca_colour a, ca_vector b) noexcept { return ca_colour(a.as_vector() / b); }
             friend constexpr ca_colour& operator+=(ca_colour& a, ca_colour b) noexcept { return a = a + b; }
             friend constexpr ca_colour& operator-=(ca_colour& a, ca_colour b) noexcept { return a = a - b; }
             friend constexpr ca_colour& operator*=(ca_colour& a, VT b) noexcept { return a = a * b; }
