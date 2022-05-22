@@ -195,9 +195,9 @@ namespace RS::Graphics::Core {
         template <typename V2, char Lit> using if_channel_t =
             std::enable_if<TL::SfinaeTrue<V2, Detail::colour_channel_index<CS, Lit, CL> != -1>::value>;
         template <typename... Args> using if_alpha_args_t =
-            std::enable_if_t<sizeof...(Args) + 2 == channels && (std::is_convertible_v<Args, VT> && ...), VT>;
+            std::enable_if_t<sizeof...(Args) + 2 == channels, VT>;
         template <typename... Args> using if_nonalpha_args_t =
-            std::enable_if_t<has_alpha && sizeof...(Args) + 2 == colour_space_channels && (std::is_convertible_v<Args, VT> && ...), VT>;
+            std::enable_if_t<has_alpha && sizeof...(Args) + 2 == colour_space_channels, VT>;
         template <typename V2> using if_rgb_t = std::enable_if<TL::SfinaeTrue<V2, cs_is_rgb<CS>>::value>;
         template <typename V2> using if_rgba_t = std::enable_if<TL::SfinaeTrue<V2, cs_is_rgb<CS> && has_alpha>::value>;
 
@@ -212,7 +212,7 @@ namespace RS::Graphics::Core {
 
         constexpr Colour() noexcept {}
         explicit constexpr Colour(VT x) noexcept: vec_(x) { if constexpr (has_alpha) alpha() = scale; }
-        template <typename V2 = VT> constexpr Colour(V2 x, std::enable_if_t<has_alpha, V2> a) noexcept: vec_(x) { alpha() = a; }
+        template <typename V2 = VT> constexpr Colour(V2 x, std::enable_if_t<has_alpha, V2> a) noexcept: vec_(VT(x)) { alpha() = VT(a); }
         explicit constexpr Colour(vector_type v) noexcept: vec_(v) {}
         template <typename... Args> constexpr Colour(VT x, if_alpha_args_t<Args...> y, Args... args) noexcept;
         template <typename... Args> constexpr Colour(VT x, if_nonalpha_args_t<Args...> y, Args... args) noexcept;
@@ -347,15 +347,15 @@ namespace RS::Graphics::Core {
 
             } else if constexpr (std::is_integral_v<VT> && std::is_signed_v<VT>) {
 
-                static constexpr double k = double(scale) / 255;
-                for (int i = 0; i < channels; ++i)
-                    vts[i] = const_round<VT>(k * double(bytes[i]));
+                static constexpr double s = double(scale) / 255;
+                for (int x = 0; x < channels; ++x)
+                    vts[x] = const_round<VT>(s * double(bytes[x]));
 
             } else {
 
-                static constexpr VT k = scale / 255;
-                for (int i = 0; i < channels; ++i)
-                    vts[i] = k * VT(bytes[i]);
+                static constexpr VT s = scale / 255;
+                for (int x = 0; x < channels; ++x)
+                    vts[x] = s * VT(bytes[x]);
 
             }
 

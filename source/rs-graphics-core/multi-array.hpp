@@ -61,7 +61,7 @@ namespace RS::Graphics::Core {
         };
 
         template <typename... Args>
-            using int_args = std::enable_if_t<sizeof...(Args) + 1 == N && (std::is_convertible_v<Args, int> && ...), int>;
+            using int_args = std::enable_if_t<sizeof...(Args) + 1 == N, int>;
 
     public:
 
@@ -95,8 +95,8 @@ namespace RS::Graphics::Core {
 
         iterator begin() noexcept { return iterator(*this, 0); }
         const_iterator begin() const noexcept { return const_iterator(*this, 0); }
-        iterator end() noexcept { return iterator(*this, size()); }
-        const_iterator end() const noexcept { return const_iterator(*this, size()); }
+        iterator end() noexcept { return iterator(*this, int(size())); }
+        const_iterator end() const noexcept { return const_iterator(*this, int(size())); }
         T* data() noexcept { return data_.ref(); }
         const T* data() const noexcept { return data_.get(); }
 

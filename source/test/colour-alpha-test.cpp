@@ -70,7 +70,7 @@ void test_rs_graphics_core_colour_premultiplied_alpha() {
 
 void test_rs_graphics_core_colour_alpha_blending() {
 
-    Rgbaf a, b, c, pa, pb, pc;
+    Rgbad a, b, c, pa, pb, pc;
     Rgba8 d, e, f, pd, pe, pf;
 
     TRY((a = {0.2,0.4,0.6,0.8}));

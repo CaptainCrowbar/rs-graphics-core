@@ -40,7 +40,7 @@ using namespace RS::TL;
 
 void test_rs_graphics_core_noise_result_stability() {
 
-    static constexpr float f_epsilon = 1e-4;
+    static constexpr float f_epsilon = 1e-4f;
     static constexpr double d_epsilon = 1e-8;
 
     static const std::vector<std::vector<double>> test_vector_2d = {

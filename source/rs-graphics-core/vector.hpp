@@ -51,8 +51,7 @@ namespace RS::Graphics::Core {
         constexpr Vector() noexcept: array_{} {}
         constexpr explicit Vector(T x) noexcept: array_{} { for (auto& y: *this) y = x; }
         template <typename... Args, typename U = T>
-            constexpr Vector(T x, std::enable_if_t<TL::SfinaeTrue<U, sizeof...(Args) + 2 == N
-                && (std::is_convertible_v<Args, T> && ...)>::value, T> y,
+            constexpr Vector(T x, std::enable_if_t<TL::SfinaeTrue<U, sizeof...(Args) + 2 == N>::value, T> y,
                 Args... args) noexcept:
             array_{{T(x), T(y), T(args)...}} {}
         constexpr explicit Vector(const T* ptr) noexcept: array_{} { for (int i = 0; i < N; ++i) array_[i] = ptr[i]; }
@@ -216,7 +215,7 @@ namespace RS::Graphics::Core {
         auto fp_abs = fp_result < 0 ? - fp_result : fp_result;
         auto int_abs = T(fp_abs + U(0.5));
         auto int_result = fp_result < 0 ? T(0) - int_abs : int_abs;
-        return int_result;
+        return T(int_result);
     }
 
     template <typename T, int N, typename U>

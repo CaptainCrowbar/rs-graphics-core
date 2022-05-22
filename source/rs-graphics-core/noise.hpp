@@ -541,8 +541,8 @@ namespace RS::Graphics::Core {
                 if constexpr (DimOut == 1) {
                     out += s * generators_[0](in);
                 } else {
-                    for (int i = 0; i < DimOut; ++i)
-                        out[i] += s * generators_[i](in);
+                    for (int j = 0; j < DimOut; ++j)
+                        out[j] += s * generators_[j](in);
                 }
             }
 
