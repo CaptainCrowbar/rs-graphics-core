@@ -83,12 +83,16 @@ Other life cycle functions.
 ```c++
 T& MultiArray::operator[](const position& p) noexcept;
 const T& MultiArray::operator[](const position& p) const noexcept;
-template <typename... Args> T& MultiArray::operator()(Args... args) noexcept;
-template <typename... Args> const T& MultiArray::operator()(Args... args) const noexcept;
+template <typename... Args>
+    T& MultiArray::operator()(Args... args) noexcept;
+template <typename... Args>
+    const T& MultiArray::operator()(Args... args) const noexcept;
 T& MultiArray::ref(const position& p) noexcept;
-template <typename... Args> T& MultiArray::ref(Args... args) noexcept;
+template <typename... Args>
+    T& MultiArray::ref(Args... args) noexcept;
 const T& MultiArray::get(const position& p) const noexcept;
-template <typename... Args> const T& MultiArray::get(Args... args) const noexcept;
+template <typename... Args>
+    const T& MultiArray::get(Args... args) const noexcept;
 ```
 
 Access the element at the given position. Behaviour is undefined if any
@@ -112,7 +116,8 @@ Resets the array to an empty array (equivalent to `reset({0,0,...})`).
 
 ```c++
 bool MultiArray::contains(const position& p) const noexcept;
-template <typename... Args> bool MultiArray::contains(Args... args) const noexcept;
+template <typename... Args>
+    bool MultiArray::contains(Args... args) const noexcept;
 ```
 
 True if the position is within the array (none of the coordinates are out of
@@ -141,8 +146,10 @@ Sets all elements of the array to the same value.
 ```c++
 iterator MultiArray::locate(const position& p) noexcept;
 const_iterator MultiArray::locate(const position& p) const noexcept;
-template <typename... Args> iterator MultiArray::locate(Args... args) noexcept;
-template <typename... Args> const_iterator MultiArray::locate(Args... args) const noexcept;
+template <typename... Args>
+    iterator MultiArray::locate(Args... args) noexcept;
+template <typename... Args>
+    const_iterator MultiArray::locate(Args... args) const noexcept;
 ```
 
 Return an iterator pointing to the element at the given position. Behaviour is
